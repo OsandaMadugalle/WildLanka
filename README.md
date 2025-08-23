@@ -23,7 +23,7 @@ Please do not fork, download, or reuse any part of this project without written 
 
 ## 👥 Contributors
 
-See the full list of [contributors here](CONTRIBUTORS.md).
+See the full list of [contributors here](CONTRIBUTORS).
 
 ## 📬 Contact
 
