@@ -17,8 +17,7 @@ const DonationDetailsPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [selectedCountryCode, setSelectedCountryCode] = useState('+1');
-  
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+1');  
 
   // Get donation details from location state
   const donationAmount = location.state?.amount || '';
