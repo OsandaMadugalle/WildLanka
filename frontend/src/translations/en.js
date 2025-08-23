@@ -555,7 +555,7 @@ export default {
 
   // Login translations
   'login.title': 'Welcome Back',
-  'login.subtitle': 'Sign in to your Mufasa Wildlife account',
+  'login.subtitle': 'Sign in to your Wild Lanka Wildlife account',
   'login.form.email': 'Email Address',
   'login.form.emailPlaceholder': 'your.email@example.com',
   'login.form.password': 'Password',

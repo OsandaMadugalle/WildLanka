@@ -504,7 +504,7 @@ export default {
 
   // Login translations
   'login.title': 'නැවත සාදරයෙන් පිළිගනිමු',
-  'login.subtitle': 'ඔබගේ මුෆාසා වනජීවී ගිණුමට ඇතුළු වන්න',
+  'login.subtitle': 'ඔබගේ වයිල්ඩ් ලන්කා වනජීවී ගිණුමට ඇතුළු වන්න',
   'login.form.email': 'ඊමේල් ලිපිනය',
   'login.form.emailPlaceholder': 'your.email@example.com',
   'login.form.password': 'මුරපදය',

@@ -504,7 +504,7 @@ export default {
 
   // Login translations
   'login.title': 'மீண்டும் வரவேற்கிறோம்',
-  'login.subtitle': 'உங்கள் முஃபாசா வனவிலங்கு கணக்கில் உள்நுழையவும்',
+  'login.subtitle': 'உங்கள் காட்டு லங்கா வனவிலங்கு கணக்கில் உள்நுழையவும்',
   'login.form.email': 'மின்னஞ்சல் முகவரி',
   'login.form.emailPlaceholder': 'your.email@example.com',
   'login.form.password': 'கடவுச்சொல்',
