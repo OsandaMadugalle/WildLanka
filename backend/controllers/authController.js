@@ -102,14 +102,14 @@ export const staffLogin = async (req, res, next) => {
 
     // Special handling for admin@mufasa.com
     if (email === 'admin@mufasa.com') {
-      if (password === 'admin123') {
+      if (password === 'admin123') {//Admin password
         // Create admin user object
         const adminUser = {
           id: 'admin_user_id_12345',
           _id: 'admin_user_id_12345',
           firstName: 'Admin',
           lastName: 'User',
-          email: 'admin@mufasa.com',
+          email: 'admin@mufasa.com',//Admin email
           phone: '',
           role: 'admin',
           isActive: true,
