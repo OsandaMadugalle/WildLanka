@@ -31,7 +31,7 @@ expertise: "Elephant behavior, Hiking trails",
       image: "👩‍🔬"
     },
     {
-      name: "Ravi Mendis",
+      name: "Ravidu Mendis",
       role: "Safari Guide & Naturalist",
       description: "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
       expertise: "Bird watching, Photography tours",
