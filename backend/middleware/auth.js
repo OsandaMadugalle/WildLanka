@@ -28,7 +28,7 @@ export const authenticateToken = async (req, res, next) => {
         id: adminId,
         firstName: 'Admin',
         lastName: 'User',
-        email: 'admin@mufasa.com',
+        email: 'admin@mufasa.com',//Admin email
         phone: '',
         role: 'admin',
         isActive: true,
