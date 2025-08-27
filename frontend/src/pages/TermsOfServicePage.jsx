@@ -175,7 +175,7 @@ const TermsOfServicePage = () => {
                 </p>
                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                   <p className="text-gray-700">
-                    <strong>Email:</strong> legal@wildpathsafari.com<br />
+                    <strong>Email:</strong> legal@wildlankasafari.com<br />
                     <strong>Phone:</strong> +94 11 234 5678<br />
                     <strong>Address:</strong> 123 Safari Road, Colombo, Sri Lanka
                   </p>
