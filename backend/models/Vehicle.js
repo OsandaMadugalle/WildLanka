@@ -30,7 +30,6 @@ const vehicleSchema = new mongoose.Schema({
   licensePlate: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     uppercase: true
   },
@@ -125,7 +124,7 @@ const vehicleSchema = new mongoose.Schema({
 
 // Index for efficient queries
 vehicleSchema.index({ driverId: 1, isActive: 1 });
-vehicleSchema.index({ licensePlate: 1 });
+vehicleSchema.index({ licensePlate: 1, unique: true });
 vehicleSchema.index({ isAvailable: 1 });
 
 const Vehicle = mongoose.model("Vehicle", vehicleSchema);
