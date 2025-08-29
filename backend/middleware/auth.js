@@ -19,8 +19,8 @@ export const authenticateToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, getJwtSecret());
     
-    // Special handling for admin@mufasa.com
-    if (decoded.email === 'admin@mufasa.com' && decoded.role === 'admin') {
+  // Special handling for admin@wildlanka.com
+  if (decoded.email === 'admin@wildlanka.com' && decoded.role === 'admin') {
       // Create a proper ObjectId for admin user
       const adminId = new mongoose.Types.ObjectId();
       req.user = {
@@ -28,7 +28,7 @@ export const authenticateToken = async (req, res, next) => {
         id: adminId,
         firstName: 'Admin',
         lastName: 'User',
-        email: 'admin@mufasa.com',//Admin email
+  email: 'admin@wildlanka.com',//Admin email
         phone: '',
         role: 'admin',
         isActive: true,

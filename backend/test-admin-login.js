@@ -5,7 +5,7 @@ const testAdminLogin = async () => {
     console.log('Testing admin login...');
     
     const response = await axios.post('http://localhost:5000/api/auth/login', {
-      email: 'admin@mufasa.com',
+  email: 'admin@wildlanka.com',
       password: 'admin123'
     });
     

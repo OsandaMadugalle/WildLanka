@@ -100,8 +100,8 @@ export const staffLogin = async (req, res, next) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // Special handling for admin@mufasa.com
-    if (email === 'admin@mufasa.com') {
+  // Special handling for admin@wildlanka.com
+  if (email === 'admin@wildlanka.com') {
       if (password === 'admin123') {//Admin password
         // Create admin user object
         const adminUser = {
@@ -109,7 +109,7 @@ export const staffLogin = async (req, res, next) => {
           _id: 'admin_user_id_12345',
           firstName: 'Admin',
           lastName: 'User',
-          email: 'admin@mufasa.com',//Admin email
+          email: 'admin@wildlanka.com',//Admin email
           phone: '',
           role: 'admin',
           isActive: true,
