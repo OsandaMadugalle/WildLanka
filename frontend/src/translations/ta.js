@@ -581,7 +581,7 @@ export default {
   'staffLogin.title': 'ஊழியர் மற்றும் நிர்வாகி உள்நுழைவு',
   'staffLogin.subtitle': 'உங்கள் ஊழியர் அல்லது நிர்வாகி கணக்கில் நுழையுங்கள்',
   'staffLogin.emailLabel': 'மின்னஞ்சல் முகவரி',
-  'staffLogin.emailPlaceholder': 'staff.email@mufasa.com',
+  'staffLogin.emailPlaceholder': 'staff.email@wildlanka.com',
   'staffLogin.passwordLabel': 'கடவுச்சொல்',
   'staffLogin.passwordPlaceholder': 'உங்கள் கடவுச்சொல்லை உள்ளிடவும்',
   'staffLogin.signingIn': 'உள்நுழைகிறது...',
