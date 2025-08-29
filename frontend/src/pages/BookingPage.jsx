@@ -69,31 +69,26 @@ const BookingPage = () => {
 
   const calculateEndDate = (startDate, duration) => {
     const start = new Date(startDate);
-    let daysToAdd = 0;
-    
-    // Parse duration string to extract number of days
-    if (duration.includes('1 Night') || duration.includes('1 Day')) {
-      daysToAdd = 1;
-    } else if (duration.includes('2 Days') || duration.includes('2 Nights')) {
-      daysToAdd = 2;
-    } else if (duration.includes('3 Days') || duration.includes('3 Nights')) {
-      daysToAdd = 3;
-    } else if (duration.includes('4 Days') || duration.includes('4 Nights')) {
-      daysToAdd = 4;
-    } else if (duration.includes('5 Days') || duration.includes('5 Nights')) {
-      daysToAdd = 5;
-    } else if (duration.includes('6 Days') || duration.includes('6 Nights')) {
-      daysToAdd = 6;
-    } else if (duration.includes('7 Days') || duration.includes('7 Nights')) {
-      daysToAdd = 7;
-    } else {
-      // Default to 1 day if duration can't be parsed
-      daysToAdd = 1;
+    let daysToAdd = 1;
+
+    // Try to extract number of days from duration string using regex
+    // Handles formats like "4 Days", "4 days", "4D/3N", "4D", "4 nights", etc.
+    const match = duration.match(/(\d+)\s*[Dd]ay|([Dd]ays)|([Dd])|([Nn]ight|[Nn]ights)/);
+    if (match) {
+      // Try to get the first number in the string
+      const numMatch = duration.match(/(\d+)/);
+      if (numMatch) {
+        daysToAdd = parseInt(numMatch[1], 10);
+      }
     }
-    
+
+    // If duration is like "4D/3N", prefer the first number (days)
+    // If duration is like "4D", use 4
+    // If duration is like "4 nights", use 4
+
     const end = new Date(start);
     end.setDate(start.getDate() + daysToAdd);
-    
+
     return end.toISOString().split('T')[0];
   };
 
@@ -448,10 +443,11 @@ const BookingPage = () => {
                         type="date"
                         name="endDate"
                         value={bookingData.endDate}
-                        onChange={handleInputChange}
-                        className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
+                        readOnly
+                        className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors opacity-70 cursor-not-allowed ${
                           errors.endDate ? 'border-red-400' : 'border-white/20 focus:border-green-400'
                         }`}
+                        tabIndex={-1}
                       />
                       {errors.endDate && (
                         <p className="text-red-400 text-sm mt-1 font-abeze">{errors.endDate}</p>
@@ -463,6 +459,9 @@ const BookingPage = () => {
                   <div>
                     <label className="block text-white font-abeze font-medium mb-2">
                       Number of People *
+                      {packageData && bookingData.numberOfPeople > packageData.maxGroupSize && (
+                        <span className="ml-2 text-red-400 text-xs font-abeze">(Maximum group size is {packageData.maxGroupSize})</span>
+                      )}
                     </label>
                     <input
                       type="number"
@@ -510,7 +509,7 @@ const BookingPage = () => {
                          name="accommodationPreference"
                          value={bookingData.accommodationPreference}
                          onChange={handleInputChange}
-                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                         className="w-full bg-gray-800/80 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
                        >
                          <option value="Standard">Standard</option>
                          <option value="Luxury">Luxury (+LKR 5,000/person)</option>
@@ -527,7 +526,7 @@ const BookingPage = () => {
                          name="transportationPreference"
                          value={bookingData.transportationPreference}
                          onChange={handleInputChange}
-                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                         className="w-full bg-gray-800/80 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
                        >
                          <option value="Included">Included</option>
                          <option value="Private Vehicle">Private Vehicle (+LKR 3,000/person)</option>
@@ -614,7 +613,10 @@ const BookingPage = () => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={
+                      isSubmitting ||
+                      (packageData && bookingData.numberOfPeople > packageData.maxGroupSize)
+                    }
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-abeze font-bold transition-colors duration-300"
                   >
                     {isSubmitting ? 'Processing Booking...' : 'Confirm Booking'}
@@ -625,7 +627,6 @@ const BookingPage = () => {
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
