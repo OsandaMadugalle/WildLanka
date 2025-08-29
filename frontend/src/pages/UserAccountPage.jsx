@@ -280,7 +280,7 @@ const UserAccountPage = () => {
                                              <h2 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-2">
                          {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.firstName || t('userAccount.common.defaultUser')}
                        </h2>
-                       <p className="text-slate-400 font-abeze text-sm">
+                       <p className="text-slate-400 font-abeze text-sm break-all truncate min-w-0">
                          {user?.email}
                        </p>
                     </div>
@@ -332,7 +332,7 @@ const UserAccountPage = () => {
                          <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
                            {t('userAccount.profile.emailAddress')}
                          </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300 break-all truncate min-w-0">
                            {user?.email}
                          </div>
                        </div>
