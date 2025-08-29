@@ -459,6 +459,9 @@ const BookingPage = () => {
                   <div>
                     <label className="block text-white font-abeze font-medium mb-2">
                       Number of People *
+                      {packageData && bookingData.numberOfPeople > packageData.maxGroupSize && (
+                        <span className="ml-2 text-red-400 text-xs font-abeze">(Maximum group size is {packageData.maxGroupSize})</span>
+                      )}
                     </label>
                     <input
                       type="number"
@@ -610,21 +613,20 @@ const BookingPage = () => {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={
+                      isSubmitting ||
+                      (packageData && bookingData.numberOfPeople > packageData.maxGroupSize)
+                    }
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-abeze font-bold transition-colors duration-300"
                   >
                     {isSubmitting ? 'Processing Booking...' : 'Confirm Booking'}
-                    <button
-                      type="submit"
-                      disabled={
-                        isSubmitting ||
-                        (packageData && bookingData.numberOfPeople > packageData.maxGroupSize)
-                      }
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-3 rounded-lg font-abeze font-bold transition-colors duration-300"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Book Now'}
-                    </button>
-
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <Footer />
     </div>
   );
