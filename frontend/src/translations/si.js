@@ -581,7 +581,7 @@ export default {
   'staffLogin.title': 'කාර්ය මණ්ඩල සහ පරිපාලක පිවිසුම',
   'staffLogin.subtitle': 'ඔබගේ කාර්ය මණ්ඩල හෝ පරිපාලක ගිණුමට පිවිසෙන්න',
   'staffLogin.emailLabel': 'විද්‍යුත් තැපැල් ලිපිනය',
-  'staffLogin.emailPlaceholder': 'staff.email@mufasa.com',
+  'staffLogin.emailPlaceholder': 'staff.email@wildlanka.com',
   'staffLogin.passwordLabel': 'මුරපදය',
   'staffLogin.passwordPlaceholder': 'ඔබගේ මුරපදය ඇතුළත් කරන්න',
   'staffLogin.signingIn': 'පිවිසෙමින්...',
