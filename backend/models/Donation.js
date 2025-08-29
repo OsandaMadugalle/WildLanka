@@ -62,7 +62,6 @@ const donationSchema = new mongoose.Schema({
   },
   stripeSessionId: {
     type: String,
-    unique: true,
     sparse: true
   },
   stripePaymentIntentId: {
@@ -81,7 +80,7 @@ const donationSchema = new mongoose.Schema({
 // Index for efficient queries
 donationSchema.index({ email: 1, createdAt: -1 });
 donationSchema.index({ paymentStatus: 1, createdAt: -1 });
-donationSchema.index({ stripeSessionId: 1 });
+donationSchema.index({ stripeSessionId: 1, unique: true, sparse: true });
 
 const Donation = mongoose.model('Donation', donationSchema);
 
