@@ -632,7 +632,7 @@ export default {
   'staffLogin.title': 'Staff & Admin Login',
   'staffLogin.subtitle': 'Access your staff or admin account',
   'staffLogin.emailLabel': 'Email Address',
-  'staffLogin.emailPlaceholder': 'staff.email@mufasa.com',
+  'staffLogin.emailPlaceholder': 'staff.email@wildlanka.com',
   'staffLogin.passwordLabel': 'Password',
   'staffLogin.passwordPlaceholder': 'Enter your password',
   'staffLogin.signingIn': 'Signing In...',

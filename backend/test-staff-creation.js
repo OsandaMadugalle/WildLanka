@@ -6,7 +6,7 @@ const testStaffCreation = async () => {
     
     // First, login as admin to get token
     const loginResponse = await axios.post('http://localhost:5000/api/auth/login', {
-      email: 'admin@mufasa.com',
+  email: 'admin@wildlanka.com',
       password: 'admin123'
     });
     
@@ -17,7 +17,7 @@ const testStaffCreation = async () => {
     const driverData = {
       firstName: 'John',
       lastName: 'Driver',
-      email: 'john.driver@mufasa.com',
+  email: 'john.driver@wildlanka.com',
       password: 'password123',
       phone: '+94 71 123 4567',
       role: 'driver',
@@ -40,7 +40,7 @@ const testStaffCreation = async () => {
     const guideData = {
       firstName: 'Sarah',
       lastName: 'Guide',
-      email: 'sarah.guide@mufasa.com',
+  email: 'sarah.guide@wildlanka.com',
       password: 'password123',
       phone: '+94 71 987 6543',
       role: 'tour_guide',
@@ -63,7 +63,7 @@ const testStaffCreation = async () => {
     const subAdminData = {
       firstName: 'Mike',
       lastName: 'Admin',
-      email: 'mike.admin@mufasa.com',
+  email: 'mike.admin@wildlanka.com',
       password: 'password123',
       phone: '+94 71 555 1234',
       role: 'admin',
