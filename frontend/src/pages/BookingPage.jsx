@@ -506,7 +506,7 @@ const BookingPage = () => {
                          name="accommodationPreference"
                          value={bookingData.accommodationPreference}
                          onChange={handleInputChange}
-                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                         className="w-full bg-gray-800/80 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
                        >
                          <option value="Standard">Standard</option>
                          <option value="Luxury">Luxury (+LKR 5,000/person)</option>
@@ -523,7 +523,7 @@ const BookingPage = () => {
                          name="transportationPreference"
                          value={bookingData.transportationPreference}
                          onChange={handleInputChange}
-                         className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                         className="w-full bg-gray-800/80 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
                        >
                          <option value="Included">Included</option>
                          <option value="Private Vehicle">Private Vehicle (+LKR 3,000/person)</option>
@@ -614,13 +614,16 @@ const BookingPage = () => {
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-abeze font-bold transition-colors duration-300"
                   >
                     {isSubmitting ? 'Processing Booking...' : 'Confirm Booking'}
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                    <button
+                      type="submit"
+                      disabled={
+                        isSubmitting ||
+                        (packageData && bookingData.numberOfPeople > packageData.maxGroupSize)
+                      }
+                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-3 rounded-lg font-abeze font-bold transition-colors duration-300"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Book Now'}
+                    </button>
 
       <Footer />
     </div>
