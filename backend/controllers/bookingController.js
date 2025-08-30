@@ -1,3 +1,23 @@
+// User requests cancellation for confirmed booking
+const requestCancellation = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+        // Only allow if user owns booking and status is confirmed
+        if (booking.userId.toString() !== req.user._id.toString() || booking.status !== 'Confirmed') {
+            return res.status(403).json({ success: false, message: "Not allowed" });
+        }
+        // Mark booking as cancellation requested
+        booking.cancellationRequested = true;
+        await booking.save();
+        res.json({ success: true, message: "Cancellation request sent to admin." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 import Booking from '../models/Booking.js';
 import Package from '../models/Package.js';
 import User from '../models/User.js';
@@ -403,38 +423,40 @@ const updateBookingStatus = async (req, res) => {
     try {
         const { bookingId } = req.params;
         const { status } = req.body;
-        
-        // Check if user is admin or staff
-        if (req.user.role === 'user') {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Access denied" 
-            });
-        }
-        
-        const booking = await Booking.findByIdAndUpdate(
-            bookingId,
-            { status },
-            { new: true }
-        );
-        
+        const booking = await Booking.findById(bookingId);
         if (!booking) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Booking not found" 
-            });
+            return res.status(404).json({ success: false, message: "Booking not found" });
         }
-        
-        res.json({ 
-            success: true, 
-            booking: booking 
-        });
+
+        // Allow user to cancel their own booking only if not yet confirmed
+        if (req.user.role === 'user') {
+            console.log('Cancel booking debug:', {
+                bookingId,
+                bookingUserId: booking.userId.toString(),
+                requestUserId: req.user._id.toString(),
+                bookingStatus: booking.status,
+                requestedStatus: status
+            });
+            if (status === 'Cancelled' && booking.userId.toString() === req.user._id.toString() && booking.status !== 'Confirmed') {
+                booking.status = 'Cancelled';
+                await booking.save();
+                return res.json({ success: true, booking });
+            } else {
+                return res.status(403).json({ success: false, message: "Access denied" });
+            }
+        }
+
+        // Prevent status update for cancelled bookings
+        if (booking.status === 'Cancelled') {
+            return res.status(400).json({ success: false, message: 'Cannot update status of a cancelled booking.' });
+        }
+        // Admin/staff can update status as before
+        booking.status = status;
+        await booking.save();
+        res.json({ success: true, booking });
     } catch (error) {
         console.log("Update booking status error:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message 
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -886,6 +908,13 @@ const assignDriverToBooking = async (req, res) => {
             });
         }
         
+        // Prevent assignment for cancelled bookings
+        if (booking.status === 'Cancelled') {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cannot assign driver to a cancelled booking" 
+            });
+        }
         // Check if booking is in a state where driver can be assigned
         if (booking.status !== 'Payment Confirmed' && booking.status !== 'Pending') {
             return res.status(400).json({ 
@@ -938,6 +967,13 @@ const assignGuideToBooking = async (req, res) => {
             });
         }
         
+        // Prevent assignment for cancelled bookings
+        if (booking.status === 'Cancelled') {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cannot assign guide to a cancelled booking" 
+            });
+        }
         // Check if booking is in a state where guide can be assigned
         if (booking.status !== 'Payment Confirmed' && booking.status !== 'Pending' && booking.status !== 'Driver Assigned') {
             return res.status(400).json({ 
@@ -1030,6 +1066,7 @@ export {
     getAvailableBookingsForGuide,
     getGuideAcceptedBookings,
     getGuideCompletedBookings,
+    requestCancellation,
     acceptBookingAsGuide,
     completeTourAsGuide,
     assignDriverToBooking,
