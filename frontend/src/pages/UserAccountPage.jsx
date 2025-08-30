@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -666,6 +666,65 @@ const UserAccountPage = () => {
                                  {downloadingPDF !== booking._id && (
                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                                  )}
+                               </button>
+                             )}
+
+                             {/* Cancel Booking Button - Only for non-cancelled bookings */}
+                             {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
+                               <button
+                                 onClick={async () => {
+                                   if (window.confirm('Are you sure you want to cancel this booking?')) {
+                                     try {
+                                       const res = await bookingApi.updateBookingStatus(booking._id, 'Cancelled');
+                                       if (!res.success) {
+                                         alert(res.message || 'Failed to cancel booking.');
+                                       } else {
+                                         handleViewBookings();
+                                       }
+                                     } catch (err) {
+                                       alert('An error occurred while cancelling the booking.');
+                                     }
+                                   }
+                                 }}
+                                 className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-red-600 hover:bg-red-700 border-red-400/30 text-white"
+                               >
+                                 <div className="flex items-center space-x-2">
+                                   <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                   </svg>
+                                   <span>Cancel Booking</span>
+                                 </div>
+                                 <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                               </button>
+                             )}
+
+                             {/* Request Cancellation Button - Only for confirmed bookings */}
+                             {booking.status === 'Confirmed' && (
+                               <button
+                                 onClick={async () => {
+                                   if (window.confirm('Do you want to request cancellation for this confirmed booking?')) {
+                                     try {
+                                       // Send cancellation request to admin (API call)
+                                       const res = await bookingApi.requestCancellation(booking._id);
+                                       if (res.success) {
+                                         alert('Your cancellation request has been sent to the admin.');
+                                       } else {
+                                         alert(res.message || 'Failed to send cancellation request.');
+                                       }
+                                     } catch (err) {
+                                       alert('An error occurred while sending the cancellation request.');
+                                     }
+                                   }
+                                 }}
+                                 className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-600 hover:bg-yellow-700 border-yellow-400/30 text-white"
+                               >
+                                 <div className="flex items-center space-x-2">
+                                   <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z" />
+                                   </svg>
+                                   <span>Request Cancellation</span>
+                                 </div>
+                                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                                </button>
                              )}
 

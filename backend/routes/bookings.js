@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { 
     createStripeCheckout, 
@@ -18,11 +19,15 @@ import {
     completeTourAsGuide,
     assignDriverToBooking,
     assignGuideToBooking,
-    completeBookingByAdmin
+    completeBookingByAdmin,
+    requestCancellation
 } from '../controllers/bookingController.js';
 import { authenticateToken as auth } from '../middleware/auth.js';
 
 const bookingRouter = express.Router();
+
+// User requests cancellation for confirmed booking
+bookingRouter.post('/request-cancellation/:bookingId', auth, requestCancellation);
 
 // User routes (require authentication)
 bookingRouter.post('/stripe-checkout', auth, createStripeCheckout);
