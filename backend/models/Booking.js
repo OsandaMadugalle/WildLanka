@@ -1,12 +1,20 @@
 import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
+  cancellationRequested: {
+    type: Boolean,
+    default: false
+  },
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
   },
-  packageId: { 
+    cancellationRequested: {
+      type: Boolean,
+      default: false
+    },
+    packageId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Package', 
     required: true 
