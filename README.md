@@ -4,17 +4,20 @@
 ![Contributors](https://img.shields.io/github/contributors/OsandaMadugalle/WildLanka)
 ![Last Commit](https://img.shields.io/github/last-commit/OsandaMadugalle/WildLanka)
 ![Repo Size](https://img.shields.io/github/repo-size/OsandaMadugalle/WildLanka)
+![MERN Stack](https://img.shields.io/badge/Tech-MERN-brightgreen)
 
-WildLanka is a collaborative project developed by a passionate team of five contributors. It is publicly viewable but protected under strict usage terms. This repository showcases [insert a brief description of what the project does—e.g., wildlife tracking, conservation data, etc.].
+WildLanka is a collaborative project developed by a passionate team of five contributors. It is publicly viewable but protected under strict usage terms. This repository showcases a group project for Y2S2, focused on wildlife conservation and tracking, utilizing the modern MERN stack.
+
+> **Note:** Some badges may not display correctly because this repository is private.
 
 ## 🚀 Project Overview
 
-- 🌿 **Purpose**: [Describe the goal or mission of WildLanka]
-- 🛠️ **Technologies Used**: [List key technologies or frameworks—e.g., Python, React, Firebase]
+- 🌿 **Purpose**: WildLanka aims to support wildlife conservation efforts through data collection, tracking, and visualization tools tailored for local needs in Sri Lanka.
+- 🛠️ **Technologies Used**: MERN Stack (MongoDB, Express.js, React.js, Node.js)
 - 📊 **Features**:
-  - [Feature 1]
-  - [Feature 2]
-  - [Feature 3]
+  - Wildlife tracking and monitoring
+  - Conservation data visualization
+  - Collaborative tools for researchers and volunteers
 
 ## 📄 License
 
@@ -22,6 +25,14 @@ This project is protected under a [custom license](LICENSE).
 Please do not fork, download, or reuse any part of this project without written permission from all listed authors.
 
 ## 👥 Contributors
+
+| Name | Avatar |
+|------|--------|
+| [OsandaMadugalle](https://github.com/OsandaMadugalle) | <img src="https://avatars.githubusercontent.com/u/202526604?v=4" height="32" width="32"> |
+| [Ikshuka](https://github.com/Ikshuka) | <img src="https://avatars.githubusercontent.com/u/222925164?v=4" height="32" width="32"> |
+| [Kalana-JY](https://github.com/Kalana-JY) | <img src="https://avatars.githubusercontent.com/u/192845103?v=4" height="32" width="32"> |
+| [Malinda-SA](https://github.com/Malinda-SA) | <img src="https://avatars.githubusercontent.com/u/203055975?v=4" height="32" width="32"> |
+| [Ravindu-Dev](https://github.com/Ravindu-Dev) | <img src="https://avatars.githubusercontent.com/u/185613152?v=4" height="32" width="32"> |
 
 See the full list of [contributors here](CONTRIBUTORS).
 
