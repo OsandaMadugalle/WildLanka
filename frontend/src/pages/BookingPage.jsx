@@ -421,15 +421,16 @@ const BookingPage = () => {
                       <label className="block text-white font-abeze font-medium mb-2">
                         Start Date *
                       </label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={bookingData.startDate}
-                        onChange={handleInputChange}
-                        className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                          errors.startDate ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                        }`}
-                      />
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={bookingData.startDate}
+                          onChange={handleInputChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
+                            errors.startDate ? 'border-red-400' : 'border-white/20 focus:border-green-400'
+                          }`}
+                        />
                       {errors.startDate && (
                         <p className="text-red-400 text-sm mt-1 font-abeze">{errors.startDate}</p>
                       )}
