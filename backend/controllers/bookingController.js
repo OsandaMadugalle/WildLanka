@@ -97,107 +97,94 @@ const createStripeCheckout = async (req, res) => {
             });
         }
 
-        const { 
-            packageId, 
-            startDate, 
-            endDate, 
-            numberOfPeople, 
-            specialRequests, 
-            emergencyContact, 
-            dietaryRestrictions, 
-            accommodationPreference, 
-            transportationPreference 
+        const {
+            bookingId,
+            packageId,
+            startDate,
+            endDate,
+            numberOfPeople,
+            specialRequests,
+            emergencyContact,
+            dietaryRestrictions,
+            accommodationPreference,
+            transportationPreference
         } = req.body;
 
-        const userId = req.user._id;
+        let booking;
+        let totalPrice;
+        let packageData;
 
-        // Validate required fields
-        if (!packageId || !startDate || !endDate || !numberOfPeople || !emergencyContact) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields"
+        if (bookingId) {
+            // Use existing booking for pending payment
+            booking = await Booking.findById(bookingId);
+            if (!booking) {
+                return res.status(404).json({ success: false, message: "Booking not found" });
+            }
+            if (booking.payment) {
+                return res.status(400).json({ success: false, message: "Booking already paid" });
+            }
+            packageData = await Package.findById(booking.packageId);
+            totalPrice = booking.totalPrice;
+        } else {
+            // Validate required fields for new booking
+            if (!packageId || !startDate || !endDate || !numberOfPeople || !emergencyContact) {
+                return res.status(400).json({ success: false, message: "Missing required fields" });
+            }
+            packageData = await Package.findById(packageId);
+            if (!packageData) {
+                return res.status(404).json({ success: false, message: "Package not found" });
+            }
+            // Calculate total price
+            let basePrice = packageData.price * numberOfPeople;
+            let extraCosts = 0;
+            switch (accommodationPreference) {
+                case 'Luxury': extraCosts += 5000 * numberOfPeople; break;
+                case 'Tented Camp': extraCosts += 2000 * numberOfPeople; break;
+                case 'Eco Lodge': extraCosts += 3000 * numberOfPeople; break;
+                default: break;
+            }
+            switch (transportationPreference) {
+                case 'Private Vehicle': extraCosts += 3000 * numberOfPeople; break;
+                case 'Shared Vehicle': extraCosts += 1000 * numberOfPeople; break;
+                default: break;
+            }
+            totalPrice = basePrice + extraCosts;
+            // Create booking record
+            const bookingData = {
+                userId: req.user._id,
+                packageId,
+                packageDetails: {
+                    title: packageData.title,
+                    duration: packageData.duration,
+                    location: packageData.location,
+                    category: packageData.category,
+                    basePrice: packageData.price
+                },
+                bookingDetails: {
+                    startDate,
+                    endDate,
+                    numberOfPeople,
+                    specialRequests,
+                    emergencyContact,
+                    dietaryRestrictions,
+                    accommodationPreference,
+                    transportationPreference
+                },
+                totalPrice,
+                paymentMethod: "Stripe",
+                payment: false
+            };
+            booking = new Booking(bookingData);
+            await booking.save();
+            console.log('✅ Booking saved to database:', {
+                bookingId: booking._id,
+                userId: booking.userId,
+                packageId: booking.packageId,
+                totalPrice: booking.totalPrice,
+                status: booking.status,
+                payment: booking.payment
             });
         }
-
-        // Fetch package details
-        const packageData = await Package.findById(packageId);
-        if (!packageData) {
-            return res.status(404).json({
-                success: false,
-                message: "Package not found"
-            });
-        }
-
-        // Calculate total price
-        let basePrice = packageData.price * numberOfPeople;
-        let extraCosts = 0;
-        
-        // Add accommodation preference costs
-        switch (accommodationPreference) {
-            case 'Luxury':
-                extraCosts += 5000 * numberOfPeople;
-                break;
-            case 'Tented Camp':
-                extraCosts += 2000 * numberOfPeople;
-                break;
-            case 'Eco Lodge':
-                extraCosts += 3000 * numberOfPeople;
-                break;
-            default:
-                break;
-        }
-        
-        // Add transportation preference costs
-        switch (transportationPreference) {
-            case 'Private Vehicle':
-                extraCosts += 3000 * numberOfPeople;
-                break;
-            case 'Shared Vehicle':
-                extraCosts += 1000 * numberOfPeople;
-                break;
-            default:
-                break;
-        }
-        
-        const totalPrice = basePrice + extraCosts;
-
-        // Create booking record
-        const bookingData = {
-            userId,
-            packageId,
-            packageDetails: {
-                title: packageData.title,
-                duration: packageData.duration,
-                location: packageData.location,
-                category: packageData.category,
-                basePrice: packageData.price
-            },
-            bookingDetails: {
-                startDate,
-                endDate,
-                numberOfPeople,
-                specialRequests,
-                emergencyContact,
-                dietaryRestrictions,
-                accommodationPreference,
-                transportationPreference
-            },
-            totalPrice,
-            paymentMethod: "Stripe",
-            payment: false
-        };
-
-        const newBooking = new Booking(bookingData);
-        await newBooking.save();
-        
-        console.log('✅ Booking saved to database:', {
-            bookingId: newBooking._id,
-            userId: newBooking.userId,
-            packageId: newBooking.packageId,
-            totalPrice: newBooking.totalPrice,
-            status: newBooking.status,
-            payment: newBooking.payment
-        });
 
         // Create Stripe checkout session
         const line_items = [{
@@ -213,8 +200,8 @@ const createStripeCheckout = async (req, res) => {
             quantity: 1
         }];
 
-        // Add accommodation upgrade if selected
-        if (accommodationPreference !== 'Standard') {
+        // Add accommodation upgrade if selected (only for new booking)
+        if (!bookingId && accommodationPreference !== 'Standard') {
             const accommodationCost = (() => {
                 switch (accommodationPreference) {
                     case 'Luxury': return 5000 * numberOfPeople;
@@ -223,7 +210,6 @@ const createStripeCheckout = async (req, res) => {
                     default: return 0;
                 }
             })();
-            
             line_items.push({
                 price_data: {
                     currency: 'lkr',
@@ -236,8 +222,8 @@ const createStripeCheckout = async (req, res) => {
             });
         }
 
-        // Add transportation upgrade if selected
-        if (transportationPreference !== 'Included') {
+        // Add transportation upgrade if selected (only for new booking)
+        if (!bookingId && transportationPreference !== 'Included') {
             const transportationCost = (() => {
                 switch (transportationPreference) {
                     case 'Private Vehicle': return 3000 * numberOfPeople;
@@ -245,7 +231,6 @@ const createStripeCheckout = async (req, res) => {
                     default: return 0;
                 }
             })();
-            
             line_items.push({
                 price_data: {
                     currency: 'lkr',
@@ -264,7 +249,7 @@ const createStripeCheckout = async (req, res) => {
             line_items,
             mode: 'payment',
             metadata: {
-                bookingId: newBooking._id.toString()
+                bookingId: booking._id.toString()
             }
         });
 
@@ -275,18 +260,18 @@ const createStripeCheckout = async (req, res) => {
         });
 
         // Update booking with Stripe session ID
-        newBooking.stripeSessionId = session.id;
-        await newBooking.save();
-        
+        booking.stripeSessionId = session.id;
+        await booking.save();
+
         console.log('✅ Booking updated with Stripe session ID:', {
-            bookingId: newBooking._id,
-            stripeSessionId: newBooking.stripeSessionId
+            bookingId: booking._id,
+            stripeSessionId: booking.stripeSessionId
         });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             session_url: session.url,
-            bookingId: newBooking._id 
+            bookingId: booking._id
         });
 
     } catch (error) {
