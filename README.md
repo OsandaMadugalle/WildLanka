@@ -24,6 +24,8 @@ WildLanka is a collaborative project developed by a passionate team of five cont
 This project is protected under a [custom license](LICENSE).  
 Please do not fork, download, or reuse any part of this project without written permission from all listed authors.
 
+> **Note:** All code and content in this repository is exclusively created by the listed authors. No outside contributions are permitted.
+
 ## 👥 Contributors
 
 | Name | Avatar |
