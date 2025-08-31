@@ -219,6 +219,10 @@ export const safariRequestApi = {
 };
 
 export const bookingApi = {
+  async createBooking(payload) {
+    const { data } = await api.post('/api/bookings', payload);
+    return data;
+  },
   async createStripeCheckout(payload) {
     const { data } = await api.post('/api/bookings/stripe-checkout', payload);
     return data;
@@ -241,6 +245,10 @@ export const bookingApi = {
   },
   async updateBookingStatus(bookingId, status) {
     const { data } = await api.put(`/api/bookings/status/${bookingId}`, { status });
+    return data;
+  },
+  async updateBooking(bookingId, payload) {
+    const { data } = await api.put(`/api/bookings/${bookingId}`, payload);
     return data;
   },
   // Driver booking management

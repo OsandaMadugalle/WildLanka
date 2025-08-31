@@ -22,8 +22,9 @@ const BookingPage = () => {
     accommodationPreference: 'Standard',
     transportationPreference: 'Included'
   });
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [paymentOption, setPaymentOption] = useState('payNow');
 
   useEffect(() => {
     loadPackageData();
@@ -181,14 +182,24 @@ const BookingPage = () => {
         accommodationPreference: bookingData.accommodationPreference,
         transportationPreference: bookingData.transportationPreference
       };
-
-      const response = await bookingApi.createStripeCheckout(bookingPayload);
-      
-      if (response.success) {
-        // Redirect to Stripe checkout
-        window.location.href = response.session_url;
+      if (paymentOption === 'payLater') {
+        // Create booking with status 'Pending', skip Stripe
+        const res = await bookingApi.createBooking(bookingPayload);
+        if (res.success) {
+          alert('Booking created! Please pay later or contact admin.');
+          navigate('/account');
+        } else {
+          alert(res.message || 'Failed to create booking');
+        }
       } else {
-        alert('Failed to create booking. Please try again.');
+        // Stripe payment flow (existing)
+        const response = await bookingApi.createStripeCheckout(bookingPayload);
+        if (response.success) {
+          // Redirect to Stripe checkout
+          window.location.href = response.session_url;
+        } else {
+          alert('Failed to create booking. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error submitting booking:', error);
@@ -421,15 +432,16 @@ const BookingPage = () => {
                       <label className="block text-white font-abeze font-medium mb-2">
                         Start Date *
                       </label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={bookingData.startDate}
-                        onChange={handleInputChange}
-                        className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                          errors.startDate ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                        }`}
-                      />
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={bookingData.startDate}
+                          onChange={handleInputChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
+                            errors.startDate ? 'border-red-400' : 'border-white/20 focus:border-green-400'
+                          }`}
+                        />
                       {errors.startDate && (
                         <p className="text-red-400 text-sm mt-1 font-abeze">{errors.startDate}</p>
                       )}
@@ -610,6 +622,23 @@ const BookingPage = () => {
                      </div>
                    </div>
 
+                  {/* Payment Option (highlighted) */}
+                  <div className="mb-6">
+                    <label className="block text-white font-abeze font-medium mb-2">Payment Option</label>
+                    <div className="flex gap-6">
+                      <label className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer border transition-colors duration-200 ${paymentOption === 'payNow' ? 'bg-green-700/30 border-green-400 text-green-300 font-bold shadow' : 'bg-gray-800 border-gray-600 text-white'}`}
+        htmlFor="payNow">
+        <input type="radio" id="payNow" name="paymentOption" value="payNow" checked={paymentOption === 'payNow'} onChange={() => setPaymentOption('payNow')} className="accent-green-500" />
+        <span>Pay Now (Online)</span>
+      </label>
+      <label className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer border transition-colors duration-200 ${paymentOption === 'payLater' ? 'bg-yellow-600/30 border-yellow-400 text-yellow-300 font-bold shadow' : 'bg-gray-800 border-gray-600 text-white'}`}
+        htmlFor="payLater">
+        <input type="radio" id="payLater" name="paymentOption" value="payLater" checked={paymentOption === 'payLater'} onChange={() => setPaymentOption('payLater')} className="accent-yellow-500" />
+        <span>Book Now, Pay Later</span>
+      </label>
+    </div>
+  </div>
+
                   {/* Submit Button */}
                   <button
                     type="submit"
@@ -619,7 +648,7 @@ const BookingPage = () => {
                     }
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-abeze font-bold transition-colors duration-300"
                   >
-                    {isSubmitting ? 'Processing Booking...' : 'Confirm Booking'}
+                    {isSubmitting ? 'Processing Booking...' : paymentOption === 'payNow' ? 'Confirm & Pay Now' : 'Book Now, Pay Later'}
                   </button>
                 </form>
               </div>
