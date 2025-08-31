@@ -88,6 +88,17 @@ const createStripeCheckout = async (req, res) => {
             });
         }
 
+            // Prevent booking with startDate before today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const startDateObj = new Date(startDate);
+            if (startDateObj < today) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Start date cannot be in the past"
+                });
+            }
+
         // Fetch package details
         const packageData = await Package.findById(packageId);
         if (!packageData) {
