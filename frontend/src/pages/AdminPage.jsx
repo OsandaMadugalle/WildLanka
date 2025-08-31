@@ -1382,12 +1382,17 @@ The Wildlife Safari Team`);
                   <button
                     onClick={() => handleAssignStaff(booking)}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
+                    disabled={booking.status === 'Cancelled'}
+                    style={booking.status === 'Cancelled' ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span>Assign Staff</span>
                   </button>
+                  {booking.status === 'Cancelled' && (
+                    <span className="ml-2 text-red-500 font-abeze text-sm">Cannot assign staff to a cancelled booking.</span>
+                  )}
                 </div>
                 <div className="flex items-center space-x-3">
                   <label className="text-white font-abeze text-sm">Update Status:</label>
@@ -1395,6 +1400,8 @@ The Wildlife Safari Team`);
                     value={booking.status}
                     onChange={(e) => handleStatusSelectChange(booking._id, e.target.value)}
                     className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={booking.status === 'Cancelled'}
+                    style={booking.status === 'Cancelled' ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                   >
                     <option value="Pending">Pending</option>
                     <option value="Payment Confirmed">Payment Confirmed</option>
@@ -1403,6 +1410,9 @@ The Wildlife Safari Team`);
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
                   </select>
+                  {booking.status === 'Cancelled' && (
+                    <span className="ml-2 text-red-500 font-abeze text-sm">Cannot update status of a cancelled booking.</span>
+                  )}
                 </div>
               </div>
             </div>

@@ -18,6 +18,7 @@ import BookingCancelledPage from './pages/BookingCancelledPage'
 import DriverDashboard from './pages/DriverDashboard'
 import TourGuideDashboard from './pages/TourGuideDashboard'
 import DonatePage from './pages/DonatePage'
+import UpdateBookingPage from './pages/UpdateBookingPage';
 import DonationDetailsPage from './pages/DonationDetailsPage'
 import DonationSuccessPage from './pages/DonationSuccessPage'
 import DonationCancelledPage from './pages/DonationCancelledPage'
@@ -80,6 +81,11 @@ function App() {
               <Route path="/account" element={
                 <ProtectedRoute>
                   <UserAccountPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/update-booking/:bookingId" element={
+                <ProtectedRoute>
+                  <UpdateBookingPage />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
