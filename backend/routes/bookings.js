@@ -20,7 +20,8 @@ import {
     assignDriverToBooking,
     assignGuideToBooking,
     completeBookingByAdmin,
-    requestCancellation
+    requestCancellation,
+    updateBookingDetails
 } from '../controllers/bookingController.js';
 import { authenticateToken as auth } from '../middleware/auth.js';
 
@@ -52,6 +53,9 @@ bookingRouter.get('/guide/accepted', auth, getGuideAcceptedBookings);
 bookingRouter.get('/guide/completed', auth, getGuideCompletedBookings);
 bookingRouter.post('/guide/accept/:bookingId', auth, acceptBookingAsGuide);
 bookingRouter.post('/guide/complete/:bookingId', auth, completeTourAsGuide);
+
+// User update booking details
+bookingRouter.put('/:bookingId', auth, updateBookingDetails);
 
 // Admin routes (require authentication and admin role)
 bookingRouter.post('/admin/assign-driver/:bookingId', auth, assignDriverToBooking);

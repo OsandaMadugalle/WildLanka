@@ -243,6 +243,10 @@ export const bookingApi = {
     const { data } = await api.put(`/api/bookings/status/${bookingId}`, { status });
     return data;
   },
+  async updateBooking(bookingId, payload) {
+    const { data } = await api.put(`/api/bookings/${bookingId}`, payload);
+    return data;
+  },
   // Driver booking management
   async getPendingBookingsForDriver() {
     const { data } = await api.get('/api/bookings/driver/pending');

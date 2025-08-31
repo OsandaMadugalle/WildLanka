@@ -35,6 +35,13 @@ const packageSchema = new mongoose.Schema(
       deleteUrl: { type: String },
       id: { type: String }
     },
+    gallery: [
+      {
+        url: { type: String },
+        deleteUrl: { type: String },
+        id: { type: String }
+      }
+    ],
     isPopular: { 
       type: Boolean, 
       default: false 
