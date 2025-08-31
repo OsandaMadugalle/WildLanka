@@ -22,8 +22,8 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const fileInputRef = useRef(null);
 
   const categories = ['Safari', 'Hiking', 'Photography', 'Birding', 'Adventure'];
@@ -46,19 +46,19 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    const files = Array.from(e.target.files);
+    setSelectedImages(files);
+    Promise.all(files.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    })).then(previews => setImagePreviews(previews));
   };
 
   const handleImageClick = () => {
-    fileInputRef.current?.click();
+  fileInputRef.current?.click();
   };
 
   const validateForm = () => {
@@ -89,15 +89,15 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
     try {
       // Create package first
       const newPackage = await packageApi.createPackage(formData);
-      
-      // Upload image if selected
-      if (selectedImage) {
+      // Upload gallery images if selected
+      if (selectedImages.length > 0) {
         setIsUploadingImage(true);
-        const imageFormData = new FormData();
-        imageFormData.append('image', selectedImage);
-        await packageApi.uploadPackageImage(newPackage._id, imageFormData);
+        for (const img of selectedImages) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', img);
+          await packageApi.uploadPackageGalleryImage(newPackage._id, imageFormData);
+        }
       }
-      
       onPackageAdded();
       onClose();
     } catch (err) {
@@ -312,23 +312,27 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
                 </label>
               </div>
 
-              {/* Package Image */}
+              {/* Package Gallery Images */}
               <div>
                 <label className="block text-white font-abeze font-medium mb-2">
-                  Package Image
+                  Package Gallery Images
                 </label>
                 <div
                   onClick={handleImageClick}
                   className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
                 >
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                  {imagePreviews.length > 0 ? (
+                    <div className="flex gap-2 w-full h-full">
+                      {imagePreviews.map((preview, idx) => (
+                        <img key={idx} src={preview} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                      ))}
+                    </div>
                   ) : (
                     <div className="text-center">
                       <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      <p className="text-gray-400 font-abeze text-sm">Click to upload image</p>
+                      <p className="text-gray-400 font-abeze text-sm">Click to upload images</p>
                     </div>
                   )}
                 </div>
@@ -336,6 +340,7 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleImageChange}
                   className="hidden"
                 />
