@@ -15,6 +15,15 @@ import { generateBookingPDF } from '../utils/pdfGenerator';
 const UserAccountPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Role-based redirect: if driver or guide, redirect to their dashboard
+  useEffect(() => {
+    if (user?.role === 'driver') {
+      navigate('/driver-dashboard', { replace: true });
+    } else if (user?.role === 'tour_guide') {
+      navigate('/tour-guide-dashboard', { replace: true });
+    }
+  }, [user, navigate]);
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
