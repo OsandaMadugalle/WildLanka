@@ -18,6 +18,7 @@ const DriverDashboard = () => {
   const [acceptingBooking, setAcceptingBooking] = useState(null);
   const [completingBooking, setCompletingBooking] = useState(null);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [editVehicle, setEditVehicle] = useState(null);
   const [payroll, setPayroll] = useState(null);
 
   useEffect(() => {
@@ -134,8 +135,33 @@ const DriverDashboard = () => {
     }
   };
 
+
   const handleVehicleAdded = (newVehicle) => {
     setVehicles(prev => [newVehicle, ...prev]);
+  };
+
+  const handleVehicleUpdated = (updatedVehicle) => {
+    setVehicles(prev => prev.map(v => v._id === updatedVehicle._id ? updatedVehicle : v));
+  };
+
+  const handleEditVehicle = (vehicle) => {
+    setEditVehicle(vehicle);
+    setShowAddVehicle(true);
+  };
+
+  const handleDeleteVehicle = async (vehicleId) => {
+    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
+    try {
+      const { vehicleApi } = await import('../services/api');
+      const response = await vehicleApi.deleteVehicle(vehicleId);
+      if (response.success) {
+        setVehicles(prev => prev.filter(v => v._id !== vehicleId));
+      } else {
+        alert(response.message || 'Failed to delete vehicle');
+      }
+    } catch (err) {
+      alert('Failed to delete vehicle. Please try again.');
+    }
   };
 
   const handleLogout = () => {
@@ -710,7 +736,12 @@ const DriverDashboard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle) => (
-            <div key={vehicle._id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+            <div key={vehicle._id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 relative flex flex-col justify-between h-full">
+              {/* ...existing code... */}
+              <div className="flex-grow">
+                {/* ...existing code for vehicle details... */}
+              </div>
+              
               {/* Vehicle Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -827,6 +858,23 @@ const DriverDashboard = () => {
                     <p className="text-white font-abeze text-sm">{vehicle.notes}</p>
                   </div>
                 )}
+
+                {/* Edit/Delete Buttons at bottom right */}
+              <div className="flex justify-end mt-6">
+                <div className="flex gap-2">
+                  <button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-abeze"
+                    title="Edit Vehicle"
+                    onClick={() => handleEditVehicle(vehicle)}
+                  >Edit</button>
+                  <button
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-abeze"
+                    title="Delete Vehicle"
+                    onClick={() => handleDeleteVehicle(vehicle._id)}
+                  >Delete</button>
+                </div>
+              </div>
+
               </div>
             </div>
           ))}
@@ -836,8 +884,10 @@ const DriverDashboard = () => {
       {/* Add Vehicle Modal */}
       <AddVehicleModal
         isOpen={showAddVehicle}
-        onClose={() => setShowAddVehicle(false)}
+        onClose={() => { setShowAddVehicle(false); setEditVehicle(null); }}
         onVehicleAdded={handleVehicleAdded}
+        vehicle={editVehicle}
+        onVehicleUpdated={handleVehicleUpdated}
       />
     </div>
   );
@@ -846,12 +896,6 @@ const DriverDashboard = () => {
     const now = new Date();
     const monthIdx = now.getMonth();
     const year = now.getFullYear();
-
-    const isSameMonth = (dateStr) => {
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d.getMonth() === monthIdx && d.getFullYear() === year;
-    };
 
     const monthlyCompleted = acceptedBookings
       .filter(b => b.status === 'Completed' && (isSameMonth(b.updatedAt) || isSameMonth(b.bookingDetails?.endDate)));
