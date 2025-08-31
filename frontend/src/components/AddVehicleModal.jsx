@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
-  const [formData, setFormData] = useState({
+
+const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded, vehicle, onVehicleUpdated }) => {
+  const initialState = {
     vehicleType: 'Safari Jeep',
     make: '',
     model: '',
@@ -14,7 +15,29 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
     insuranceExpiry: '',
     features: [],
     notes: ''
-  });
+  };
+  const [formData, setFormData] = useState(initialState);
+  // Fill form when editing
+  useEffect(() => {
+    if (vehicle) {
+      setFormData({
+        vehicleType: vehicle.vehicleType || 'Safari Jeep',
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+        year: vehicle.year || new Date().getFullYear(),
+        licensePlate: vehicle.licensePlate || '',
+        color: vehicle.color || '',
+        capacity: vehicle.capacity || 6,
+        fuelType: vehicle.fuelType || 'Diesel',
+        insuranceNumber: vehicle.insuranceNumber || '',
+        insuranceExpiry: vehicle.insuranceExpiry ? vehicle.insuranceExpiry.slice(0,10) : '',
+        features: vehicle.features || [],
+        notes: vehicle.notes || ''
+      });
+    } else {
+      setFormData(initialState);
+    }
+  }, [vehicle, isOpen]);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,41 +89,37 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsSubmitting(true);
     try {
       const { vehicleApi } = await import('../services/api');
-      const response = await vehicleApi.addVehicle(formData);
-      
-      if (response.success) {
-        onVehicleAdded(response.vehicle);
-        onClose();
-        setFormData({
-          vehicleType: 'Safari Jeep',
-          make: '',
-          model: '',
-          year: new Date().getFullYear(),
-          licensePlate: '',
-          color: '',
-          capacity: 6,
-          fuelType: 'Diesel',
-          insuranceNumber: '',
-          insuranceExpiry: '',
-          features: [],
-          notes: ''
-        });
+      let response;
+      if (vehicle && vehicle._id) {
+        // Edit mode
+        response = await vehicleApi.updateVehicle(vehicle._id, formData);
+        if (response.success) {
+          onVehicleUpdated && onVehicleUpdated(response.vehicle);
+          onClose();
+        } else {
+          alert(response.message || 'Failed to update vehicle');
+        }
       } else {
-        alert(response.message || 'Failed to add vehicle');
+        // Add mode
+        response = await vehicleApi.addVehicle(formData);
+        if (response.success) {
+          onVehicleAdded(response.vehicle);
+          onClose();
+          setFormData(initialState);
+        } else {
+          alert(response.message || 'Failed to add vehicle');
+        }
       }
     } catch (error) {
-      console.error('Error adding vehicle:', error);
-      alert('Failed to add vehicle. Please try again.');
+      console.error('Error saving vehicle:', error);
+      alert('Failed to save vehicle. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +133,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-abeze font-bold text-white">
-            Add New Vehicle
+            {vehicle ? 'Edit Vehicle' : 'Add New Vehicle'}
           </h2>
           <button
             onClick={onClose}
@@ -360,7 +379,7 @@ const AddVehicleModal = ({ isOpen, onClose, onVehicleAdded }) => {
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {isSubmitting ? 'Adding...' : 'Add Vehicle'}
+              {isSubmitting ? (vehicle ? 'Saving...' : 'Adding...') : (vehicle ? 'Save Changes' : 'Add Vehicle')}
             </button>
           </div>
         </form>
