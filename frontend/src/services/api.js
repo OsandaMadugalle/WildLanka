@@ -219,6 +219,10 @@ export const safariRequestApi = {
 };
 
 export const bookingApi = {
+  async createBooking(payload) {
+    const { data } = await api.post('/api/bookings', payload);
+    return data;
+  },
   async createStripeCheckout(payload) {
     const { data } = await api.post('/api/bookings/stripe-checkout', payload);
     return data;
