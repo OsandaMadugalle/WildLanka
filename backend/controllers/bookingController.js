@@ -1,3 +1,34 @@
+// User updates their booking details
+const updateBookingDetails = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+        // Only allow user to update their own booking and only if not cancelled/completed
+        if (booking.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Not allowed' });
+        }
+        if (booking.status === 'Cancelled' || booking.status === 'Completed') {
+            return res.status(400).json({ success: false, message: 'Cannot update cancelled or completed booking.' });
+        }
+        // Update allowed fields
+        const fields = [
+            'startDate', 'endDate', 'numberOfPeople', 'specialRequests', 'emergencyContact',
+            'dietaryRestrictions', 'accommodationPreference', 'transportationPreference'
+        ];
+        for (const field of fields) {
+            if (req.body[field] !== undefined) {
+                booking.bookingDetails[field] = req.body[field];
+            }
+        }
+        await booking.save();
+        res.json({ success: true, booking });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 // User requests cancellation for confirmed booking
 const requestCancellation = async (req, res) => {
     try {
@@ -388,7 +419,7 @@ const getBookingDetails = async (req, res) => {
         
         const booking = await Booking.findById(bookingId)
             .populate('userId', 'firstName lastName email phone')
-            .populate('packageId', 'title description image location category');
+            .populate('packageId');
         
         if (!booking) {
             return res.status(404).json({ 
@@ -405,9 +436,45 @@ const getBookingDetails = async (req, res) => {
             });
         }
         
+        // Attach package details for frontend (both top-level and booking.packageDetails)
+        let packageDetails = null;
+        if (booking.packageId) {
+            let galleryArr = [];
+            if (Array.isArray(booking.packageId.gallery) && booking.packageId.gallery.length > 0) {
+                galleryArr = booking.packageId.gallery;
+            } else if (booking.packageId.image && booking.packageId.image.url) {
+                galleryArr = [booking.packageId.image];
+            }
+            packageDetails = {
+                title: booking.packageId.title,
+                description: booking.packageId.description,
+                image: booking.packageId.image,
+                location: booking.packageId.location,
+                category: booking.packageId.category,
+                duration: booking.packageId.duration,
+                maxGroupSize: booking.packageId.maxGroupSize,
+                price: booking.packageId.price,
+                originalPrice: booking.packageId.originalPrice,
+                discount: booking.packageId.discount,
+                highlights: booking.packageId.highlights,
+                features: booking.packageId.features,
+                isPopular: booking.packageId.isPopular,
+                gallery: galleryArr,
+                included: booking.packageId.included,
+                notIncluded: booking.packageId.notIncluded,
+                requirements: booking.packageId.requirements,
+                rating: booking.packageId.rating,
+                reviews: booking.packageId.reviews
+            };
+        }
+        const bookingObj = booking.toObject();
+        bookingObj.packageDetails = packageDetails;
         res.json({ 
             success: true, 
-            booking: booking 
+            booking: {
+                ...bookingObj,
+                packageDetails
+            }
         });
     } catch (error) {
         console.log("Get booking details error:", error);
@@ -1071,5 +1138,6 @@ export {
     completeTourAsGuide,
     assignDriverToBooking,
     assignGuideToBooking,
-    completeBookingByAdmin
+    completeBookingByAdmin,
+    updateBookingDetails
 };
