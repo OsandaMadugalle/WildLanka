@@ -243,8 +243,8 @@ const Payroll = () => {
       loadStats();
       alert('All payroll records for this month have been refreshed with attendance data');
     } catch (error) {
-      console.error('Error refreshing payroll:', error);
-      alert('Error refreshing payroll. Please try again.');
+      console.error('No payroll records found for this month:', error);
+      alert('No payroll records found for this month. Please try again.');
     }
   };
 
