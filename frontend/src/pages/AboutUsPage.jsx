@@ -17,28 +17,35 @@ const AboutUsPage = () => {
   const { t } = useLanguage();
   const teamMembers = [
     {
-      name: "Kumari Perera",
+      name: "Osanda Madugalle",
       role: "Founder & Wildlife Expert",
       description: "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
       expertise: "Elephant behavior, Hiking trails",
       image: "👨‍🦱"
     },
     {
-      name: "Dr. Anjali Silva",
+      name: "Ikshuka Malhengoda",
       role: "Hiking Director",
       description: "A PhD in Wildlife Biology, Dr. Silva oversees our research programs and community education initiatives.",
       expertise: "Research & Monitoring, Community Outreach",
       image: "👩‍🔬"
     },
     {
-      name: "Malindi Sandaruwan",
+      name: "Kalana Jayawardana",
       role: "Safari Guide & Naturalist",
       description: "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
       expertise: "Bird watching, Photography tours",
       image: "👨‍🦰"
     },
     {
-      name: "Priya Fernando",
+      name: "Ravindu Siyambalagoda",
+      role: "Safari Guide & Naturalist",
+      description: "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
+      expertise: "Bird watching, Photography tours",
+      image: "👨‍🦰"
+    },
+    {
+      name: "Malinda Sandaruwan",
       role: "Customer Experience Manager",
       description: "Ensuring every guest has an unforgettable and responsible wildlife experience in Sri Lanka.",
       expertise: "Sustainable tourism, Guest relations",
