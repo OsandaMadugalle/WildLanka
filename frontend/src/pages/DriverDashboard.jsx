@@ -1,3 +1,10 @@
+// Utility function to check if a date string is in the current month and year
+function isSameMonth(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -891,6 +898,14 @@ const DriverDashboard = () => {
       />
     </div>
   );
+
+  // Utility function for report filtering
+  function isSameMonth(dateStr) {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
 
   const renderReportsSimple = () => {
     const now = new Date();
