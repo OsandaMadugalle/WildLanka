@@ -357,11 +357,11 @@ const verifyStripePayment = async (req, res) => {
 const getUserBookings = async (req, res) => {
     try {
         const userId = req.user._id;
-        
         const bookings = await Booking.find({ userId })
             .populate('packageId', 'title image location category')
+            .populate('driverId', 'firstName lastName phone role')
+            .populate('guideId', 'firstName lastName phone role')
             .sort({ createdAt: -1 });
-        
         res.json({ 
             success: true, 
             bookings: bookings 

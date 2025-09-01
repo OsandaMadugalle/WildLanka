@@ -43,6 +43,7 @@ const UserAccountPage = () => {
   const [currentBookingsPage, setCurrentBookingsPage] = useState(1);
   const [reviewsPerPage] = useState(10);
   const [bookingsPerPage] = useState(10);
+  const [showCurrentBookings, setShowCurrentBookings] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -218,7 +219,7 @@ const UserAccountPage = () => {
           <div className="max-w-4xl mx-auto">
                          {/* Tab Navigation */}
              <div className="flex flex-wrap justify-center mb-8 bg-gray-800/80 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 shadow-2xl">
-                             <button
+               <button
                  onClick={() => handleTabChange('profile')}
                  className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
                    activeTab === 'profile'
@@ -228,7 +229,7 @@ const UserAccountPage = () => {
                >
                  {t('userAccount.tabs.profile')}
                </button>
-                             <button
+               <button
                  onClick={() => handleTabChange('bookings')}
                  className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
                    activeTab === 'bookings'
@@ -259,6 +260,230 @@ const UserAccountPage = () => {
                  {t('userAccount.myReviews')}
                </button>
             </div>
+            {/* Bookings Tab Content (Current & History) */}
+            {activeTab === 'bookings' && (
+              <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+                <div className="flex gap-4 mb-8 justify-center">
+                  <button
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    onClick={() => setShowCurrentBookings(true)}
+                  >
+                    Current Bookings
+                  </button>
+                  <button
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${!showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    onClick={() => setShowCurrentBookings(false)}
+                  >
+                    Booking History
+                  </button>
+                </div>
+                {showCurrentBookings ? (
+                  <>
+                    <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
+                      Current Bookings
+                    </h3>
+                    {loadingBookings ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
+                        <p className="text-gray-300 font-abeze">Loading your bookings...</p>
+                      </div>
+                    ) : bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-300 font-abeze">No current bookings found.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto mb-8">
+                        <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
+                          <thead>
+                            <tr className="bg-emerald-700/40 text-white">
+                              <th className="px-6 py-3 text-left font-abeze">Package</th>
+                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
+                              <th className="px-6 py-3 text-left font-abeze">Status</th>
+                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
+                              <th className="px-6 py-3 text-left font-abeze">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').map((booking) => (
+                              <tr key={booking._id} className="border-b border-gray-700/30">
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  {booking.packageDetails?.title || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  {booking.bookingDetails?.startDate ? new Date(booking.bookingDetails.startDate).toLocaleDateString() : 'N/A'}
+                                  {' - '}
+                                  {booking.bookingDetails?.endDate ? new Date(booking.bookingDetails.endDate).toLocaleDateString() : 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 font-abeze">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                    booking.status === 'Pending' ? 'bg-yellow-500 text-white' :
+                                    'bg-gray-700 text-white'
+                                  }`}>
+                                    {booking.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  Rs. {booking.totalPrice?.toLocaleString() || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex flex-wrap gap-2">
+                                    {/* Download PDF Button */}
+                                    {(booking.status === 'Payment Confirmed' || booking.status === 'Confirmed' || booking.status === 'In Progress' || booking.status === 'Completed') && (
+                                      <button
+                                        onClick={() => handleDownloadPDF(booking)}
+                                        disabled={downloadingPDF === booking._id}
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-blue-600 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                                      >
+                                        {downloadingPDF === booking._id ? 'Generating PDF...' : 'Download PDF'}
+                                      </button>
+                                    )}
+                                    {/* Update Booking Button */}
+                                    {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
+                                      <button
+                                        onClick={() => navigate(`/update-booking/${booking._id}`)}
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-600 hover:bg-green-700 border-green-400/30 text-white"
+                                      >
+                                        Update
+                                      </button>
+                                    )}
+                                    {/* Pay Now Button for Pending bookings */}
+                                    {booking.status === 'Pending' && !booking.payment && (
+                                      <button
+                                        onClick={async () => {
+                                          try {
+                                            const payload = { bookingId: booking._id };
+                                            const res = await bookingApi.createStripeCheckout(payload);
+                                            if (res.success && res.session_url) {
+                                              window.location.href = res.session_url;
+                                            } else {
+                                              alert(res.message || 'Failed to start payment.');
+                                            }
+                                          } catch (err) {
+                                            alert('Error starting payment.');
+                                          }
+                                        }}
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-500 hover:bg-yellow-600 border-yellow-400/30 text-white"
+                                      >
+                                        Pay Now
+                                      </button>
+                                    )}
+                                    {/* Cancel Booking Button */}
+                                    {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
+                                      <button
+                                        onClick={async () => {
+                                          if (window.confirm('Are you sure you want to cancel this booking?')) {
+                                            try {
+                                              const res = await bookingApi.updateBookingStatus(booking._id, 'Cancelled');
+                                              if (!res.success) {
+                                                alert(res.message || 'Failed to cancel booking.');
+                                              } else {
+                                                handleViewBookings();
+                                              }
+                                            } catch (err) {
+                                              alert('An error occurred while cancelling the booking.');
+                                            }
+                                          }
+                                        }}
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-red-600 hover:bg-red-700 border-red-400/30 text-white"
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
+                                    {/* WhatsApp Contact Button for In Progress bookings */}
+                                    {booking.guideId && booking.guideId.phone && (
+                                      <a
+                                        href={`https://wa.me/${booking.guideId.phone}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-600 border-green-400/30 text-white"
+                                      >
+                                        WhatsApp Guide: {booking.guideId.firstName} {booking.guideId.lastName}
+                                      </a>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
+                      Booking History
+                    </h3>
+                    {loadingBookings ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
+                        <p className="text-gray-300 font-abeze">Loading your booking history...</p>
+                      </div>
+                    ) : bookings.filter(b => b.status === 'Completed' || b.status === 'Cancelled').length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-300 font-abeze">No booking history found.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
+                          <thead>
+                            <tr className="bg-emerald-700/40 text-white">
+                              <th className="px-6 py-3 text-left font-abeze">Package</th>
+                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
+                              <th className="px-6 py-3 text-left font-abeze">Status</th>
+                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
+                              <th className="px-6 py-3 text-left font-abeze">Review</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bookings.filter(b => b.status === 'Completed' || b.status === 'Cancelled').map((booking) => (
+                              <tr key={booking._id} className="border-b border-gray-700/30">
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  {booking.packageDetails?.title || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  {booking.bookingDetails?.startDate ? new Date(booking.bookingDetails.startDate).toLocaleDateString() : 'N/A'}
+                                  {' - '}
+                                  {booking.bookingDetails?.endDate ? new Date(booking.bookingDetails.endDate).toLocaleDateString() : 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 font-abeze">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                    booking.status === 'Completed' ? 'bg-green-600 text-white' :
+                                    booking.status === 'Cancelled' ? 'bg-red-600 text-white' :
+                                    'bg-gray-700 text-white'
+                                  }`}>
+                                    {booking.status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-white font-abeze">
+                                  Rs. {booking.totalPrice?.toLocaleString() || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 font-abeze">
+                                  {booking.status === 'Completed' ? (
+                                    checkIfAlreadyReviewed(booking._id) ? (
+                                      <span className="text-green-400">Reviewed</span>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleAddReview(booking._id)}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                      >
+                                        Add Review
+                                      </button>
+                                    )
+                                  ) : (
+                                    <span className="text-gray-400">-</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Profile Tab Content */}
             {activeTab === 'profile' && (
@@ -408,531 +633,64 @@ const UserAccountPage = () => {
                     <p className="text-gray-400 font-abeze text-sm">{t('userAccount.completeBookingToReview')}</p>
                   </div>
                 ) : (
-                                     <div className="space-y-6">
-                     {currentReviews.map((review, index) => (
-                       <div 
-                         key={review._id} 
-                         className="group bg-gray-800/60 rounded-xl p-6 border border-gray-700/50 hover:border-green-400/30 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl"
-                         style={{ animationDelay: `${index * 100}ms` }}
-                       >
-                         <div className="flex flex-col md:flex-row gap-6">
-                           <div className="flex-1">
-                             <div className="flex items-center justify-between mb-4">
-                               <div className="flex items-center space-x-3">
-                                 <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                                 <h4 className="text-xl font-abeze font-bold text-white group-hover:text-green-300 transition-colors duration-200">
-                                   {review.packageId?.title || t('userAccount.defaultPackageTitle')}
-                                 </h4>
-                               </div>
-                               <div className="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-full border border-white/20">
-                                 <div className="flex items-center space-x-1">
-                                   {[...Array(5)].map((_, i) => (
-                                     <svg
-                                       key={i}
-                                       className={`w-4 h-4 ${
-                                         i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-400'
-                                       }`}
-                                       fill="currentColor"
-                                       viewBox="0 0 20 20"
-                                     >
-                                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                     </svg>
-                                   ))}
-                                 </div>
-                                 <span className="text-white font-abeze font-semibold text-sm">{review.rating}/5</span>
-                               </div>
-                             </div>
-                             
-                             {review.comment && (
-                               <div className="mb-4 p-4 bg-white/5 rounded-lg border-l-4 border-green-400/50">
-                                 <p className="text-gray-200 font-abeze italic leading-relaxed">"{review.comment}"</p>
-                               </div>
-                             )}
-                             
-                             <div className="flex items-center space-x-4 text-sm">
-                               <div className="flex items-center space-x-2 text-gray-300">
-                                 <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                 </svg>
-                                 <span className="font-abeze">{t('userAccount.reviews.reviewedOn')} {new Date(review.createdAt).toLocaleDateString()}</span>
-                               </div>
-                               <div className="flex items-center space-x-2 text-gray-300">
-                                 <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                 </svg>
-                                 <span className="font-abeze">{t('userAccount.reviews.booking')} {review.bookingId?.slice(-8) || t('userAccount.common.notAvailable')}</span>
-                               </div>
-                               {review.images && review.images.length > 0 && (
-                                 <div className="flex items-center space-x-2 text-gray-300">
-                                   <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
-                                   </svg>
-                                   <span className="font-abeze">{review.images.length} {review.images.length !== 1 ? t('userAccount.reviews.photosPlural') : t('userAccount.reviews.photos')}</span>
-                                 </div>
-                               )}
-                             </div>
-                           </div>
-                           
-                           {review.images && review.images.length > 0 && (
-                             <div className="flex flex-col space-y-2">
-                               <p className="text-green-200 font-abeze font-medium text-sm text-center">{t('userAccount.yourPhotos')}</p>
-                               <div className="grid grid-cols-2 gap-2">
-                                 {review.images.map((image, index) => (
-                                   <div key={index} className="relative group/image">
-                                     <img
-                                       src={image.url}
-                                       alt={`Review ${index + 1}`}
-                                       className="w-24 h-24 object-cover rounded-lg border-2 border-white/20 group-hover/image:border-green-400/50 transition-all duration-200 cursor-pointer hover:scale-105"
-                                       onClick={() => {
-                                         // Optional: Add image modal here
-                                       }}
-                                     />
-                                     <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                       <svg className="w-6 h-6 text-white opacity-0 group-hover/image:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                       </svg>
-                                     </div>
-                                   </div>
-                                 ))}
-                               </div>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     ))}
-                     
-                     {/* Reviews Pagination */}
-                     {totalReviewsPages > 1 && (
-                       <div className="mt-8 flex justify-center">
-                         <div className="flex items-center space-x-2 bg-gray-800/80 backdrop-blur-md rounded-xl p-2 border border-gray-700/50">
-                           <button
-                             onClick={() => handleReviewsPageChange(currentReviewsPage - 1)}
-                             disabled={currentReviewsPage === 1}
-                             className="px-3 py-2 rounded-full font-abeze font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white hover:bg-white/20"
-                           >
-                             {t('userAccount.reviews.previous')}
-                           </button>
-                           
-                           {[...Array(totalReviewsPages)].map((_, index) => {
-                             const pageNumber = index + 1;
-                             return (
-                               <button
-                                 key={pageNumber}
-                                 onClick={() => handleReviewsPageChange(pageNumber)}
-                                 className={`px-3 py-2 rounded-full font-abeze font-medium transition-all duration-300 ${
-                                   currentReviewsPage === pageNumber
-                                     ? 'bg-green-600 text-white'
-                                     : 'text-gray-300 hover:text-white hover:bg-white/20'
-                                 }`}
-                               >
-                                 {pageNumber}
-                               </button>
-                             );
-                           })}
-                           
-                           <button
-                             onClick={() => handleReviewsPageChange(currentReviewsPage + 1)}
-                             disabled={currentReviewsPage === totalReviewsPages}
-                             className="px-3 py-2 rounded-full font-abeze font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white hover:bg-white/20"
-                           >
-                             {t('userAccount.reviews.next')}
-                           </button>
-                         </div>
-                       </div>
-                     )}
-                   </div>
-                )}
-              </div>
-            )}
-
-                         {/* Bookings Tab Content */}
-             {activeTab === 'bookings' && (
-               <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                 <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
-                   {t('userAccount.bookings.title')}
-                 </h3>
-                
-                {loadingBookings ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
-                    <p className="text-gray-300 font-abeze">{t('userAccount.bookings.loading')}</p>
-                  </div>
-                ) : bookingsError ? (
-                  <div className="text-center py-8">
-                    <div className="bg-red-600/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                    <p className="text-red-400 font-abeze mb-4">{bookingsError}</p>
-                    <button
-                      onClick={handleViewBookings}
-                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-full font-abeze font-medium transition-all duration-300"
-                    >
-                      {t('userAccount.bookings.tryAgain')}
-                    </button>
-                  </div>
-                ) : bookings.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="bg-gray-600/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-300 font-abeze mb-4">{t('userAccount.bookings.noBookings')}</p>
-                    <button
-                      onClick={() => navigate('/travel-packages')}
-                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-full font-abeze font-medium transition-all duration-300"
-                    >
-                      {t('userAccount.bookings.bookFirstSafari')}
-                    </button>
-                  </div>
-                                 ) : (
-                   <div className="space-y-6">
-                     {currentBookings.map((booking) => (
-                       <div key={booking._id} className="bg-gray-800/60 rounded-lg p-6 border border-gray-700/50">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                          <div className="flex-1">
-                            <h4 className="text-xl font-abeze font-bold text-white mb-3">
-                              {booking.packageDetails?.title || t('userAccount.defaultPackageTitle')}
-                            </h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.location')}</span>
-                                <p className="text-white font-abeze">{booking.packageDetails?.location || t('userAccount.common.notAvailable')}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.duration')}</span>
-                                <p className="text-white font-abeze">{booking.packageDetails?.duration || t('userAccount.common.notAvailable')}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.people')}</span>
-                                <p className="text-white font-abeze">{booking.bookingDetails?.numberOfPeople || t('userAccount.common.notAvailable')}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.totalPrice')}</span>
-                                <p className="text-white font-abeze font-bold">LKR {booking.totalPrice?.toLocaleString() || t('userAccount.common.notAvailable')}</p>
-                              </div>
+                  <div className="space-y-4">
+                    {currentReviews.map((review) => (
+                      <div key={review._id} className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md transition-all duration-300 transform hover:scale-[1.01]">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gradient-to-r from-emerald-400 to-green-500 mr-3">
+                              <img 
+                                src={review.bookingId.packageDetails?.image || '/default-package.jpg'} 
+                                alt={review.bookingId.packageDetails?.title} 
+                                className="w-full h-full object-cover"
+                              />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.startDate')}</span>
-                                <p className="text-white font-abeze">
-                                  {booking.bookingDetails?.startDate ? new Date(booking.bookingDetails.startDate).toLocaleDateString() : t('userAccount.common.notAvailable')}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.endDate')}</span>
-                                <p className="text-white font-abeze">
-                                  {booking.bookingDetails?.endDate ? new Date(booking.bookingDetails.endDate).toLocaleDateString() : t('userAccount.common.notAvailable')}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.status')}</span>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-abeze font-medium ${
-                                  booking.status === 'Payment Confirmed' ? 'bg-green-600/20 text-green-400 border border-green-400/30' :
-                                  booking.status === 'Confirmed' ? 'bg-blue-600/20 text-blue-400 border border-blue-400/30' :
-                                  booking.status === 'In Progress' ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-400/30' :
-                                  booking.status === 'Completed' ? 'bg-purple-600/20 text-purple-400 border border-purple-400/30' :
-                                  'bg-gray-600/20 text-gray-400 border border-gray-400/30'
-                                }`}>
-                                  {booking.status}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-gray-300 font-abeze font-medium">{t('userAccount.bookings.payment')}</span>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-abeze font-medium ${
-                                  booking.payment ? 'bg-green-600/20 text-green-400 border border-green-400/30' : 'bg-red-600/20 text-red-400 border border-red-400/30'
-                                }`}>
-                                  {booking.payment ? t('userAccount.bookings.paid') : t('userAccount.bookings.pending')}
-                                </span>
-                              </div>
+                            <div>
+                              <p className="text-white font-abeze font-semibold text-lg">
+                                {review.bookingId.packageDetails?.title || 'N/A'}
+                              </p>
+                              <p className="text-slate-400 font-abeze text-sm">
+                                {new Date(review.createdAt).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
-                                                     <div className="md:ml-6 flex flex-col space-y-3">
-                             {/* PDF Download Button - Always visible for confirmed/completed bookings */}
-                             {(booking.status === 'Payment Confirmed' || booking.status === 'Confirmed' || booking.status === 'In Progress' || booking.status === 'Completed') && (
-                               <button
-                                 onClick={() => handleDownloadPDF(booking)}
-                                 disabled={downloadingPDF === booking._id}
-                                 className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-blue-600 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                               >
-                                 <div className="flex items-center space-x-2">
-                                   {downloadingPDF === booking._id ? (
-                                     <>
-                                       <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-                                       <span>{t('userAccount.bookings.generatingPDF')}</span>
-                                     </>
-                                   ) : (
-                                     <>
-                                       <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                       </svg>
-                                       <span>{t('userAccount.bookings.downloadPDF')}</span>
-                                     </>
-                                   )}
-                                 </div>
-                                 {downloadingPDF !== booking._id && (
-                                   <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                 )}
-                               </button>
-                             )}
-
-                             {/* Update Booking Button - Only for Pending or Payment Confirmed bookings */}
-                             {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
-                               <>
-                                 <button
-                                   onClick={() => navigate(`/update-booking/${booking._id}`)}
-                                   className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-600 hover:bg-green-700 border-green-400/30 text-white"
-                                 >
-                                   <div className="flex items-center space-x-2">
-                                     <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v16m16-16v16M4 12h16" />
-                                     </svg>
-                                     <span>Update Booking</span>
-                                   </div>
-                                   <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                 </button>
-                                 {/* Pay Now Button for Pending bookings */}
-                                 {booking.status === 'Pending' && !booking.payment && (
-                                   <button
-                                     onClick={async () => {
-                                       try {
-                                         const payload = { bookingId: booking._id };
-                                         const res = await bookingApi.createStripeCheckout(payload);
-                                         if (res.success && res.session_url) {
-                                           window.location.href = res.session_url;
-                                         } else {
-                                           alert(res.message || 'Failed to start payment.');
-                                         }
-                                       } catch (err) {
-                                         alert('Error starting payment.');
-                                       }
-                                     }}
-                                     className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-500 hover:bg-yellow-600 border-yellow-400/30 text-white mt-3"
-                                   >
-                                     <div className="flex items-center space-x-2">
-                                       <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M6.938 20h10.124c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 17.5c-.77.833.192 2.5 1.732 2.5z" />
-                                       </svg>
-                                       <span>Pay Now</span>
-                                     </div>
-                                   </button>
-                                 )}
-                               </>
-                             )}
-
-                             {/* Cancel Booking Button - Only for non-cancelled bookings */}
-                             {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
-                               <button
-                                 onClick={async () => {
-                                   if (window.confirm('Are you sure you want to cancel this booking?')) {
-                                     try {
-                                       const res = await bookingApi.updateBookingStatus(booking._id, 'Cancelled');
-                                       if (!res.success) {
-                                         alert(res.message || 'Failed to cancel booking.');
-                                       } else {
-                                         handleViewBookings();
-                                       }
-                                     } catch (err) {
-                                       alert('An error occurred while cancelling the booking.');
-                                     }
-                                   }
-                                 }}
-                                 className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-red-600 hover:bg-red-700 border-red-400/30 text-white"
-                               >
-                                 <div className="flex items-center space-x-2">
-                                   <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                   </svg>
-                                   <span>Cancel Booking</span>
-                                 </div>
-                                 <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                               </button>
-                             )}
-
-                             {/* Request Cancellation Button - Only for confirmed bookings */}
-                             {booking.status === 'Confirmed' && (
-                               <button
-                                 onClick={async () => {
-                                   if (window.confirm('Do you want to request cancellation for this confirmed booking?')) {
-                                     try {
-                                       // Send cancellation request to admin (API call)
-                                       const res = await bookingApi.requestCancellation(booking._id);
-                                       if (res.success) {
-                                         alert('Your cancellation request has been sent to the admin.');
-                                       } else {
-                                         alert(res.message || 'Failed to send cancellation request.');
-                                       }
-                                     } catch (err) {
-                                       alert('An error occurred while sending the cancellation request.');
-                                     }
-                                   }
-                                 }}
-                                 className="group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-600 hover:bg-yellow-700 border-yellow-400/30 text-white"
-                               >
-                                 <div className="flex items-center space-x-2">
-                                   <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m6 0a6 6 0 11-12 0 6 6 0 0112 0z" />
-                                   </svg>
-                                   <span>Request Cancellation</span>
-                                 </div>
-                                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                               </button>
-                             )}
-
-                             {/* Review Button - Only for completed bookings */}
-                             {booking.status === 'Completed' && (
-                               <button
-                                 onClick={() => handleAddReview(booking._id)}
-                                 className={`group relative px-6 py-3 rounded-xl font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border ${
-                                   checkIfAlreadyReviewed(booking._id)
-                                     ? 'bg-gray-500 hover:bg-gray-600 cursor-not-allowed border-gray-400/30'
-                                     : 'bg-green-600 hover:bg-green-700 border-green-400/30'
-                                 }`}
-                                 disabled={checkIfAlreadyReviewed(booking._id)}
-                               >
-                                 <div className="flex items-center space-x-2">
-                                   {checkIfAlreadyReviewed(booking._id) ? (
-                                     <>
-                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                       </svg>
-                                       <span>Already Reviewed</span>
-                                     </>
-                                   ) : (
-                                     <>
-                                       <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                       </svg>
-                                       <span>Share Your Experience</span>
-                                     </>
-                                   )}
-                                 </div>
-                                 {!checkIfAlreadyReviewed(booking._id) && (
-                                   <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                 )}
-                               </button>
-                             )}
-                           </div>
+                          <div className="flex-shrink-0">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              review.rating === 5 ? 'bg-green-600 text-white' :
+                              review.rating >= 3 ? 'bg-yellow-500 text-white' :
+                              'bg-red-600 text-white'
+                            }`}>
+                              {review.rating} {t('userAccount.reviews.rating')}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    
-                    {/* Bookings Pagination */}
-                    {totalBookingsPages > 1 && (
-                      <div className="mt-8 flex justify-center">
-                        <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md rounded-xl p-2 border border-white/20">
-                                                     <button
-                             onClick={() => handleBookingsPageChange(currentBookingsPage - 1)}
-                             disabled={currentBookingsPage === 1}
-                             className="px-3 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-green-200 hover:text-white hover:bg-white/10"
-                           >
-                             {t('userAccount.bookings.previous')}
-                           </button>
-                          
-                          {[...Array(totalBookingsPages)].map((_, index) => {
-                            const pageNumber = index + 1;
-                            return (
-                              <button
-                                key={pageNumber}
-                                onClick={() => handleBookingsPageChange(pageNumber)}
-                                className={`px-3 py-2 rounded-full font-abeze font-medium transition-all duration-300 ${
-                                  currentBookingsPage === pageNumber
-                                    ? 'bg-green-600 text-white'
-                                    : 'text-gray-300 hover:text-white hover:bg-white/20'
-                                }`}
-                              >
-                                {pageNumber}
-                              </button>
-                            );
-                          })}
-                          
+                        <p className="text-slate-300 font-abeze mb-4">
+                          {review.comment || t('userAccount.reviews.noComment')}
+                        </p>
+                        <div className="flex gap-4">
                           <button
-                            onClick={() => handleBookingsPageChange(currentBookingsPage + 1)}
-                            disabled={currentBookingsPage === totalBookingsPages}
-                            className="px-3 py-2 rounded-full font-abeze font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white hover:bg-white/20"
+                            onClick={() => handleAddReview(review.bookingId._id)}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                           >
-                            {t('userAccount.bookings.next')}
+                            {t('userAccount.reviews.editReview')}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(review._id)}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                          >
+                            {t('userAccount.reviews.deleteReview')}
                           </button>
                         </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
+          </div> {/* Close .max-w-4xl mx-auto */}
+        </div> {/* Close .container mx-auto px-6 */}
+      </div> {/* Close .pt-24 pb-16 relative z-10 */}
       <Footer />
-
-      {/* Edit Profile Modal */}
-      {showEditProfile && (
-        <EditProfileModal 
-          onClose={handleCloseEditProfile}
-          user={user}
-        />
-      )}
-
-             {/* Add Review Modal */}
-       {showReviewForBookingId && (
-         <AddReviewModal
-           onClose={() => setShowReviewForBookingId(null)}
-           onSubmit={async ({ rating, comment, files }) => {
-             const formData = new FormData();
-             formData.append('rating', String(rating));
-             formData.append('comment', comment || '');
-             (files || []).forEach((f) => formData.append('images', f));
-             await reviewApi.createReview(showReviewForBookingId, formData);
-             setShowReviewForBookingId(null);
-             setShowReviewSuccess(true);
-             // Refresh user reviews so booking buttons update immediately
-             loadUserReviews();
-             // Hide success message after 3 seconds
-             setTimeout(() => setShowReviewSuccess(false), 3000);
-           }}
-         />
-       )}
-
-       {/* Review Success Message */}
-       {showReviewSuccess && (
-         <div className="fixed top-20 right-6 z-50 animate-slide-in-right">
-           <div className="bg-gradient-to-r from-green-600/20 to-green-400/20 backdrop-blur-sm text-white px-6 py-4 rounded-2xl shadow-2xl border border-green-400/30">
-             <div className="flex items-center space-x-3">
-               <div className="animate-bounce">
-                 <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                 </svg>
-               </div>
-               <div>
-                 <h4 className="font-abeze font-bold text-lg">{t('userAccount.reviews.reviewSubmitted')}</h4>
-                 <p className="text-green-200 text-sm">{t('userAccount.reviews.thankYouMessage')}</p>
-               </div>
-             </div>
-           </div>
-         </div>
-       )}
-
-       {/* Already Reviewed Message */}
-       {showAlreadyReviewedMessage && (
-         <div className="fixed top-20 right-6 z-50 animate-slide-in-right">
-           <div className="bg-gradient-to-r from-blue-600/20 to-blue-400/20 backdrop-blur-sm text-white px-6 py-4 rounded-2xl shadow-2xl border border-blue-400/30">
-             <div className="flex items-center space-x-3">
-               <div className="animate-pulse">
-                 <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
-               </div>
-               <div>
-                 <h4 className="font-abeze font-bold text-lg">{t('userAccount.reviews.alreadyReviewedTitle')}</h4>
-                 <p className="text-blue-200 text-sm">{t('userAccount.reviews.alreadyReviewedMessage')}</p>
-               </div>
-             </div>
-           </div>
-         </div>
-       )}
     </div>
   );
 };
