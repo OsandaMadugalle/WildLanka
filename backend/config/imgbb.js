@@ -1,7 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 
-const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '71f772675b2bf6510734e771bd676095';
+const IMGBB_API_KEY = process.env.IMGBB_API_KEY || '192f7b9ab289d65080762262bb74de1d';
 const IMGBB_API_URL = 'https://api.imgbb.com/1/upload';
 
 export const uploadToImgBB = async (imageBuffer, filename) => {
