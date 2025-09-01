@@ -140,7 +140,15 @@ const UserAccountPage = () => {
   };
 
   const checkIfAlreadyReviewed = (bookingId) => {
-    return reviews.some(review => review.bookingId === bookingId);
+    return reviews.some(review => {
+      if (!review.bookingId) return false;
+      // bookingId can be string or object
+      if (typeof review.bookingId === 'string') {
+        return review.bookingId === bookingId;
+      }
+      // If populated, compare _id
+      return review.bookingId._id === bookingId;
+    });
   };
 
   const handleAddReview = (bookingId) => {
@@ -190,6 +198,31 @@ const UserAccountPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+      {/* Add Review Modal */}
+      {showReviewForBookingId && (
+        <AddReviewModal
+          onClose={() => setShowReviewForBookingId(null)}
+          onSubmit={async (reviewData) => {
+            try {
+              // Convert reviewData to FormData, use 'images' field for files
+              const formData = new FormData();
+              formData.append('rating', reviewData.rating);
+              formData.append('comment', reviewData.comment || '');
+              if (reviewData.files && reviewData.files.length > 0) {
+                reviewData.files.forEach(file => {
+                  formData.append('images', file);
+                });
+              }
+              await reviewApi.createReview(showReviewForBookingId, formData);
+              setShowReviewSuccess(true);
+              setShowReviewForBookingId(null);
+              loadUserReviews();
+            } catch (error) {
+              alert('Failed to submit review.');
+            }
+          }}
+        />
+      )}
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gray-800/50"></div>
       <div className="absolute inset-0 opacity-30">
@@ -636,21 +669,28 @@ const UserAccountPage = () => {
                   <div className="space-y-4">
                     {currentReviews.map((review) => (
                       <div key={review._id} className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md transition-all duration-300 transform hover:scale-[1.01]">
+                        {/* Review Images Section */}
+                        {review.images && review.images.length > 0 && (
+                          <div className="flex flex-wrap gap-3 mb-4">
+                            {review.images.map((img, idx) => (
+                              <img
+                                key={img.id || idx}
+                                src={img.url}
+                                alt={`Review image ${idx + 1}`}
+                                className="w-24 h-24 object-cover rounded-lg border border-gray-600 shadow"
+                              />
+                            ))}
+                          </div>
+                        )}
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gradient-to-r from-emerald-400 to-green-500 mr-3">
-                              <img 
-                                src={review.bookingId.packageDetails?.image || '/default-package.jpg'} 
-                                alt={review.bookingId.packageDetails?.title} 
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
+                            {/* Removed circular package image for cleaner review card */}
                             <div>
                               <p className="text-white font-abeze font-semibold text-lg">
-                                {review.bookingId.packageDetails?.title || 'N/A'}
+                                {review.packageId?.title || review.bookingId.packageDetails?.title || 'N/A'}
                               </p>
                               <p className="text-slate-400 font-abeze text-sm">
-                                {new Date(review.createdAt).toLocaleDateString()}
+                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'N/A'}
                               </p>
                             </div>
                           </div>
@@ -660,7 +700,7 @@ const UserAccountPage = () => {
                               review.rating >= 3 ? 'bg-yellow-500 text-white' :
                               'bg-red-600 text-white'
                             }`}>
-                              {review.rating} {t('userAccount.reviews.rating')}
+                              {review.rating} stars
                             </span>
                           </div>
                         </div>
@@ -672,13 +712,13 @@ const UserAccountPage = () => {
                             onClick={() => handleAddReview(review.bookingId._id)}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                           >
-                            {t('userAccount.reviews.editReview')}
+                            Edit Review
                           </button>
                           <button
                             onClick={() => handleDeleteReview(review._id)}
                             className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                           >
-                            {t('userAccount.reviews.deleteReview')}
+                            Delete Review
                           </button>
                         </div>
                       </div>
