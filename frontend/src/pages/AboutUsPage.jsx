@@ -20,7 +20,7 @@ const AboutUsPage = () => {
       name: "Kumari Perera",
       role: "Founder & Wildlife Expert",
       description: "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
-expertise: "Elephant behavior, Hiking trails",
+      expertise: "Elephant behavior, Hiking trails",
       image: "👨‍🦱"
     },
     {
@@ -42,7 +42,7 @@ expertise: "Elephant behavior, Hiking trails",
       role: "Customer Experience Manager",
       description: "Ensuring every guest has an unforgettable and responsible wildlife experience in Sri Lanka.",
       expertise: "Sustainable tourism, Guest relations",
-      image: "👩‍💼"
+      image: "👩‍💼" 
     }
   ];
 
