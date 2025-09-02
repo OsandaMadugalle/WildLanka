@@ -12,8 +12,10 @@ import ContactMessages from '../components/ContactMessages';
 import Attendance from '../components/Attendance';
 import Payroll from '../components/Payroll';
 import AssignmentModal from '../components/AssignmentModal';
+import BookingCalendar from '../components/BookingCalendar';
 
 const AdminPage = () => {
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
@@ -62,22 +64,36 @@ const AdminPage = () => {
   // Booking status and date filter states
   const [statusFilter, setStatusFilter] = useState('Ongoing');
   const [ongoingDateFilter, setOngoingDateFilter] = useState('');
+  const [bookingSearch, setBookingSearch] = useState('');
 
   // Filter bookings by status and date
   const getFilteredBookings = () => {
     let filtered = bookings;
-    if (statusFilter === 'Ongoing') {
-      filtered = bookings.filter(b => b.status === 'Payment Confirmed' || b.status === 'Confirmed' || b.status === 'In Progress');
-      if (ongoingDateFilter) {
+    if ([
+      'Pending',
+      'Payment Confirmed',
+      'Confirmed',
+      'In Progress',
+      'Completed',
+      'Cancelled'
+    ].includes(statusFilter)) {
+      filtered = bookings.filter(b => b.status === statusFilter);
+      // Only show date filter for 'In Progress' or 'Confirmed' if needed
+      if ((statusFilter === 'In Progress' || statusFilter === 'Confirmed') && ongoingDateFilter) {
         filtered = filtered.filter(b => {
           const startDate = b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toISOString().slice(0,10) : '';
           return startDate === ongoingDateFilter;
         });
       }
-    } else if (statusFilter === 'Completed') {
-      filtered = bookings.filter(b => b.status === 'Completed');
-    } else if (statusFilter === 'Cancelled') {
-      filtered = bookings.filter(b => b.status === 'Cancelled');
+    }
+    if (bookingSearch.trim()) {
+      const searchLower = bookingSearch.trim().toLowerCase();
+      filtered = filtered.filter(b => {
+        const customer = `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`.toLowerCase();
+        const packageName = (b.packageDetails?.title || '').toLowerCase();
+        const bookingId = (b._id || '').toLowerCase();
+        return customer.includes(searchLower) || packageName.includes(searchLower) || bookingId.includes(searchLower);
+      });
     }
     return filtered;
   };
@@ -1121,102 +1137,138 @@ The Wildlife Safari Team`);
 
   const renderBookings = () => (
     <div className="space-y-6">
-             {/* Enhanced Header with Stats */}
-       <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-           <div>
-             <h3 className="text-2xl font-abeze font-bold text-white">Booking Management</h3>
-             <p className="text-gray-300 font-abeze mt-1">Manage and track all safari bookings</p>
-           </div>
-           <div className="flex flex-wrap gap-4 text-sm">
-             <div className="bg-blue-500/20 px-3 py-2 rounded-lg">
-               <span className="text-blue-300 font-abeze">Total: </span>
-               <span className="text-white font-bold">{Array.isArray(bookings) ? bookings.length : 0}</span>
-             </div>
-             <div className="bg-green-500/20 px-3 py-2 rounded-lg">
-               <span className="text-green-300 font-abeze">Confirmed: </span>
-               <span className="text-white font-bold">
-                 {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Confirmed' || b.status === 'Payment Confirmed').length : 0}
-               </span>
-             </div>
-             <div className="bg-yellow-500/20 px-3 py-2 rounded-lg">
-               <span className="text-yellow-300 font-abeze">Pending: </span>
-               <span className="text-white font-bold">
-                 {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Pending').length : 0}
-               </span>
-             </div>
-           </div>
-         </div>
-       </div>
-
-       {/* Sorting Controls */}
-       <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
-           <div className="flex items-center space-x-4">
-             <label className="text-white font-abeze text-sm font-medium">Sort by:</label>
-             <div className="flex flex-wrap gap-2">
-               {[
-                 { key: 'createdAt', label: 'Date Created', icon: '📅' },
-                 { key: 'customerName', label: 'Customer', icon: '👤' },
-                 { key: 'packageName', label: 'Package', icon: '🎒' },
-                 { key: 'startDate', label: 'Trip Date', icon: '✈️' },
-                 { key: 'totalPrice', label: 'Price', icon: '💰' },
-                 { key: 'status', label: 'Status', icon: '🏷️' }
-               ].map((option) => (
-                 <button
-                   key={option.key}
-                   onClick={() => handleSortChange(option.key)}
-                   className={`px-3 py-2 rounded-lg text-sm font-abeze font-medium transition-all duration-200 flex items-center space-x-2 ${
-                     sortBy === option.key
-                       ? 'bg-blue-600 text-white shadow-lg'
-                       : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 hover:text-white'
-                   }`}
-                 >
-                   <span>{option.icon}</span>
-                   <span>{option.label}</span>
-                   {sortBy === option.key && (
-                     <svg className={`w-4 h-4 transition-transform duration-200 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                     </svg>
-                   )}
-                 </button>
-               ))}
-             </div>
-           </div>
-          {/* Status Filter */}
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            <label className="text-white font-abeze text-sm font-medium">Status Filter:</label>
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze"
-            >
-              <option value="Ongoing">Ongoing</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
-            {/* Date filter for ongoing */}
-            {statusFilter === 'Ongoing' && (
-              <input
-                type="date"
-                value={ongoingDateFilter}
-                onChange={e => setOngoingDateFilter(e.target.value)}
-                className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze"
-                style={{ minWidth: 150 }}
-              />
-            )}
+      {/* Enhanced Header with Stats */}
+      <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+          <div>
+            <h3 className="text-2xl font-abeze font-bold text-white">Booking Management</h3>
+            <p className="text-gray-300 font-abeze mt-1">Manage and track all safari bookings</p>
           </div>
-           <div className="flex items-center space-x-2">
-             <span className="text-gray-300 font-abeze text-sm">Order:</span>
-             <button
-               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-               className="px-3 py-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 hover:text-white rounded-lg text-sm font-abeze font-medium transition-colors duration-200 flex items-center space-x-2"
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="bg-blue-500/20 px-3 py-2 rounded-lg">
+              <span className="text-blue-300 font-abeze">Total: </span>
+              <span className="text-white font-bold">{Array.isArray(bookings) ? bookings.length : 0}</span>
+            </div>
+            <div className="bg-green-500/20 px-3 py-2 rounded-lg">
+              <span className="text-green-300 font-abeze">Confirmed: </span>
+              <span className="text-white font-bold">
+                {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Confirmed' || b.status === 'Payment Confirmed').length : 0}
+              </span>
+            </div>
+            <div className="bg-yellow-500/20 px-3 py-2 rounded-lg">
+              <span className="text-yellow-300 font-abeze">Pending: </span>
+              <span className="text-white font-bold">
+                {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Pending').length : 0}
+              </span>
+            </div>
+            <div className="bg-purple-500/20 px-3 py-2 rounded-lg">
+              <span className="text-purple-300 font-abeze">Completed: </span>
+              <span className="text-white font-bold">
+                {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Completed').length : 0}
+              </span>
+            </div>
+            <div className="bg-red-500/20 px-3 py-2 rounded-lg">
+              <span className="text-red-300 font-abeze">Cancelled: </span>
+              <span className="text-white font-bold">
+                {Array.isArray(bookings) ? bookings.filter(b => b.status === 'Cancelled').length : 0}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Calendar and Booking Details Side by Side */}
+      <div className="flex flex-col md:flex-row md:space-x-6">
+        <div className="md:w-1/2">
+          <BookingCalendar
+            bookings={bookings}
+            onDateClick={date => setSelectedCalendarDate(date)}
+          />
+        </div>
+        {selectedCalendarDate && (
+          <div className="md:w-1/2 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 mt-6 md:mt-0">
+            <h4 className="text-lg font-abeze font-bold text-white mb-2">
+              Bookings for {selectedCalendarDate.toLocaleDateString()}
+            </h4>
+            {(() => {
+              const dateStr = selectedCalendarDate.toISOString().slice(0, 10);
+              const bookingsForDate = bookings.filter(b => {
+                const startDate = b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toISOString().slice(0, 10) : '';
+                return startDate === dateStr;
+              });
+              if (bookingsForDate.length === 0) {
+                return <p className="text-gray-300 font-abeze">No bookings for this date.</p>;
+              }
+              return (
+                <ul className="space-y-3">
+                  {bookingsForDate.map(booking => (
+                    <li key={booking._id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between">
+                        <div>
+                          <span className="text-white font-abeze font-semibold">{booking.userId?.firstName} {booking.userId?.lastName}</span>
+                          <span className="text-gray-400 font-abeze text-sm ml-2">({booking.packageDetails?.title})</span>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ml-2 ${
+                          booking.status === 'Payment Confirmed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          booking.status === 'Confirmed' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                          booking.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                          booking.status === 'Completed' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+                          booking.status === 'Cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                          'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                        }`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
+          </div>
+        )}
+      </div>       
+
+       {/* Sorting Controls - Professional UI */}
+       <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">   
+           <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+             <input
+               type="text"
+               placeholder="Search bookings..."
+               value={bookingSearch}
+               onChange={e => setBookingSearch(e.target.value)}
+               className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze min-w-[180px]"
+               style={{ marginRight: '1rem' }}
+               aria-label="Search bookings"
+             />
+             <label htmlFor="statusFilterDropdown" className="text-white font-abeze text-sm font-medium">Status Filter:</label>
+             <select
+               id="statusFilterDropdown"
+               aria-label="Filter bookings by status"
+               value={statusFilter}
+               onChange={e => setStatusFilter(e.target.value)}
+               className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze"
+               title="Filter bookings by status"
              >
-               <svg className={`w-4 h-4 transition-transform duration-200 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-               </svg>
-               <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
-             </button>
+               <option value="Pending">Pending</option>
+               <option value="Payment Confirmed">Payment Confirmed</option>
+               <option value="Confirmed">Confirmed</option>
+               <option value="In Progress">In Progress</option>
+               <option value="Completed">Completed</option>
+               <option value="Cancelled">Cancelled</option>
+             </select>
+             {/* Date filter for 'In Progress' and 'Confirmed' */}
+             {(statusFilter === 'In Progress' || statusFilter === 'Confirmed') && (
+               <input
+                 type="date"
+                 aria-label="Filter bookings by date"
+                 value={ongoingDateFilter}
+                 onChange={e => setOngoingDateFilter(e.target.value)}
+                 className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze"
+                 style={{ minWidth: 150 }}
+                 title="Filter bookings by date"
+               />
+             )}
            </div>
          </div>
        </div>
