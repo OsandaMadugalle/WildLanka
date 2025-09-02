@@ -730,6 +730,14 @@ const UserAccountPage = () => {
           </div> {/* Close .max-w-4xl mx-auto */}
         </div> {/* Close .container mx-auto px-6 */}
       </div> {/* Close .pt-24 pb-16 relative z-10 */}
+
+      {/* Render EditProfileModal when showEditProfile is true */}
+      {showEditProfile && (
+        <EditProfileModal
+          onClose={handleCloseEditProfile}
+          user={user}
+        />
+      )}
       <Footer />
     </div>
   );
