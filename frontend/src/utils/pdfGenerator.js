@@ -1,3 +1,55 @@
+// Generate a single PDF with all bookings in a table
+
+
+export const generateAllBookingsPDF = (bookings) => {
+  try {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setTextColor(34, 139, 34);
+    doc.text('Wildlife Safari Management', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(100, 100, 100);
+    doc.text('All Bookings Report', 105, 30, { align: 'center' });
+    doc.setDrawColor(34, 139, 34);
+    doc.line(20, 35, 190, 35);
+
+    // Table headers
+    const headers = [
+      'Booking ID', 'Customer Name', 'Email', 'Package', 'Location', 'Start Date', 'End Date', 'People', 'Status', 'Payment', 'Total Price'
+    ];
+    // Table rows
+    const rows = bookings.map(b => [
+      b._id,
+      `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`,
+      b.userId?.email || '',
+      b.packageDetails?.title || '',
+      b.packageDetails?.location || '',
+      b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toLocaleDateString() : '',
+      b.bookingDetails?.endDate ? new Date(b.bookingDetails.endDate).toLocaleDateString() : '',
+      b.bookingDetails?.numberOfPeople || '',
+      b.status,
+      b.payment ? 'Paid' : 'Pending',
+      b.totalPrice || ''
+    ]);
+    doc.autoTable({
+      startY: 45,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      headStyles: { fillColor: [34, 139, 34], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 2 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 30 }, 1: { cellWidth: 40 }, 2: { cellWidth: 40 }, 3: { cellWidth: 30 }, 4: { cellWidth: 30 }, 5: { cellWidth: 25 }, 6: { cellWidth: 25 }, 7: { cellWidth: 15 }, 8: { cellWidth: 20 }, 9: { cellWidth: 20 }, 10: { cellWidth: 25 } }
+    });
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Generated on: ' + new Date().toLocaleString(), 20, doc.lastAutoTable.finalY + 10);
+    doc.text('Thank you for choosing Wildlife Safari Management!', 105, doc.lastAutoTable.finalY + 16, { align: 'center' });
+    doc.save(`bookings_report_${new Date().toISOString().split('T')[0]}.pdf`);
+  } catch (error) {
+    console.error('Error generating all bookings PDF:', error);
+    alert('Failed to generate PDF. Please try again.');
+  }
+};
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
