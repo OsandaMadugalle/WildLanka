@@ -18,6 +18,7 @@
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "react": "^19.1.1",
+    "react-calendar": "^6.0.0",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.0",
     "recharts": "^2.15.4",
