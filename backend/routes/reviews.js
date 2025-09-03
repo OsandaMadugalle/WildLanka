@@ -1,13 +1,14 @@
 import express from 'express';
 import { authenticateToken as auth, requireAdmin } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
-import { createReview, getAllReviews, getReviewsByPackage, getUserReviews, getGalleryReviews, deleteReview } from '../controllers/reviewController.js';
+import { createReview, getAllReviews, getReviewsByPackage, getUserReviews, getGalleryReviews, deleteReview, getPublicReviews } from '../controllers/reviewController.js';
 
 const reviewRouter = express.Router();
 
 // Public
 reviewRouter.get('/gallery', getGalleryReviews);
 reviewRouter.get('/package/:packageId', getReviewsByPackage);
+reviewRouter.get('/public', getPublicReviews);
 
 // Authenticated user
 reviewRouter.post('/booking/:bookingId', auth, upload.array('images', 5), createReview);

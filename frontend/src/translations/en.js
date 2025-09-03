@@ -9,6 +9,7 @@ export default {
   'nav.login': 'LOGIN',
   'nav.myAccount': 'MY ACCOUNT',
   'nav.admin': 'ADMIN',
+  'nav.reviews': 'REVIEWS',
 
   // Common
   'common.loading': 'Loading...',

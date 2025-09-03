@@ -29,6 +29,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import ProtectedAdminRoute from './components/ProtectedAdminRoute'
 import ProtectedStaffRoute from './components/ProtectedStaffRoute'
+import ReviewsPage from './pages/ReviewsPage';
 import './App.css'
 
 function MainPage() {
@@ -113,6 +114,7 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
               <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+              <Route path="/reviews" element={<ReviewsPage />} />
             </Routes>
             <ChatbotWrapper />
           </div>
