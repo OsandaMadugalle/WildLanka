@@ -343,6 +343,11 @@ export const reviewApi = {
     const { data } = await api.delete(`/api/reviews/${id}`);
     return data;
   },
+  async getPublicReviews() {
+    // Adjust endpoint to match your backend route for public reviews
+    const { data } = await api.get('/api/reviews/public');
+    return data;
+  },
 };
 
 export const donationApi = {

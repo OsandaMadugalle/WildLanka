@@ -215,6 +215,14 @@ const Header = ({ triggerLogin = null }) => {
               >
                 {t('nav.contact')}
               </button>
+              <button 
+                onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.reviews') || 'Reviews'}
+              </button>
             </nav>
 
             {/* Login/Account Button */}
@@ -320,6 +328,14 @@ const Header = ({ triggerLogin = null }) => {
                 >
                   {t('nav.contact')}
                 </button>
+                <button 
+                  onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.reviews') || 'Reviews'}
+                </button>
                 {isAuthenticated ? (
                   <button 
                     onClick={navigateToAccount}
@@ -377,4 +393,4 @@ const Header = ({ triggerLogin = null }) => {
   );
 };
 
-export default Header; 
+export default Header;
