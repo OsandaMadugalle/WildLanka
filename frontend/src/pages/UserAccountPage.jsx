@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +11,17 @@ import AddReviewModal from '../components/AddReviewModal';
 import { reviewApi } from '../services/api';
 import { generateBookingPDF } from '../utils/pdfGenerator';
 
+
+function Toast({ message, type, onClose }) {
+  return (
+    <div className={`fixed top-8 right-8 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-abeze transition-all duration-300 ${
+      type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
+    }`}>
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-4 text-white font-bold">×</button>
+    </div>
+  );
+}
 
 const UserAccountPage = () => {
   const { user, logout } = useAuth();
@@ -44,6 +55,8 @@ const UserAccountPage = () => {
   const [reviewsPerPage] = useState(10);
   const [bookingsPerPage] = useState(10);
   const [showCurrentBookings, setShowCurrentBookings] = useState(true);
+  const [toast, setToast] = useState({ message: '', type: '' });
+  const toastTimeout = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -154,7 +167,7 @@ const UserAccountPage = () => {
   const handleAddReview = (bookingId) => {
     if (checkIfAlreadyReviewed(bookingId)) {
       setShowAlreadyReviewedMessage(true);
-      // Hide message after 3 seconds
+      showToast('You have already reviewed this booking.', 'error');
       setTimeout(() => setShowAlreadyReviewedMessage(false), 3000);
       return;
     }
@@ -197,7 +210,7 @@ const UserAccountPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
       {/* Add Review Modal */}
       {showReviewForBookingId && (
         <AddReviewModal
@@ -217,8 +230,9 @@ const UserAccountPage = () => {
               setShowReviewSuccess(true);
               setShowReviewForBookingId(null);
               loadUserReviews();
+              showToast('Review submitted successfully!', 'success');
             } catch (error) {
-              alert('Failed to submit review.');
+              showToast('Failed to submit review.', 'error');
             }
           }}
         />
@@ -233,14 +247,14 @@ const UserAccountPage = () => {
         </div>
       </div>
       
-      <Header />
+  <Header />
       
              {/* Main Content */}
        <div className="pt-24 pb-16 relative z-10">
-         <div className="container mx-auto px-6">
+         <div className="container mx-auto px-4 md:px-8">
            {/* Page Header */}
            <div className="text-center mb-12">
-             <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 animate-fade-in">
+             <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 animate-fade-in drop-shadow-lg">
                {t('userAccount.pageTitle')}
              </h1>
              <p className="text-slate-300 font-abeze text-lg opacity-90">
@@ -249,12 +263,12 @@ const UserAccountPage = () => {
            </div>
 
           {/* Account Content */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
                          {/* Tab Navigation */}
-             <div className="flex flex-wrap justify-center mb-8 bg-gray-800/80 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 shadow-2xl">
+             <div className="flex flex-wrap justify-center mb-8 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
                <button
                  onClick={() => handleTabChange('profile')}
-                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
+                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                    activeTab === 'profile'
                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
                      : 'text-slate-300 hover:text-white hover:bg-emerald-600/20'
@@ -295,16 +309,16 @@ const UserAccountPage = () => {
             </div>
             {/* Bookings Tab Content (Current & History) */}
             {activeTab === 'bookings' && (
-              <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+              <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
                 <div className="flex gap-4 mb-8 justify-center">
                   <button
-                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
                     onClick={() => setShowCurrentBookings(true)}
                   >
                     Current Bookings
                   </button>
                   <button
-                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${!showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${!showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
                     onClick={() => setShowCurrentBookings(false)}
                   >
                     Booking History
@@ -361,20 +375,30 @@ const UserAccountPage = () => {
                                 <td className="px-6 py-4">
                                   <div className="flex flex-wrap gap-2">
                                     {/* Download PDF Button */}
-                                    {(booking.status === 'Payment Confirmed' || booking.status === 'Confirmed' || booking.status === 'In Progress' || booking.status === 'Completed') && (
+                                    {downloadingPDF === booking._id ? (
                                       <button
                                         onClick={() => handleDownloadPDF(booking)}
-                                        disabled={downloadingPDF === booking._id}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-blue-600 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                                        disabled
+                                        title="Download your booking details as PDF"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-blue-500 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
                                       >
-                                        {downloadingPDF === booking._id ? 'Generating PDF...' : 'Download PDF'}
+                                        Generating PDF...
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleDownloadPDF(booking)}
+                                        title="Download your booking details as PDF"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-blue-500 hover:bg-blue-700 border-blue-400/30 text-white"
+                                      >
+                                        Download PDF
                                       </button>
                                     )}
                                     {/* Update Booking Button */}
                                     {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
                                       <button
                                         onClick={() => navigate(`/update-booking/${booking._id}`)}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-600 hover:bg-green-700 border-green-400/30 text-white"
+                                        title="Update your booking details"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-700 border-green-400/30 text-white"
                                       >
                                         Update
                                       </button>
@@ -395,7 +419,8 @@ const UserAccountPage = () => {
                                             alert('Error starting payment.');
                                           }
                                         }}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-500 hover:bg-yellow-600 border-yellow-400/30 text-white"
+                                        title="Pay for your booking now"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-yellow-400 hover:bg-yellow-500 border-yellow-300/30 text-white"
                                       >
                                         Pay Now
                                       </button>
@@ -408,16 +433,18 @@ const UserAccountPage = () => {
                                             try {
                                               const res = await bookingApi.updateBookingStatus(booking._id, 'Cancelled');
                                               if (!res.success) {
-                                                alert(res.message || 'Failed to cancel booking.');
+                                                showToast(res.message || 'Failed to cancel booking.', 'error');
                                               } else {
                                                 handleViewBookings();
+                                                showToast('Booking cancelled.', 'success');
                                               }
                                             } catch (err) {
-                                              alert('An error occurred while cancelling the booking.');
+                                              showToast('An error occurred while cancelling the booking.', 'error');
                                             }
                                           }
                                         }}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-red-600 hover:bg-red-700 border-red-400/30 text-white"
+                                        title="Cancel this booking"
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-red-500 hover:bg-red-700 border-red-400/30 text-white"
                                       >
                                         Cancel
                                       </button>
@@ -428,7 +455,8 @@ const UserAccountPage = () => {
                                         href={`https://wa.me/${booking.guideId.phone}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-600 border-green-400/30 text-white"
+                                        title={`Contact your guide (${booking.guideId.firstName} ${booking.guideId.lastName}) on WhatsApp`}
+                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-400 hover:bg-green-600 border-green-300/30 text-white"
                                       >
                                         WhatsApp Guide: {booking.guideId.firstName} {booking.guideId.lastName}
                                       </a>
@@ -498,7 +526,8 @@ const UserAccountPage = () => {
                                     ) : (
                                       <button
                                         onClick={() => handleAddReview(booking._id)}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                        title="Add a review for this completed booking"
+                                        className="bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                                       >
                                         Add Review
                                       </button>
@@ -520,30 +549,29 @@ const UserAccountPage = () => {
 
             {/* Profile Tab Content */}
             {activeTab === 'profile' && (
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-3 gap-12 w-full">
                                  {/* Profile Card */}
                  <div className="md:col-span-1">
-                   <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 transform hover:scale-[1.02]">
+                   <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl hover:shadow-emerald-500/10 transition-colors duration-500">
                                          <div className="text-center mb-6">
-                       <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1">
-                                                 <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800">
-                           {user?.profilePicture?.url ? (
-                             <img 
-                               src={user.profilePicture.url} 
-                               alt={t('userAccount.common.profileImageAlt')} 
-                               className="w-full h-full object-cover"
-                             />
-                           ) : (
-                             <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center justify-center">
-                               <span className="text-2xl font-abeze font-bold text-white">
-                                 {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-                               </span>
-                             </div>
-                           )}
-                         </div>
-                         {/* Online indicator */}
-                         <div className="absolute bottom-2 right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg"></div>
-                      </div>
+                                           <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1 shadow-xl transition-all duration-500 hover:border-emerald-400 animate-avatar">
+                                             <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                                               {user?.profilePicture?.url ? (
+                                                 <img 
+                                                   src={user.profilePicture.url} 
+                                                   alt={t('userAccount.common.profileImageAlt')} 
+                                                   className="w-full h-full object-cover drop-shadow-lg" 
+                                                 />
+                                               ) : (
+                                                 <svg className="w-16 h-16 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                   <circle cx="12" cy="8" r="4" strokeWidth="2" />
+                                                   <path strokeWidth="2" d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                                                 </svg>
+                                               )}
+                                             </div>
+                                             {/* Online indicator */}
+                                             <div className="absolute bottom-2 right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg"></div>
+                                          </div>
                                              <h2 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-2">
                          {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.firstName || t('userAccount.common.defaultUser')}
                        </h2>
@@ -571,7 +599,7 @@ const UserAccountPage = () => {
 
                                  {/* Account Details */}
                  <div className="md:col-span-2">
-                   <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
                      <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                        {t('userAccount.profile.accountInformation')}
                      </h3>
@@ -645,7 +673,7 @@ const UserAccountPage = () => {
 
                          {/* Reviews Tab Content */}
              {activeTab === 'reviews' && (
-               <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+               <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
                  <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                    {t('userAccount.myReviews')}
                  </h3>
@@ -696,9 +724,9 @@ const UserAccountPage = () => {
                           </div>
                           <div className="flex-shrink-0">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              review.rating === 5 ? 'bg-green-600 text-white' :
-                              review.rating >= 3 ? 'bg-yellow-500 text-white' :
-                              'bg-red-600 text-white'
+                              review.rating === 5 ? 'bg-green-500 text-white' :
+                              review.rating >= 3 ? 'bg-yellow-400 text-white' :
+                              'bg-red-500 text-white'
                             }`}>
                               {review.rating} stars
                             </span>
@@ -710,13 +738,15 @@ const UserAccountPage = () => {
                         <div className="flex gap-4">
                           <button
                             onClick={() => handleAddReview(review.bookingId._id)}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            title="Edit your review for this booking"
+                            className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                           >
                             Edit Review
                           </button>
                           <button
                             onClick={() => handleDeleteReview(review._id)}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            title="Delete this review"
+                            className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                           >
                             Delete Review
                           </button>
@@ -739,6 +769,7 @@ const UserAccountPage = () => {
         />
       )}
       <Footer />
+      {toast.message && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ message: '', type: '' })} />}
     </div>
   );
 };
