@@ -9,12 +9,26 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [allBookings, setAllBookings] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       loadStaff();
+      loadBookings();
     }
   }, [isOpen]);
+
+  const loadBookings = async () => {
+    try {
+      const bookingsData = await bookingApi.getAllBookings();
+      setAllBookings(Array.isArray(bookingsData) ? bookingsData : []);
+    } catch (error) {
+      console.error('Error loading bookings:', error);
+      setAllBookings([]);
+    }
+  };
 
   const loadStaff = async () => {
     try {
@@ -113,10 +127,18 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
       return;
     }
 
+    setShowConfirm(true);
+  };
+
+  const confirmAssignStaff = async () => {
+    const currentDriverId = booking.driverId && (booking.driverId._id || booking.driverId);
+    const currentGuideId = booking.guideId && (booking.guideId._id || booking.guideId);
+    const needsAssignDriver = !!selectedDriver && selectedDriver !== currentDriverId;
+    const needsAssignGuide = !!selectedGuide && selectedGuide !== currentGuideId;
     try {
       setAssigning(true);
       setError('');
-
+      setSuccess('');
       const actions = [];
       if (needsAssignDriver) {
         actions.push(bookingApi.assignDriverToBooking(booking._id, selectedDriver));
@@ -124,9 +146,7 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
       if (needsAssignGuide) {
         actions.push(bookingApi.assignGuideToBooking(booking._id, selectedGuide));
       }
-
       await Promise.all(actions);
-
       const updatedBooking = {
         ...booking,
         driverId: needsAssignDriver
@@ -139,12 +159,14 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
           ? 'Guide Assigned'
           : 'Driver Assigned'
       };
-
+      setSuccess('Staff assigned successfully!');
       onAssignmentComplete(updatedBooking);
-      onClose();
+      setShowConfirm(false);
+      setTimeout(() => { setSuccess(''); onClose(); }, 1500);
     } catch (error) {
       console.error('Error assigning staff:', error);
       setError(error.response?.data?.message || 'Failed to assign staff');
+      setShowConfirm(false);
     } finally {
       setAssigning(false);
     }
@@ -244,10 +266,15 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
             </div>
           </div>
 
-          {/* Error Message */}
+          {/* Error/Success Message */}
           {error && (
             <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
               <p className="text-red-400 font-abeze">{error}</p>
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+              <p className="text-green-400 font-abeze">{success}</p>
             </div>
           )}
 
@@ -274,12 +301,36 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
                     className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 font-abeze focus:outline-none focus:border-blue-500"
                   >
                     <option value="">Choose a driver...</option>
-                    {drivers.map((driver) => (
-                      <option key={driver._id} value={driver._id}>
-                        {driver.firstName} {driver.lastName} - {driver.specialization || 'Driver'}
-                      </option>
-                    ))}
+                    {drivers.map((driver) => {
+                      // Check availability
+                      const isBusy = allBookings.some(b =>
+                        b.driverId && (b.driverId._id || b.driverId) === driver._id &&
+                        b._id !== booking._id &&
+                        b.bookingDetails?.startDate === booking.bookingDetails?.startDate
+                      );
+                      return (
+                        <option key={driver._id} value={driver._id} disabled={isBusy}>
+                          {driver.firstName} {driver.lastName} - {driver.specialization || 'Driver'}
+                          {isBusy ? ' (Unavailable)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
+                  {/* Assignment history for driver */}
+                  {selectedDriver && (
+                    <div className="mt-2 text-xs text-gray-300 font-abeze">
+                      <span className="font-bold">Recent assignments:</span>
+                      <ul className="list-disc ml-4">
+                        {allBookings.filter(b => b.driverId && (b.driverId._id || b.driverId) === selectedDriver)
+                          .slice(-3)
+                          .map(b => (
+                            <li key={b._id}>
+                              {new Date(b.bookingDetails?.startDate).toLocaleDateString()} - {b.status}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 
                 {booking.driverId && (
@@ -323,12 +374,36 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
                     className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 font-abeze focus:outline-none focus:border-green-500"
                   >
                     <option value="">Choose a tour guide...</option>
-                    {guides.map((guide) => (
-                      <option key={guide._id} value={guide._id}>
-                        {guide.firstName} {guide.lastName} - {guide.specialization || 'Tour Guide'}
-                      </option>
-                    ))}
+                    {guides.map((guide) => {
+                      // Check availability
+                      const isBusy = allBookings.some(b =>
+                        b.guideId && (b.guideId._id || b.guideId) === guide._id &&
+                        b._id !== booking._id &&
+                        b.bookingDetails?.startDate === booking.bookingDetails?.startDate
+                      );
+                      return (
+                        <option key={guide._id} value={guide._id} disabled={isBusy}>
+                          {guide.firstName} {guide.lastName} - {guide.specialization || 'Tour Guide'}
+                          {isBusy ? ' (Unavailable)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
+                  {/* Assignment history for guide */}
+                  {selectedGuide && (
+                    <div className="mt-2 text-xs text-gray-300 font-abeze">
+                      <span className="font-bold">Recent assignments:</span>
+                      <ul className="list-disc ml-4">
+                        {allBookings.filter(b => b.guideId && (b.guideId._id || b.guideId) === selectedGuide)
+                          .slice(-3)
+                          .map(b => (
+                            <li key={b._id}>
+                              {new Date(b.bookingDetails?.startDate).toLocaleDateString()} - {b.status}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 
                 {booking.guideId && (
@@ -396,6 +471,29 @@ const AssignmentModal = ({ isOpen, onClose, booking, onAssignmentComplete }) => 
             {assigning ? 'Assigning...' : 'Assign Staff'}
           </button>
         </div>
+        {/* Confirmation Dialog */}
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+            <div className="bg-gray-900 rounded-xl shadow-xl p-8 border border-gray-700 max-w-md w-full">
+              <h3 className="text-lg font-bold text-white mb-4">Confirm Assignment</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to assign the selected staff to this booking?</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmAssignStaff}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
