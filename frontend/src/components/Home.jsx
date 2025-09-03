@@ -29,6 +29,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+      {/* Featured Reviews Section removed */}
     </BackgroundSlideshow>
   );
 };

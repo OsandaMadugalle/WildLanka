@@ -48,6 +48,7 @@ const UserAccountPage = () => {
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
   const [showAlreadyReviewedMessage, setShowAlreadyReviewedMessage] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(null); // Track which booking is being downloaded
+  const [modalReview, setModalReview] = useState(null);
   
   // Pagination states
   const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
@@ -677,7 +678,6 @@ const UserAccountPage = () => {
                  <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                    {t('userAccount.myReviews')}
                  </h3>
-                
                 {loadingReviews ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
@@ -694,66 +694,111 @@ const UserAccountPage = () => {
                     <p className="text-gray-400 font-abeze text-sm">{t('userAccount.completeBookingToReview')}</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {currentReviews.map((review) => (
-                      <div key={review._id} className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md transition-all duration-300 transform hover:scale-[1.01]">
-                        {/* Review Images Section */}
-                        {review.images && review.images.length > 0 && (
-                          <div className="flex flex-wrap gap-3 mb-4">
-                            {review.images.map((img, idx) => (
-                              <img
-                                key={img.id || idx}
-                                src={img.url}
-                                alt={`Review image ${idx + 1}`}
-                                className="w-24 h-24 object-cover rounded-lg border border-gray-600 shadow"
-                              />
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            {/* Removed circular package image for cleaner review card */}
-                            <div>
-                              <p className="text-white font-abeze font-semibold text-lg">
-                                {review.packageId?.title || review.bookingId.packageDetails?.title || 'N/A'}
-                              </p>
-                              <p className="text-slate-400 font-abeze text-sm">
-                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'N/A'}
-                              </p>
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {currentReviews.map((review) => (
+                        <div key={review._id} className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="text-white font-abeze font-semibold text-lg">
+                                  {review.packageId?.title || review.bookingId.packageDetails?.title || 'N/A'}
+                                </p>
+                                <p className="text-slate-400 font-abeze text-sm">
+                                  {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'N/A'}
+                                </p>
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                review.rating === 5 ? 'bg-green-500 text-white' :
+                                review.rating >= 3 ? 'bg-yellow-400 text-white' :
+                                'bg-red-500 text-white'
+                              }`}>
+                                {review.rating} stars
+                              </span>
                             </div>
+                            <p className="text-slate-300 font-abeze mb-2 line-clamp-3">
+                              {review.comment || t('userAccount.reviews.noComment')}
+                            </p>
+                            {review.images && review.images.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {review.images.slice(0, 3).map((img, idx) => (
+                                  <img
+                                    key={img.id || idx}
+                                    src={img.url}
+                                    alt={`Review image ${idx + 1}`}
+                                    className="w-16 h-16 object-cover rounded border border-gray-600 shadow cursor-pointer"
+                                    onClick={() => setModalReview(review)}
+                                  />
+                                ))}
+                                {review.images.length > 3 && (
+                                  <span className="text-xs text-gray-400 ml-2">+{review.images.length - 3} more</span>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex-shrink-0">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              review.rating === 5 ? 'bg-green-500 text-white' :
-                              review.rating >= 3 ? 'bg-yellow-400 text-white' :
-                              'bg-red-500 text-white'
-                            }`}>
-                              {review.rating} stars
-                            </span>
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => handleAddReview(review.bookingId._id)}
+                              title="Edit your review for this booking"
+                              className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(review._id)}
+                              title="Delete this review"
+                              className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setModalReview(review)}
+                              title="View Details"
+                              className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              View
+                            </button>
                           </div>
                         </div>
-                        <p className="text-slate-300 font-abeze mb-4">
-                          {review.comment || t('userAccount.reviews.noComment')}
-                        </p>
-                        <div className="flex gap-4">
+                      ))}
+                    </div>
+                    {/* Modal for review details */}
+                    {modalReview && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                        <div className="bg-gray-900 rounded-2xl p-8 max-w-lg w-full relative">
                           <button
-                            onClick={() => handleAddReview(review.bookingId._id)}
-                            title="Edit your review for this booking"
-                            className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            onClick={() => setModalReview(null)}
+                            className="absolute top-4 right-4 text-white text-2xl font-bold"
+                            title="Close"
                           >
-                            Edit Review
+                            ×
                           </button>
-                          <button
-                            onClick={() => handleDeleteReview(review._id)}
-                            title="Delete this review"
-                            className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
-                          >
-                            Delete Review
-                          </button>
+                          <h4 className="text-xl font-bold text-white mb-2">{modalReview.packageId?.title || modalReview.bookingId.packageDetails?.title || 'N/A'}</h4>
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block ${
+                            modalReview.rating === 5 ? 'bg-green-500 text-white' :
+                            modalReview.rating >= 3 ? 'bg-yellow-400 text-white' :
+                            'bg-red-500 text-white'
+                          }`}>
+                            {modalReview.rating} stars
+                          </span>
+                          <p className="text-slate-300 font-abeze mb-4">{modalReview.comment || t('userAccount.reviews.noComment')}</p>
+                          {modalReview.images && modalReview.images.length > 0 && (
+                            <div className="flex flex-wrap gap-3 mb-4">
+                              {modalReview.images.map((img, idx) => (
+                                <img
+                                  key={img.id || idx}
+                                  src={img.url}
+                                  alt={`Review image ${idx + 1}`}
+                                  className="w-32 h-32 object-cover rounded border border-gray-600 shadow"
+                                />
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-slate-400 text-sm">{modalReview.createdAt ? new Date(modalReview.createdAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
