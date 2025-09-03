@@ -939,6 +939,18 @@ const completeTourAsGuide = async (req, res) => {
 
 // Admin assigns driver to booking
 const assignDriverToBooking = async (req, res) => {
+        // Audit log
+        try {
+            const AdminAudit = (await import('../models/AdminAudit.js')).default;
+            await AdminAudit.create({
+                action: 'assignDriver',
+                adminId: req.user._id,
+                bookingId,
+                details: { driverId }
+            });
+        } catch (auditErr) {
+            console.error('Admin audit log error (assignDriver):', auditErr);
+        }
     try {
         const { bookingId } = req.params;
         const { driverId } = req.body;
@@ -998,6 +1010,18 @@ const assignDriverToBooking = async (req, res) => {
 
 // Admin assigns guide to booking
 const assignGuideToBooking = async (req, res) => {
+        // Audit log
+        try {
+            const AdminAudit = (await import('../models/AdminAudit.js')).default;
+            await AdminAudit.create({
+                action: 'assignGuide',
+                adminId: req.user._id,
+                bookingId,
+                details: { guideId }
+            });
+        } catch (auditErr) {
+            console.error('Admin audit log error (assignGuide):', auditErr);
+        }
     try {
         const { bookingId } = req.params;
         const { guideId } = req.body;
@@ -1057,6 +1081,18 @@ const assignGuideToBooking = async (req, res) => {
 
 // Admin completes booking (only when both driver and guide have accepted)
 const completeBookingByAdmin = async (req, res) => {
+        // Audit log
+        try {
+            const AdminAudit = (await import('../models/AdminAudit.js')).default;
+            await AdminAudit.create({
+                action: 'completeBooking',
+                adminId: req.user._id,
+                bookingId,
+                details: {}
+            });
+        } catch (auditErr) {
+            console.error('Admin audit log error (completeBooking):', auditErr);
+        }
     try {
         const { bookingId } = req.params;
         
