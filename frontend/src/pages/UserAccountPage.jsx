@@ -17,7 +17,7 @@ const UserAccountPage = () => {
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
     setUser(null);
-    window.location.href = "/login";
+  navigate("/");
   };
   const handleEditProfile = () => setShowEditProfile(true);
   const handleCloseEditProfile = () => setShowEditProfile(false);
