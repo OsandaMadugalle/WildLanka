@@ -107,7 +107,11 @@ const Header = ({ triggerLogin = null }) => {
   };
 
   const navigateToAccount = () => {
-    // Redirect based on user role
+    // Only allow navigation if authenticated
+    if (!isAuthenticated) {
+      handleLoginClick();
+      return;
+    }
     if (user?.role === 'admin') {
       navigate('/admin');
     } else {
@@ -393,4 +397,4 @@ const Header = ({ triggerLogin = null }) => {
   );
 };
 
-export default Header;
+export { Header };
