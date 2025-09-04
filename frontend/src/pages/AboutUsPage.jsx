@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
 import image4 from '../assets/4.jpg';
 import image5 from '../assets/5.webp';
 import image6 from '../assets/6.webp';

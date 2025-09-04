@@ -55,6 +55,8 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/donations", donationRoutes);
+import galleryRoutes from "./routes/gallery.js";
+app.use("/api/gallery", galleryRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

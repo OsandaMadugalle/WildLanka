@@ -349,6 +349,6 @@ const AddReviewModal = ({ onClose, onSubmit }) => {
   );
 };
 
-export default AddReviewModal;
+export { AddReviewModal };
 
 
