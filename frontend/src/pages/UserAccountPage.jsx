@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { Toast } from "../components/Toast";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
@@ -14,10 +15,10 @@ import { EditProfileModal } from "../components/EditProfileModal";
 import { useTranslation } from "react-i18next";
 
 const UserAccountPage = () => {
+  const { logout } = useAuth();
   const handleLogout = () => {
-    localStorage.removeItem("auth_token");
-    setUser(null);
-  navigate("/");
+    logout();
+    navigate("/");
   };
   const handleEditProfile = () => setShowEditProfile(true);
   const handleCloseEditProfile = () => setShowEditProfile(false);
