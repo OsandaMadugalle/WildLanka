@@ -287,4 +287,4 @@ const UserContactMessages = ({ userEmail }) => {
   );
 };
 
-export default UserContactMessages;
+export { UserContactMessages };

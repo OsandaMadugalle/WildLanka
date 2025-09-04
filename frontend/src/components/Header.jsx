@@ -393,4 +393,4 @@ const Header = ({ triggerLogin = null }) => {
   );
 };
 
-export default Header;
+export { Header };

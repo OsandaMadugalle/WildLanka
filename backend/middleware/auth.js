@@ -1,7 +1,13 @@
+
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import Staff from "../models/Staff.js";
+
+// ...existing code...
+
+// Named exports for gallery/admin routes
+export { authenticateToken as isAuthenticated, requireAdmin as isAdmin };
 
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET || "dev_secret_change_me";
@@ -89,18 +95,23 @@ export const authenticateToken = async (req, res, next) => {
 
 export const requireAdmin = async (req, res, next) => {
   try {
-    // Check if user is admin (authenticateToken already ran)
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: "Admin access required" });
+    console.log('requireAdmin debug:', req.user);
+    // Allow admin if role/userType is 'admin' or email is admin@wildlanka.com
+    if (
+      req.user.role === 'admin' ||
+      req.user.userType === 'admin' ||
+      req.user.email === 'admin@wildlanka.com'
+    ) {
+      return next();
     }
-    
-    next();
+    return res.status(403).json({ message: "Admin access required" });
   } catch (error) {
     return res.status(500).json({ message: "Authorization error" });
   }
 };
 
 export const requireStaff = async (req, res, next) => {
+// Aliases for gallery routes
   try {
     // Check if user is staff or admin (authenticateToken already ran)
     if (req.user.role !== 'staff' && req.user.role !== 'admin') {
