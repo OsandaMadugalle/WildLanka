@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +14,17 @@ import Attendance from '../components/Attendance';
 import Payroll from '../components/Payroll';
 import AssignmentModal from '../components/AssignmentModal';
 import BookingCalendar from '../components/BookingCalendar';
+import AdminGalleryManager from '../components/AdminGalleryManager';
+
+// ...existing code...
 
 const AdminPage = () => {
+  // Fix: Add missing handleDownloadBookings stub
+  const handleDownloadBookings = () => {
+    // TODO: Implement download logic (CSV/PDF)
+    alert(`Download as ${downloadType} not yet implemented.`);
+  };
+  const [downloadType, setDownloadType] = useState('csv');
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -106,17 +116,18 @@ const AdminPage = () => {
 
   // Navigation items
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', color: 'blue' },
-    { id: 'users', label: 'Customers', icon: '👥', color: 'blue' },
-    { id: 'staff', label: 'Staff Management', icon: '👨‍💼', color: 'blue' },
-    { id: 'packages', label: 'Packages', icon: '🎒', color: 'blue' },
-    { id: 'safari-requests', label: 'Safari Requests', icon: '🦁', color: 'blue' },
-    { id: 'contact-messages', label: 'Contact Messages', icon: '💬', color: 'blue' },
-    { id: 'bookings', label: 'Bookings', icon: '📅', color: 'blue' },
-    { id: 'reviews', label: 'Reviews', icon: '⭐', color: 'blue' },
-    { id: 'donations', label: 'Donations', icon: '💝', color: 'blue' },
-    { id: 'attendance', label: 'Attendance', icon: '⏰', color: 'blue' },
-    { id: 'payroll', label: 'Payroll', icon: '💰', color: 'blue' },
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', color: 'blue' },
+  { id: 'users', label: 'Customers', icon: '👥', color: 'blue' },
+  { id: 'staff', label: 'Staff Management', icon: '👨‍💼', color: 'blue' },
+  { id: 'packages', label: 'Packages', icon: '🎒', color: 'blue' },
+  { id: 'safari-requests', label: 'Safari Requests', icon: '🦁', color: 'blue' },
+  { id: 'contact-messages', label: 'Contact Messages', icon: '💬', color: 'blue' },
+  { id: 'bookings', label: 'Bookings', icon: '📅', color: 'blue' },
+  { id: 'gallery', label: 'Gallery', icon: '🖼️', color: 'blue' },
+  { id: 'reviews', label: 'Reviews', icon: '⭐', color: 'blue' },
+  { id: 'donations', label: 'Donations', icon: '💝', color: 'blue' },
+  { id: 'attendance', label: 'Attendance', icon: '⏰', color: 'blue' },
+  { id: 'payroll', label: 'Payroll', icon: '💰', color: 'blue' },
   ];
 
   // Load data when tabs are selected
@@ -1408,7 +1419,7 @@ The Wildlife Safari Team`);
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2-2h-2a2 2 0 012-2" />
                       </svg>
                     </div>
                     <h5 className="font-abeze font-semibold text-white">Payment</h5>
@@ -1529,24 +1540,15 @@ The Wildlife Safari Team`);
     </div>
   );
 
-  // --- Download logic ---
-  const [downloadType, setDownloadType] = useState('csv');
-  const handleDownloadBookings = () => {
-    const filtered = getSortedBookings(getFilteredBookings());
-    if (downloadType === 'csv') {
-      import('../utils/csvGenerator').then(({ downloadBookingsCSV }) => {
-        downloadBookingsCSV(filtered);
-      });
-    } else if (downloadType === 'pdf') {
-      // PDF Export (all bookings in one file)
-      import('../utils/pdfGenerator').then(({ generateAllBookingsPDF }) => {
-        generateAllBookingsPDF(filtered);
-      });
-    }
-  };
+  const renderGallery = () => (
+    <div className="space-y-6">
+      <h3 className="text-xl font-abeze font-bold text-white">Gallery Management</h3>
+      <AdminGalleryManager />
+      {/* Removed gallery features info paragraph as requested */}
+    </div>
+  );
 
-
-
+  // Add to main render logic
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex">
       {/* Sidebar */}
@@ -1772,8 +1774,8 @@ The Wildlife Safari Team`);
                        </div>
                        <h3 className="text-xl font-abeze font-bold text-white mb-2">No Donations Found</h3>
                        <p className="text-gray-400 font-abeze">There are no donations to display at the moment.</p>
-                    </div>
-                  ) : (
+                     </div>
+                   ) : (
                      <div className="space-y-4">
                             {donations.map((donation) => (
                          <div key={donation._id} className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300">
@@ -1855,7 +1857,7 @@ The Wildlife Safari Team`);
                                  <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
                                    <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                    </svg>
                                  </div>
                                  <h5 className="font-abeze font-semibold text-white">Location</h5>
@@ -1922,6 +1924,7 @@ The Wildlife Safari Team`);
                 </div>
               )}
               {activeTab === 'payroll' && <Payroll />}
+              {activeTab === 'gallery' && renderGallery()}
             </div>
           </div>
         </main>

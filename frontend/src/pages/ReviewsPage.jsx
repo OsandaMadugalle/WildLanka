@@ -1,6 +1,6 @@
 import { useLanguage } from '../context/LanguageContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
 import { reviewApi } from '../services/api';
 import React, { useEffect, useState } from 'react';
 

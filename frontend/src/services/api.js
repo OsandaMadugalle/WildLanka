@@ -1,3 +1,12 @@
+export const galleryApi = {
+  async getUserGallery() {
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/gallery/user/list', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return data;
+  },
+};
 import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -232,7 +241,10 @@ export const bookingApi = {
     return data;
   },
   async getUserBookings() {
-    const { data } = await api.get('/api/bookings/user');
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/bookings/user', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return data;
   },
   async getAllBookings() {
@@ -328,7 +340,10 @@ export const reviewApi = {
     return data;
   },
   async getUserReviews() {
-    const { data } = await api.get('/api/reviews/user');
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/reviews/user', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return data;
   },
   async getGalleryReviews() {

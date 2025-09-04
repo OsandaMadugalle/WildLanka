@@ -223,4 +223,4 @@ const Footer = () => {
   );
 };
 
-export default Footer; 
+export { Footer };
