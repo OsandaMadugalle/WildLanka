@@ -21,7 +21,25 @@ const UserAccountPage = () => {
     navigate("/");
   };
   const handleEditProfile = () => setShowEditProfile(true);
-  const handleCloseEditProfile = () => setShowEditProfile(false);
+  // Refetch user data after closing edit profile modal
+  const handleCloseEditProfile = async () => {
+    setShowEditProfile(false);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const userResponse = await fetch("http://localhost:5000/api/users/me", {
+        credentials: "include",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+      });
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUser(userData);
+      }
+    } catch (err) {
+      // Optionally show a toast or ignore
+    }
+  };
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
