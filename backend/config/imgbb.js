@@ -11,11 +11,10 @@ export const uploadToImgBB = async (imageBuffer, filename) => {
       console.error('[ImgBB] Image buffer is empty!');
       throw new Error('Image buffer is empty');
     }
+    // Convert buffer to base64 string
+    const base64Image = imageBuffer.toString('base64');
     const formData = new FormData();
-    formData.append('image', imageBuffer, {
-      filename: filename,
-      contentType: 'image/jpeg'
-    });
+    formData.append('image', base64Image);
     console.log('[ImgBB] FormData created. Buffer size:', imageBuffer.length);
     const response = await axios.post(IMGBB_API_URL, formData, {
       params: {
