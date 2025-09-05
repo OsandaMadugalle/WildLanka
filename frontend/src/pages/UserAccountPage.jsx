@@ -29,6 +29,15 @@ const UserAccountPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [bookings, setBookings] = useState([]);
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (toast.message) {
+      const timer = setTimeout(() => {
+        setToast({ message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.message]);
   const [reviews, setReviews] = useState([]);
   const [userGallery, setUserGallery] = useState([]);
   const [loadingGallery, setLoadingGallery] = useState(false);
@@ -369,13 +378,13 @@ const UserAccountPage = () => {
                         }`}
                       >
                         {tab}
-                        {userGallery.filter(img => img.status === tab).length > 0 ? ` (${userGallery.filter(img => img.status === tab).length})` : ''}
+                        {(Array.isArray(userGallery) ? userGallery : []).filter(img => img.status === tab).length > 0 ? ` (${(Array.isArray(userGallery) ? userGallery : []).filter(img => img.status === tab).length})` : ''}
                       </button>
                     ))}
                   </div>
                   {loadingGallery ? (
                     <div className="text-slate-300">Loading your images...</div>
-                  ) : userGallery.length === 0 ? (
+                  ) : !(Array.isArray(userGallery) && userGallery.length > 0) ? (
                     <div className="text-slate-400">No images found.</div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1113,6 +1122,28 @@ const UserAccountPage = () => {
         <EditProfileModal onClose={handleCloseEditProfile} user={user} />
       )}
       <Footer />
+      {showPhotoUpload && (
+        <PhotoUploadModal
+          user={user}
+          setToast={setToast}
+          onClose={() => setShowPhotoUpload(false)}
+          fetchUserGallery={async () => {
+            setLoadingGallery(true);
+            try {
+              const galleryResponse = await galleryApi.getUserGallery();
+              if (galleryResponse && galleryResponse.success && Array.isArray(galleryResponse.images)) {
+                setUserGallery(galleryResponse.images);
+              } else {
+                setUserGallery([]);
+              }
+            } catch (err) {
+              setToast({ message: "Failed to refresh gallery.", type: "error" });
+            } finally {
+              setLoadingGallery(false);
+            }
+          }}
+        />
+      )}
       {toast.message && (
         <Toast
           message={toast.message}
@@ -1181,61 +1212,82 @@ export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) 
     };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-gray-900 rounded-xl p-8 w-full max-w-md shadow-2xl relative">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-700/60 relative">
         <button
-          className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-700 rounded px-3 py-1 font-bold"
+          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 rounded-full p-2 shadow-lg flex items-center justify-center transition-all duration-300 group"
           onClick={onClose}
+          title="Close"
         >
-          ×
+          <svg className="w-6 h-6 text-white group-hover:text-gray-200 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-        <h4 className="text-xl font-bold text-white mb-4 text-center">Upload Photo</h4>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            className="block w-full mb-4 text-slate-300"
-            onChange={handleFilesChange}
-          />
-          <input
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            className="block w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Price (USD)"
-            value={price}
-            onChange={e => setPrice(e.target.value)}
-            className="block w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-            min="0"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={tags}
-            onChange={e => setTags(e.target.value)}
-            className="block w-full mb-3 px-3 py-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
+        <h4 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8 text-center font-abeze">Upload Photo</h4>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-2">
+            <label htmlFor="photo-upload-input" className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold cursor-pointer transition-all font-abeze shadow-lg">
+              Browse...
+              <input
+                id="photo-upload-input"
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleFilesChange}
+              />
+            </label>
+            {selectedFiles.length > 0 && (
+              <div className="mt-2 text-slate-300 text-sm text-center">{selectedFiles.length} file(s) selected</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Description</label>
+            <input
+              type="text"
+              placeholder="Description"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Price (USD)</label>
+            <input
+              type="number"
+              placeholder="Price (USD)"
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+              min="0"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Tags</label>
+            <input
+              type="text"
+              placeholder="Tags (comma separated)"
+              value={tags}
+              onChange={e => setTags(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+            />
+          </div>
           <button
             type="submit"
             disabled={uploading}
-            className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold mt-2 ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold font-abeze mt-2 shadow-lg transition-all duration-300 ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             {uploading ? "Uploading..." : "Submit"}
           </button>
         </form>
         {selectedFiles.length > 0 && (
-          <div className="mt-4">
-            <div className="text-slate-300 mb-2">Preview:</div>
-            <div className="flex flex-wrap gap-2">
+          <div className="mt-6">
+            <div className="text-slate-300 mb-2 font-abeze">Preview:</div>
+            <div className="flex flex-wrap gap-3 justify-center">
               {selectedFiles.map((file, idx) => (
-                <img key={idx} src={URL.createObjectURL(file)} alt={file.name} className="w-20 h-20 object-cover rounded border border-gray-700" />
+                <img key={idx} src={URL.createObjectURL(file)} alt={file.name} className="w-24 h-24 object-cover rounded-2xl border border-gray-700 shadow" />
               ))}
             </div>
           </div>
