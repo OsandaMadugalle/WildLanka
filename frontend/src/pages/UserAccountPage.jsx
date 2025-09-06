@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -69,7 +68,8 @@ const UserAccountPage = () => {
   const [showReviewForBookingId, setShowReviewForBookingId] = useState(null);
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
   const [modalReview, setModalReview] = useState(null);
-  const [showAlreadyReviewedMessage, setShowAlreadyReviewedMessage] = useState(false);
+  const [showAlreadyReviewedMessage, setShowAlreadyReviewedMessage] =
+    useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const bookingsPerPage = 5;
   const reviewsPerPage = 3;
@@ -93,11 +93,12 @@ const UserAccountPage = () => {
         }
 
         // Fetch bookings, reviews, and gallery in parallel
-        const [bookingsResponse, reviewsResponse, galleryResponse] = await Promise.all([
-          bookingApi.getUserBookings(),
-          reviewApi.getUserReviews(),
-          galleryApi.getUserGallery(),
-        ]);
+        const [bookingsResponse, reviewsResponse, galleryResponse] =
+          await Promise.all([
+            bookingApi.getUserBookings(),
+            reviewApi.getUserReviews(),
+            galleryApi.getUserGallery(),
+          ]);
 
         if (bookingsResponse.success) {
           setBookings(bookingsResponse.bookings);
@@ -111,13 +112,20 @@ const UserAccountPage = () => {
           setToast({ message: "Failed to load reviews.", type: "error" });
         }
 
-        if (galleryResponse && galleryResponse.success && Array.isArray(galleryResponse.images)) {
+        if (
+          galleryResponse &&
+          galleryResponse.success &&
+          Array.isArray(galleryResponse.images)
+        ) {
           setUserGallery(galleryResponse.images);
         } else {
           setToast({ message: "Failed to load gallery.", type: "error" });
         }
       } catch (error) {
-        setToast({ message: error.message || "An error occurred.", type: "error" });
+        setToast({
+          message: error.message || "An error occurred.",
+          type: "error",
+        });
       }
     };
 
@@ -242,8 +250,6 @@ const UserAccountPage = () => {
     indexOfFirstBooking,
     indexOfLastBooking
   );
-
-
 
   const handleDownloadPDF = async (booking) => {
     setDownloadingPDF(booking._id);
@@ -377,53 +383,100 @@ const UserAccountPage = () => {
                     Upload Photo
                   </button>
                   <p className="text-slate-400 text-sm mt-4 text-center">
-                    Photos will be reviewed by admin before being listed for sale.<br />
-                    <span className="text-emerald-400">Commission applies.</span>
+                    Photos will be reviewed by admin before being listed for
+                    sale.
+                    <br />
+                    <span className="text-emerald-400">
+                      Commission applies.
+                    </span>
                   </p>
                 </div>
                 <div className="w-full max-w-3xl">
-                  <h4 className="text-lg font-bold text-white mb-4">Your Gallery Images</h4>
+                  <h4 className="text-lg font-bold text-white mb-4">
+                    Your Gallery Images
+                  </h4>
                   {/* Gallery status tabs */}
                   <div className="flex space-x-2 mb-6">
-                    {['pending', 'approved', 'rejected'].map(tab => (
+                    {["pending", "approved", "rejected"].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setGalleryTab(tab)}
                         className={`px-4 py-2 rounded-t-lg font-bold capitalize transition-colors duration-150 ${
                           galleryTab === tab
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-800 text-slate-300 hover:bg-gray-700'
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-800 text-slate-300 hover:bg-gray-700"
                         }`}
                       >
                         {tab}
-                        {(Array.isArray(userGallery) ? userGallery : []).filter(img => img.status === tab).length > 0 ? ` (${(Array.isArray(userGallery) ? userGallery : []).filter(img => img.status === tab).length})` : ''}
+                        {(Array.isArray(userGallery) ? userGallery : []).filter(
+                          (img) => img.status === tab
+                        ).length > 0
+                          ? ` (${
+                              (Array.isArray(userGallery)
+                                ? userGallery
+                                : []
+                              ).filter((img) => img.status === tab).length
+                            })`
+                          : ""}
                       </button>
                     ))}
                   </div>
                   {loadingGallery ? (
                     <div className="text-slate-300">Loading your images...</div>
-                  ) : !(Array.isArray(userGallery) && userGallery.length > 0) ? (
+                  ) : !(
+                      Array.isArray(userGallery) && userGallery.length > 0
+                    ) ? (
                     <div className="text-slate-400">No images found.</div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {userGallery.filter(img => img.status === galleryTab).length === 0 ? (
-                        <div className="text-slate-400">No {galleryTab} images.</div>
+                      {userGallery.filter((img) => img.status === galleryTab)
+                        .length === 0 ? (
+                        <div className="text-slate-400">
+                          No {galleryTab} images.
+                        </div>
                       ) : (
-                        userGallery.filter(img => img.status === galleryTab).map((img) => (
-                          <div key={img._id} className="bg-gray-800 rounded-lg p-4 flex flex-col items-center border border-gray-700/40">
-                            <div className="w-40 h-40 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden mb-2">
-                              {img.imageUrl ? (
-                                <img src={img.imageUrl} alt={img.title || 'Gallery Image'} className="object-cover w-full h-full" />
-                              ) : (
-                                <span className="text-slate-400">No image</span>
-                              )}
+                        userGallery
+                          .filter((img) => img.status === galleryTab)
+                          .map((img) => (
+                            <div
+                              key={img._id}
+                              className="bg-gray-800 rounded-lg p-4 flex flex-col items-center border border-gray-700/40"
+                            >
+                              <div className="w-40 h-40 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden mb-2">
+                                {img.imageUrl ? (
+                                  <img
+                                    src={img.imageUrl}
+                                    alt={img.title || "Gallery Image"}
+                                    className="object-cover w-full h-full"
+                                  />
+                                ) : (
+                                  <span className="text-slate-400">
+                                    No image
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-white font-bold mb-1">
+                                {img.title || "Untitled"}
+                              </div>
+                              <div className="text-slate-300 mb-1">
+                                Price: ${img.price}
+                              </div>
+                              <div
+                                className={`text-xs px-2 py-1 rounded-full mb-1 font-bold ${
+                                  img.status === "approved"
+                                    ? "bg-green-600 text-white"
+                                    : img.status === "pending"
+                                    ? "bg-yellow-600 text-white"
+                                    : "bg-red-600 text-white"
+                                }`}
+                              >
+                                {img.status}
+                              </div>
+                              <div className="text-slate-400 text-xs">
+                                Commission: {img.commission || 0}
+                              </div>
                             </div>
-                            <div className="text-white font-bold mb-1">{img.title || 'Untitled'}</div>
-                            <div className="text-slate-300 mb-1">Price: ${img.price}</div>
-                            <div className={`text-xs px-2 py-1 rounded-full mb-1 font-bold ${img.status === 'approved' ? 'bg-green-600 text-white' : img.status === 'pending' ? 'bg-yellow-600 text-white' : 'bg-red-600 text-white'}`}>{img.status}</div>
-                            <div className="text-slate-400 text-xs">Commission: {img.commission || 0}</div>
-                          </div>
-                        ))
+                          ))
                       )}
                     </div>
                   )}
@@ -1149,13 +1202,20 @@ const UserAccountPage = () => {
             setLoadingGallery(true);
             try {
               const galleryResponse = await galleryApi.getUserGallery();
-              if (galleryResponse && galleryResponse.success && Array.isArray(galleryResponse.images)) {
+              if (
+                galleryResponse &&
+                galleryResponse.success &&
+                Array.isArray(galleryResponse.images)
+              ) {
                 setUserGallery(galleryResponse.images);
               } else {
                 setUserGallery([]);
               }
             } catch (err) {
-              setToast({ message: "Failed to refresh gallery.", type: "error" });
+              setToast({
+                message: "Failed to refresh gallery.",
+                type: "error",
+              });
             } finally {
               setLoadingGallery(false);
             }
@@ -1171,11 +1231,16 @@ const UserAccountPage = () => {
       )}
     </div>
   );
-}
+};
 
 export default UserAccountPage;
 
-export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) {
+export function PhotoUploadModal({
+  user,
+  setToast,
+  onClose,
+  fetchUserGallery,
+}) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -1185,66 +1250,93 @@ export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) 
   const handleFilesChange = (e) => {
     setSelectedFiles(Array.from(e.target.files));
   };
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      if (!selectedFiles || selectedFiles.length === 0) {
-        setToast({ message: "Please select at least one image to upload.", type: "error" });
-        return;
-      }
-      setUploading(true);
-      const formData = new FormData();
-      selectedFiles.forEach((file) => formData.append("images", file));
-      formData.append("title", description);
-      formData.append("price", price);
-      formData.append("tags", tags);
-      if (user && user._id) {
-        formData.append("userId", user._id);
-        formData.append("userEmail", user.email);
-      }
-      setToast({ message: "Uploading...", type: "success" });
-      try {
-        const token = localStorage.getItem("auth_token");
-        const response = await fetch("http://localhost:5000/api/gallery/upload", {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-          headers: { Authorization: `Bearer ${token}` },
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFiles || selectedFiles.length === 0) {
+      setToast({
+        message: "Please select at least one image to upload.",
+        type: "error",
+      });
+      return;
+    }
+    setUploading(true);
+    const formData = new FormData();
+    selectedFiles.forEach((file) => formData.append("images", file));
+    formData.append("title", description);
+    formData.append("price", price);
+    formData.append("tags", tags);
+    if (user && user._id) {
+      formData.append("userId", user._id);
+      formData.append("userEmail", user.email);
+    }
+    setToast({ message: "Uploading...", type: "success" });
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch("http://localhost:5000/api/gallery/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setToast({
+          message: "Your photos have been submitted for review!",
+          type: "success",
         });
-        if (response.ok) {
-          setToast({ message: "Your photos have been submitted for review!", type: "success" });
-          setSelectedFiles([]);
-          setDescription("");
-          setPrice("");
-          setTags("");
-          fetchUserGallery();
-          onClose();
-        } else {
-          const error = await response.json();
-          setToast({ message: error.error || error.message || "Upload failed.", type: "error" });
-        }
-      } catch (err) {
-        setToast({ message: err.message || "An error occurred while uploading.", type: "error" });
-      } finally {
-        setUploading(false);
+        setSelectedFiles([]);
+        setDescription("");
+        setPrice("");
+        setTags("");
+        fetchUserGallery();
+        onClose();
+      } else {
+        const error = await response.json();
+        setToast({
+          message: error.error || error.message || "Upload failed.",
+          type: "error",
+        });
       }
-    };
+    } catch (err) {
+      setToast({
+        message: err.message || "An error occurred while uploading.",
+        type: "error",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl">
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-700/60 relative">
         <button
           className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 rounded-full p-2 shadow-lg flex items-center justify-center transition-all duration-300 group"
           onClick={onClose}
           title="Close"
         >
-          <svg className="w-6 h-6 text-white group-hover:text-gray-200 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-6 h-6 text-white group-hover:text-gray-200 transition-colors duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
-        <h4 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8 text-center font-abeze">Upload Photo</h4>
+        <h4 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8 text-center font-abeze">
+          Upload Photo
+        </h4>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="mb-2">
-            <label htmlFor="photo-upload-input" className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold cursor-pointer transition-all font-abeze shadow-lg">
+            <label
+              htmlFor="photo-upload-input"
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold cursor-pointer transition-all font-abeze shadow-lg"
+            >
               Browse...
               <input
                 id="photo-upload-input"
@@ -1256,46 +1348,56 @@ export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) 
               />
             </label>
             {selectedFiles.length > 0 && (
-              <div className="mt-2 text-slate-300 text-sm text-center">{selectedFiles.length} file(s) selected</div>
+              <div className="mt-2 text-slate-300 text-sm text-center">
+                {selectedFiles.length} file(s) selected
+              </div>
             )}
           </div>
           <div>
-            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Description</label>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Description
+            </label>
             <input
               type="text"
               placeholder="Description"
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
               required
             />
           </div>
           <div>
-            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Price (USD)</label>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Price (USD)
+            </label>
             <input
               type="number"
               placeholder="Price (USD)"
               value={price}
-              onChange={e => setPrice(e.target.value)}
+              onChange={(e) => setPrice(e.target.value)}
               className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
               min="0"
               required
             />
           </div>
           <div>
-            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">Tags</label>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Tags
+            </label>
             <input
               type="text"
               placeholder="Tags (comma separated)"
               value={tags}
-              onChange={e => setTags(e.target.value)}
+              onChange={(e) => setTags(e.target.value)}
               className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
             />
           </div>
           <button
             type="submit"
             disabled={uploading}
-            className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold font-abeze mt-2 shadow-lg transition-all duration-300 ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold font-abeze mt-2 shadow-lg transition-all duration-300 ${
+              uploading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
           >
             {uploading ? "Uploading..." : "Submit"}
           </button>
@@ -1305,7 +1407,12 @@ export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) 
             <div className="text-slate-300 mb-2 font-abeze">Preview:</div>
             <div className="flex flex-wrap gap-3 justify-center">
               {selectedFiles.map((file, idx) => (
-                <img key={idx} src={URL.createObjectURL(file)} alt={file.name} className="w-24 h-24 object-cover rounded-2xl border border-gray-700 shadow" />
+                <img
+                  key={idx}
+                  src={URL.createObjectURL(file)}
+                  alt={file.name}
+                  className="w-24 h-24 object-cover rounded-2xl border border-gray-700 shadow"
+                />
               ))}
             </div>
           </div>
@@ -1313,4 +1420,4 @@ export function PhotoUploadModal({ user, setToast, onClose, fetchUserGallery }) 
       </div>
     </div>
   );
-  }
+}
