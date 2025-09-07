@@ -9,6 +9,12 @@ import LanguageSwitcher from './LanguageSwitcher';
 import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+    window.location.href = '/';
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user, redirectAfterLogin } = useAuth();
@@ -235,12 +241,21 @@ const Header = ({ triggerLogin = null }) => {
               <LanguageSwitcher />
               
               {isAuthenticated ? (
-                <button 
-                  onClick={navigateToAccount}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
-                >
-                  {user?.role === 'admin' ? t('nav.admin') : t('nav.myAccount')}
-                </button>
+                location.pathname === '/account' ? (
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
+                  >
+                    {t('nav.logout') && t('nav.logout') !== 'nav.logout' ? t('nav.logout') : 'Logout'}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={navigateToAccount}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
+                  >
+                    {user?.role === 'admin' ? t('nav.admin') : t('nav.myAccount')}
+                  </button>
+                )
               ) : (
                 <button 
                   onClick={handleLoginClick}
