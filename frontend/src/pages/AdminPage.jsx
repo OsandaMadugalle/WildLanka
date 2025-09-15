@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { generateAllBookingsPDF } from '../utils/pdfGenerator';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -26,10 +27,50 @@ import AdminGalleryManager from "../components/AdminGalleryManager";
 // ...existing code...
 
 const AdminPage = () => {
-  // Fix: Add missing handleDownloadBookings stub
+  // Utility to convert bookings to CSV and trigger download
+  const downloadBookingsCSV = (bookings) => {
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+      alert('No bookings to export.');
+      return;
+    }
+    const headers = [
+      'Booking ID', 'Customer Name', 'Email', 'Package', 'Location', 'Start Date', 'End Date', 'People', 'Status', 'Payment', 'Total Price'
+    ];
+    const rows = bookings.map(b => [
+      b._id,
+      `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`,
+      b.userId?.email || '',
+      b.packageDetails?.title || '',
+      b.packageDetails?.location || '',
+      b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toLocaleDateString() : '',
+      b.bookingDetails?.endDate ? new Date(b.bookingDetails.endDate).toLocaleDateString() : '',
+      b.bookingDetails?.numberOfPeople || '',
+      b.status,
+      b.payment ? 'Paid' : 'Pending',
+      b.totalPrice || ''
+    ]);
+    // CSV string
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bookings_report_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownloadBookings = () => {
-    // TODO: Implement download logic (CSV/PDF)
-    alert(`Download as ${downloadType} not yet implemented.`);
+    if (downloadType === 'pdf') {
+      generateAllBookingsPDF(getFilteredBookings());
+    } else {
+      downloadBookingsCSV(getFilteredBookings());
+    }
   };
   const [downloadType, setDownloadType] = useState("csv");
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
