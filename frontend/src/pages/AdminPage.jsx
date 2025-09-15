@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { generateAllBookingsPDF } from '../utils/pdfGenerator';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -26,10 +27,13 @@ import AdminGalleryManager from "../components/AdminGalleryManager";
 // ...existing code...
 
 const AdminPage = () => {
-  // Fix: Add missing handleDownloadBookings stub
   const handleDownloadBookings = () => {
-    // TODO: Implement download logic (CSV/PDF)
-    alert(`Download as ${downloadType} not yet implemented.`);
+    if (downloadType === 'pdf') {
+      generateAllBookingsPDF(getFilteredBookings());
+    } else {
+      // CSV logic can be added here
+      alert('CSV download not implemented yet.');
+    }
   };
   const [downloadType, setDownloadType] = useState("csv");
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
