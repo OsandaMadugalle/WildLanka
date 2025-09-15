@@ -1533,77 +1533,87 @@ The Wildlife Safari Team`);
       </div>
 
       {/* Calendar and Booking Details Side by Side */}
-      <div className="flex flex-col md:flex-row md:space-x-6">
-        <div className="md:w-1/2">
-          <BookingCalendar
-            bookings={bookings}
-            onDateClick={(date) => setSelectedCalendarDate(date)}
-          />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="md:w-1/2 w-full">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 h-full flex flex-col">
+            <h4 className="text-lg font-abeze font-bold text-white mb-4">Calendar View</h4>
+            <BookingCalendar
+              bookings={bookings}
+              onDateClick={(date) => setSelectedCalendarDate(date)}
+            />
+          </div>
         </div>
-        {selectedCalendarDate && (
-          <div className="md:w-1/2 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 mt-6 md:mt-0">
-            <h4 className="text-lg font-abeze font-bold text-white mb-2">
-              Bookings for {selectedCalendarDate.toLocaleDateString()}
+        <div className="md:w-1/2 w-full">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 h-full flex flex-col">
+            <h4 className="text-lg font-abeze font-bold text-white mb-4">
+              {selectedCalendarDate
+                ? `Bookings for ${selectedCalendarDate.toLocaleDateString()}`
+                : "Select a date to view bookings"}
             </h4>
-            {(() => {
-              const dateStr = selectedCalendarDate.toISOString().slice(0, 10);
-              const bookingsForDate = bookings.filter((b) => {
-                const startDate = b.bookingDetails?.startDate
-                  ? new Date(b.bookingDetails.startDate)
-                      .toISOString()
-                      .slice(0, 10)
-                  : "";
-                return startDate === dateStr;
-              });
-              if (bookingsForDate.length === 0) {
+            {selectedCalendarDate ? (
+              (() => {
+                const dateStr = selectedCalendarDate.toISOString().slice(0, 10);
+                const bookingsForDate = bookings.filter((b) => {
+                  const startDate = b.bookingDetails?.startDate
+                    ? new Date(b.bookingDetails.startDate)
+                        .toISOString()
+                        .slice(0, 10)
+                    : "";
+                  return startDate === dateStr;
+                });
+                if (bookingsForDate.length === 0) {
+                  return (
+                    <p className="text-gray-300 font-abeze text-center py-8">
+                      No bookings for this date.
+                    </p>
+                  );
+                }
                 return (
-                  <p className="text-gray-300 font-abeze">
-                    No bookings for this date.
-                  </p>
-                );
-              }
-              return (
-                <ul className="space-y-3">
-                  {bookingsForDate.map((booking) => (
-                    <li
-                      key={booking._id}
-                      className="bg-gray-800/50 rounded-lg p-3 border border-gray-700"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between">
-                        <div>
-                          <span className="text-white font-abeze font-semibold">
-                            {booking.userId?.firstName}{" "}
-                            {booking.userId?.lastName}
-                          </span>
-                          <span className="text-gray-400 font-abeze text-sm ml-2">
-                            ({booking.packageDetails?.title})
+                  <ul className="space-y-3">
+                    {bookingsForDate.map((booking) => (
+                      <li
+                        key={booking._id}
+                        className="bg-gray-800/50 rounded-lg p-3 border border-gray-700"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between">
+                          <div>
+                            <span className="text-white font-abeze font-semibold">
+                              {booking.userId?.firstName} {booking.userId?.lastName}
+                            </span>
+                            <span className="text-gray-400 font-abeze text-sm ml-2">
+                              ({booking.packageDetails?.title})
+                            </span>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ml-2 ${
+                              booking.status === "Payment Confirmed"
+                                ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                                : booking.status === "Confirmed"
+                                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                : booking.status === "In Progress"
+                                ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                : booking.status === "Completed"
+                                ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                                : booking.status === "Cancelled"
+                                ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
+                            }`}
+                          >
+                            {booking.status}
                           </span>
                         </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ml-2 ${
-                            booking.status === "Payment Confirmed"
-                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                              : booking.status === "Confirmed"
-                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                              : booking.status === "In Progress"
-                              ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                              : booking.status === "Completed"
-                              ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                              : booking.status === "Cancelled"
-                              ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                              : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                          }`}
-                        >
-                          {booking.status}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              );
-            })()}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()
+            ) : (
+              <p className="text-gray-300 font-abeze text-center py-8">
+                Please select a date from the calendar to view bookings.
+              </p>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Sorting Controls - Professional UI */}
