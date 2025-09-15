@@ -317,7 +317,7 @@ const UserAccountPage = () => {
           {/* Account Content */}
           <div className="max-w-7xl mx-auto">
             {/* Tab Navigation */}
-            <div className="flex flex-wrap justify-center mb-8 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
+            <div className="flex flex-wrap justify-center mb-8 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 w-full">
               <button
                 onClick={() => handleTabChange("profile")}
                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
@@ -867,7 +867,7 @@ const UserAccountPage = () => {
               <div className="grid md:grid-cols-3 gap-12 w-full">
                 {/* Profile Card */}
                 <div className="md:col-span-1">
-                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl hover:shadow-emerald-500/10 transition-colors duration-500">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50">
                     <div className="text-center mb-6">
                       <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1 shadow-xl transition-all duration-500 hover:border-emerald-400 animate-avatar">
                         <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -925,7 +925,7 @@ const UserAccountPage = () => {
 
                 {/* Account Details */}
                 <div className="md:col-span-2">
-                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 w-full">
                     <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                       {t("userAccount.profile.accountInformation")}
                     </h3>
