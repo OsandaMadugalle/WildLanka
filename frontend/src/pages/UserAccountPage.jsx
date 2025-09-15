@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 
 const UserAccountPage = () => {
   const { logout } = useAuth();
+  // Loading state for initial data fetch
+  const [initialLoading, setInitialLoading] = useState(true);
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -126,6 +128,8 @@ const UserAccountPage = () => {
           message: error.message || "An error occurred.",
           type: "error",
         });
+      } finally {
+        setInitialLoading(false);
       }
     };
 
@@ -265,6 +269,15 @@ const UserAccountPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Initial loading spinner overlay */}
+      {initialLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-opacity-95">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-400 mb-6"></div>
+            <span className="text-green-300 text-xl font-bold font-abeze">Loading your account...</span>
+          </div>
+        </div>
+      )}
       {/* Add Review Modal */}
       {showReviewForBookingId && (
         <AddReviewModal
