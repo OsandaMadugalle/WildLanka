@@ -9,11 +9,16 @@ import LanguageSwitcher from './LanguageSwitcher';
 import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
-  const handleLogout = () => {
+  const [loggingOut, setLoggingOut] = useState(false);
+  const handleLogout = async () => {
+    setLoggingOut(true);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
     }
-    window.location.href = '/';
+    setTimeout(() => {
+      setLoggingOut(false);
+      window.location.href = '/';
+    }, 300); // 300ms for quick spinner
   };
   const navigate = useNavigate();
   const location = useLocation();
@@ -163,6 +168,15 @@ const Header = ({ triggerLogin = null }) => {
 
   return (
     <>
+      {/* Logout spinner overlay */}
+      {loggingOut && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-opacity-95">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-400 mb-6"></div>
+            <span className="text-emerald-300 text-xl font-bold font-abeze">Logging out...</span>
+          </div>
+        </div>
+      )}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
