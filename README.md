@@ -1,3 +1,16 @@
+## ⚙️ Environment Setup
+
+This project uses environment variables for sensitive configuration. The actual `.env` files are not included in the repository for security reasons.
+
+To set up your environment:
+
+1. Copy the example files:
+  - For the backend: `cp backend/.env.example backend/.env`
+  - For the frontend: `cp frontend/.env.example frontend/.env`
+2. Fill in the required values in each `.env` file as needed.
+
+**Do not commit your `.env` files to the repository.**
+
 # 🐾 WildLanka
 
 ![License: Custom](https://img.shields.io/badge/license-Custom-red)
