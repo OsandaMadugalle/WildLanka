@@ -1,3 +1,7 @@
+# Ignore environment files
+*.env
+../backend/.env
+../frontend/.env
 # Logs
 logs
 *.log
@@ -22,5 +26,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-backend/.env
