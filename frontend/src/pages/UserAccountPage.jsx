@@ -633,22 +633,22 @@ const UserAccountPage = () => {
                                           Download PDF
                                         </button>
                                       )}
-                                      {/* Update Booking Button */}
+                                      {/* Update Booking Button: Only for Book Now, Pay Later */}
                                       {(booking.status === "Pending" ||
-                                        booking.status ===
-                                          "Payment Confirmed") && (
-                                        <button
-                                          onClick={() =>
-                                            navigate(
-                                              `/update-booking/${booking._id}`
-                                            )
-                                          }
-                                          title="Update your booking details"
-                                          className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-700 border-green-400/30 text-white"
-                                        >
-                                          Update
-                                        </button>
-                                      )}
+                                        booking.status === "Payment Confirmed") &&
+                                        (booking.paymentMethod === "COD" || booking.paymentMethod === "Book Now, Pay Later") && (
+                                          <button
+                                            onClick={() =>
+                                              navigate(
+                                                `/update-booking/${booking._id}`
+                                              )
+                                            }
+                                            title="Update your booking details (Book Now, Pay Later only)"
+                                            className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-700 border-green-400/30 text-white"
+                                          >
+                                            Update
+                                          </button>
+                                        )}
                                       {/* Pay Now Button for Pending bookings */}
                                       {booking.status === "Pending" &&
                                         !booking.payment && (
