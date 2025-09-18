@@ -321,6 +321,10 @@ export const bookingApi = {
 };
 
 export const reviewApi = {
+  async updateReview(id, payload) {
+    const { data } = await api.patch(`/api/reviews/${id}`, payload);
+    return data;
+  },
   async getReviewsByPackage(packageId) {
     const { data } = await api.get(`/api/reviews/package/${packageId}`);
     return data;

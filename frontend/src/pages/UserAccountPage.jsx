@@ -318,25 +318,30 @@ const UserAccountPage = () => {
           initialData={modalReview}
           onSubmit={async (reviewData) => {
             try {
-              // Convert reviewData to FormData, use 'images' field for files
-              const formData = new FormData();
-              formData.append("rating", reviewData.rating);
-              formData.append("comment", reviewData.comment || "");
-              if (reviewData.files && reviewData.files.length > 0) {
-                reviewData.files.forEach((file) => {
-                  formData.append("images", file);
-                });
-              }
               if (modalReview && modalReview._id) {
-                // Update existing review (delete then create new)
-                await reviewApi.deleteReview(modalReview._id);
+                // Edit existing review (no file upload for edit)
+                await reviewApi.updateReview(modalReview._id, {
+                  rating: reviewData.rating,
+                  comment: reviewData.comment,
+                });
+                showToast("Review updated successfully!", "success");
+              } else {
+                // New review (allow file upload)
+                const formData = new FormData();
+                formData.append("rating", reviewData.rating);
+                formData.append("comment", reviewData.comment || "");
+                if (reviewData.files && reviewData.files.length > 0) {
+                  reviewData.files.forEach((file) => {
+                    formData.append("images", file);
+                  });
+                }
+                await reviewApi.createReview(showReviewForBookingId, formData);
+                showToast("Review submitted successfully!", "success");
               }
-              await reviewApi.createReview(showReviewForBookingId, formData);
               setShowReviewSuccess(true);
               setShowReviewForBookingId(null);
               setModalReview(null);
               loadUserReviews();
-              showToast("Review submitted successfully!", "success");
             } catch (error) {
               showToast("Failed to submit review.", "error");
             }

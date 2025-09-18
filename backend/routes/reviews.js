@@ -1,9 +1,12 @@
 import express from 'express';
 import { authenticateToken as auth, requireAdmin } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
-import { createReview, getAllReviews, getReviewsByPackage, getUserReviews, getGalleryReviews, deleteReview, getPublicReviews } from '../controllers/reviewController.js';
+
+import { createReview, getAllReviews, getReviewsByPackage, getUserReviews, getGalleryReviews, deleteReview, getPublicReviews, updateReview } from '../controllers/reviewController.js';
 
 const reviewRouter = express.Router();
+// Update review (author or admin)
+reviewRouter.patch('/:id', auth, updateReview);
 
 // Public
 reviewRouter.get('/gallery', getGalleryReviews);
