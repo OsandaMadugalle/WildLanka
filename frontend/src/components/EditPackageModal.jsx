@@ -165,9 +165,11 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
-                  errors.category ? 'border-red-500' : 'border-white/20'
-                } focus:border-green-400 focus:outline-none transition-colors`}
+                className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                style={{
+                  color: 'white',
+                  backgroundColor: '#1f2937'
+                }}
               >
                 <option value="Safari">Safari</option>
                 <option value="Hiking">Hiking</option>
@@ -257,9 +259,11 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
                 name="difficulty"
                 value={formData.difficulty}
                 onChange={handleInputChange}
-                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
-                  errors.difficulty ? 'border-red-500' : 'border-white/20'
-                } focus:border-green-400 focus:outline-none transition-colors`}
+                className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                style={{
+                  color: 'white',
+                  backgroundColor: '#1f2937'
+                }}
               >
                 <option value="Easy">Easy</option>
                 <option value="Moderate">Moderate</option>
