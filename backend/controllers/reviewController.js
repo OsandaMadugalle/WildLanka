@@ -1,3 +1,44 @@
+// Update a review (admin or review author)
+export const updateReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+    const review = await Review.findById(id);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+    if (!isAdmin && review.userId.toString() !== userId?.toString()) {
+      return res.status(403).json({ message: "You are not authorized to edit this review" });
+    }
+    // Only allow updating rating, comment, and images
+    const { rating, comment } = req.body;
+    if (rating !== undefined) review.rating = rating;
+    if (comment !== undefined) review.comment = comment;
+    // Handle images (optional, not implemented here for simplicity)
+    await review.save();
+    // Recalculate package stats
+    try {
+      const stats = await Review.aggregate([
+        { $match: { packageId: review.packageId } },
+        { $group: { _id: "$packageId", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } },
+      ]);
+      if (stats.length > 0) {
+        await Package.findByIdAndUpdate(review.packageId, {
+          rating: Math.round(stats[0].avgRating * 10) / 10,
+          reviews: stats[0].count,
+        });
+      } else {
+        await Package.findByIdAndUpdate(review.packageId, { rating: 0, reviews: 0 });
+      }
+    } catch (aggErr) {
+      console.error("Failed to update package rating stats", aggErr);
+    }
+    return res.json({ success: true, message: "Review updated", review });
+  } catch (err) {
+    next(err);
+  }
+};
 import Review from "../models/Review.js";
 import Booking from "../models/Booking.js";
 import Package from "../models/Package.js";
