@@ -10,11 +10,10 @@ import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
   const [loggingOut, setLoggingOut] = useState(false);
+  const { isAuthenticated, user, redirectAfterLogin, logout } = useAuth();
   const handleLogout = async () => {
     setLoggingOut(true);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-    }
+    logout(); // Use AuthContext logout to clear state
     setTimeout(() => {
       setLoggingOut(false);
       window.location.href = '/';
@@ -22,7 +21,7 @@ const Header = ({ triggerLogin = null }) => {
   };
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, redirectAfterLogin } = useAuth();
+  // ...existing code...
   const { t } = useLanguage();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
