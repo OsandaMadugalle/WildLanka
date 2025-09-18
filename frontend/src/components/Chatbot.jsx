@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import GoToTopButton from "./GoToTopButton";
 import { useNavigate, Link } from "react-router-dom";
 
 // Get API base URL from environment variable or fallback to local proxy
@@ -143,7 +144,7 @@ const Chatbot = () => {
             packages
               .map(
                 (pkg) =>
-                  `• ${pkg.title} (${
+                  `• ${pkg.title} (${ 
                     pkg.price ? "Rs. " + pkg.price : "Price on request"
                   })`
               )
@@ -585,6 +586,7 @@ const Chatbot = () => {
           </div>
         </div>
       )}
+      <GoToTopButton />
     </>
   );
 };
