@@ -1,3 +1,44 @@
+// Update a review (admin or review author)
+export const updateReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+    const review = await Review.findById(id);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+    if (!isAdmin && review.userId.toString() !== userId?.toString()) {
+      return res.status(403).json({ message: "You are not authorized to edit this review" });
+    }
+    // Only allow updating rating, comment, and images
+    const { rating, comment } = req.body;
+    if (rating !== undefined) review.rating = rating;
+    if (comment !== undefined) review.comment = comment;
+    // Handle images (optional, not implemented here for simplicity)
+    await review.save();
+    // Recalculate package stats
+    try {
+      const stats = await Review.aggregate([
+        { $match: { packageId: review.packageId } },
+        { $group: { _id: "$packageId", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } },
+      ]);
+      if (stats.length > 0) {
+        await Package.findByIdAndUpdate(review.packageId, {
+          rating: Math.round(stats[0].avgRating * 10) / 10,
+          reviews: stats[0].count,
+        });
+      } else {
+        await Package.findByIdAndUpdate(review.packageId, { rating: 0, reviews: 0 });
+      }
+    } catch (aggErr) {
+      console.error("Failed to update package rating stats", aggErr);
+    }
+    return res.json({ success: true, message: "Review updated", review });
+  } catch (err) {
+    next(err);
+  }
+};
 import Review from "../models/Review.js";
 import Booking from "../models/Booking.js";
 import Package from "../models/Package.js";
@@ -125,17 +166,29 @@ export const getGalleryReviews = async (req, res, next) => {
   }
 };
 
-// Delete a review (admin only)
+// Delete a review (admin or review author)
 export const deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user._id;
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
     const review = await Review.findById(id);
+    console.log('[deleteReview] req.user:', req.user);
+    console.log('[deleteReview] userId:', userId, 'type:', typeof userId);
+    console.log('[deleteReview] review.userId:', review ? review.userId : null, 'type:', review && review.userId ? typeof review.userId : 'null');
+    if (review && review.userId) {
+      console.log('[deleteReview] userId.toString():', userId?.toString());
+      console.log('[deleteReview] review.userId.toString():', review.userId.toString());
+      console.log('[deleteReview] userId === review.userId:', userId?.toString() === review.userId.toString());
+    }
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
-
+    // Only allow if admin or review author
+    if (!isAdmin && review.userId.toString() !== userId?.toString()) {
+      return res.status(403).json({ message: "You are not authorized to delete this review" });
+    }
     await Review.findByIdAndDelete(id);
-
     // Recalculate package stats
     try {
       const stats = await Review.aggregate([
@@ -153,8 +206,22 @@ export const deleteReview = async (req, res, next) => {
     } catch (aggErr) {
       console.error("Failed to update package rating stats", aggErr);
     }
+  return res.json({ success: true, message: "Review deleted" });
+  } catch (err) {
+    next(err);
+  }
+};
 
-    return res.json({ message: "Review deleted" });
+// Get public reviews for external users (for carousel, homepage, etc)
+export const getPublicReviews = async (req, res, next) => {
+  try {
+    // You can filter by isPublic, approved, etc. For now, show latest 10 reviews
+    const reviews = await Review.find({})
+      .populate("userId", "firstName lastName")
+      .populate("packageId", "title location")
+      .sort({ createdAt: -1 })
+      .limit(10);
+    return res.json({ reviews });
   } catch (err) {
     next(err);
   }

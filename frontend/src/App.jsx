@@ -2,8 +2,8 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
-import Header from './components/Header'
-import Footer from './components/Footer'
+import { Header } from './components/Header'
+import { Footer } from './components/Footer'
 import Home from './components/Home'
 import Awareness from './components/Awareness'
 import Chatbot from './components/Chatbot'
@@ -11,6 +11,7 @@ import TravelPackagesPage from './pages/TravelPackagesPage'
 import ContactUsPage from './pages/ContactUsPage'
 import AboutUsPage from './pages/AboutUsPage'
 import UserAccountPage from './pages/UserAccountPage'
+import Login from './components/Login'
 import AdminPage from './pages/AdminPage'
 import BookingPage from './pages/BookingPage'
 import BookingSuccessPage from './pages/BookingSuccessPage'
@@ -29,7 +30,9 @@ import CookiePolicyPage from './pages/CookiePolicyPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import ProtectedAdminRoute from './components/ProtectedAdminRoute'
 import ProtectedStaffRoute from './components/ProtectedStaffRoute'
+import ReviewsPage from './pages/ReviewsPage';
 import './App.css'
+import GoToTopButton from './components/GoToTopButton';
 
 function MainPage() {
   return (
@@ -88,6 +91,7 @@ function App() {
                   <UpdateBookingPage />
                 </ProtectedRoute>
               } />
+                  <Route path="/login" element={<Login />} />
               <Route path="/admin" element={
                 <ProtectedAdminRoute>
                   <AdminPage />
@@ -113,8 +117,10 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
               <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+              <Route path="/reviews" element={<ReviewsPage />} />
             </Routes>
             <ChatbotWrapper />
+            <GoToTopButton />
           </div>
         </Router>
       </AuthProvider>

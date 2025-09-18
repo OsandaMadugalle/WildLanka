@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,10 +9,51 @@ import LanguageSwitcher from './LanguageSwitcher';
 import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
+  const [loggingOut, setLoggingOut] = useState(false);
+  const { isAuthenticated, user, redirectAfterLogin, logout } = useAuth();
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    logout(); // Use AuthContext logout to clear state
+    setTimeout(() => {
+      setLoggingOut(false);
+      window.location.href = '/';
+    }, 300); // 300ms for quick spinner
+  };
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, redirectAfterLogin } = useAuth();
+  // ...existing code...
   const { t } = useLanguage();
+  const [awarenessActive, setAwarenessActive] = useState(false);
+
+  // Highlight Awareness nav when section is in view or hash is #awareness
+  useEffect(() => {
+    const handleScrollOrHash = () => {
+      if (location.pathname === '/') {
+        const hash = window.location.hash;
+        if (hash === '#awareness') {
+          setAwarenessActive(true);
+          return;
+        }
+        const awareness = document.getElementById('awareness');
+        if (awareness) {
+          const rect = awareness.getBoundingClientRect();
+          const inView = rect.top <= 100 && rect.bottom >= 100;
+          setAwarenessActive(inView);
+        } else {
+          setAwarenessActive(false);
+        }
+      } else {
+        setAwarenessActive(false);
+      }
+    };
+    window.addEventListener('scroll', handleScrollOrHash);
+    window.addEventListener('hashchange', handleScrollOrHash);
+    handleScrollOrHash();
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrHash);
+      window.removeEventListener('hashchange', handleScrollOrHash);
+    };
+  }, [location.pathname]);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showStaffLogin, setShowStaffLogin] = useState(false);
@@ -76,38 +117,49 @@ const Header = ({ triggerLogin = null }) => {
     setShowLogin(true);
   };
 
+  // Generalized navigation with optional hash scroll
+  const navigateAndScroll = (path, hash = null) => {
+    navigate(path);
+    setTimeout(() => {
+      if (hash) {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 400); // Adjust delay if needed
+    setIsMobileMenuOpen(false);
+  };
+
   const navigateToHome = () => {
-    navigate('/');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToTravelPackages = () => {
-    navigate('/travel-packages');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/travel-packages');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToContact = () => {
-    navigate('/contact');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/contact');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToAbout = () => {
-    navigate('/about');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/about');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToGallery = () => {
-    navigate('/gallery');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/gallery');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
 
   const navigateToAccount = () => {
-    // Redirect based on user role
+    // Only allow navigation if authenticated
+    if (!isAuthenticated) {
+      handleLoginClick();
+      return;
+    }
     if (user?.role === 'admin') {
       navigate('/admin');
     } else {
@@ -124,7 +176,14 @@ const Header = ({ triggerLogin = null }) => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      navigate('/#awareness');
+      navigate('/');
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById('awareness');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 400); // Adjust delay if needed
     }
     setIsMobileMenuOpen(false);
   };
@@ -153,6 +212,15 @@ const Header = ({ triggerLogin = null }) => {
 
   return (
     <>
+      {/* Logout spinner overlay */}
+      {loggingOut && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-opacity-95">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-400 mb-6"></div>
+            <span className="text-emerald-300 text-xl font-bold font-abeze">Logging out...</span>
+          </div>
+        </div>
+      )}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -172,14 +240,14 @@ const Header = ({ triggerLogin = null }) => {
               <button 
                 onClick={navigateToHome}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/' && !awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.home')}
               </button>
               <button 
                 onClick={scrollToAwareness}
-                className="text-white font-abeze font-medium hover:text-green-400 transition-colors"
+                className={`font-abeze font-medium transition-colors ${awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'}`}
               >
                 {t('nav.awareness')}
               </button>
@@ -192,20 +260,20 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.packages')}
               </button>
               <button 
+                onClick={() => navigateAndScroll('/reviews')}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.reviews') || 'Reviews'}
+              </button>
+              <button 
                 onClick={navigateToGallery}
                 className={`font-abeze font-medium transition-colors ${
                   location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.gallery')}
-              </button>
-              <button 
-                onClick={navigateToAbout}
-                className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                }`}
-              >
-                {t('nav.about')}
               </button>
               <button 
                 onClick={navigateToContact}
@@ -215,6 +283,14 @@ const Header = ({ triggerLogin = null }) => {
               >
                 {t('nav.contact')}
               </button>
+              <button 
+                onClick={navigateToAbout}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.about')}
+              </button>
             </nav>
 
             {/* Login/Account Button */}
@@ -223,12 +299,21 @@ const Header = ({ triggerLogin = null }) => {
               <LanguageSwitcher />
               
               {isAuthenticated ? (
-                <button 
-                  onClick={navigateToAccount}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
-                >
-                  {user?.role === 'admin' ? t('nav.admin') : t('nav.myAccount')}
-                </button>
+                location.pathname === '/account' ? (
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
+                  >
+                    {t('nav.logout') && t('nav.logout') !== 'nav.logout' ? t('nav.logout') : 'Logout'}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={navigateToAccount}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-abeze font-medium transition-colors duration-300"
+                  >
+                    {user?.role === 'admin' ? t('nav.admin') : t('nav.myAccount')}
+                  </button>
+                )
               ) : (
                 <button 
                   onClick={handleLoginClick}
@@ -297,6 +382,14 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.packages')}
                 </button>
                 <button 
+                  onClick={() => navigateAndScroll('/reviews')}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.reviews') || 'Reviews'}
+                </button>
+                <button 
                   onClick={navigateToGallery}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
@@ -305,20 +398,20 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.gallery')}
                 </button>
                 <button 
-                  onClick={navigateToAbout}
-                  className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                  }`}
-                >
-                  {t('nav.about')}
-                </button>
-                <button 
                   onClick={navigateToContact}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/contact' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
                   {t('nav.contact')}
+                </button>
+                <button 
+                  onClick={navigateToAbout}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.about')}
                 </button>
                 {isAuthenticated ? (
                   <button 
@@ -377,4 +470,4 @@ const Header = ({ triggerLogin = null }) => {
   );
 };
 
-export default Header; 
+export { Header };

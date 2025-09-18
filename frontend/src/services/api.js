@@ -1,3 +1,12 @@
+export const galleryApi = {
+  async getUserGallery() {
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/gallery/user/list', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return data;
+  },
+};
 import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -232,7 +241,10 @@ export const bookingApi = {
     return data;
   },
   async getUserBookings() {
-    const { data } = await api.get('/api/bookings/user');
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/bookings/user', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return data;
   },
   async getAllBookings() {
@@ -309,6 +321,10 @@ export const bookingApi = {
 };
 
 export const reviewApi = {
+  async updateReview(id, payload) {
+    const { data } = await api.patch(`/api/reviews/${id}`, payload);
+    return data;
+  },
   async getReviewsByPackage(packageId) {
     const { data } = await api.get(`/api/reviews/package/${packageId}`);
     return data;
@@ -328,7 +344,10 @@ export const reviewApi = {
     return data;
   },
   async getUserReviews() {
-    const { data } = await api.get('/api/reviews/user');
+    const token = localStorage.getItem('auth_token');
+    const { data } = await api.get('/api/reviews/user', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return data;
   },
   async getGalleryReviews() {
@@ -341,6 +360,11 @@ export const reviewApi = {
   },
   async deleteReview(id) {
     const { data } = await api.delete(`/api/reviews/${id}`);
+    return data;
+  },
+  async getPublicReviews() {
+    // Adjust endpoint to match your backend route for public reviews
+    const { data } = await api.get('/api/reviews/public');
     return data;
   },
 };

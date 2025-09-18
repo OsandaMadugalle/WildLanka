@@ -1,87 +1,192 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
-import { bookingApi } from '../services/api';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import EditProfileModal from '../components/EditProfileModal';
-import UserContactMessages from '../components/UserContactMessages';
-import AddReviewModal from '../components/AddReviewModal';
-import { reviewApi } from '../services/api';
-import { generateBookingPDF } from '../utils/pdfGenerator';
-
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Toast } from "../components/Toast";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
+import { UserContactMessages } from "../components/UserContactMessages";
+import { AddReviewModal } from "../components/AddReviewModal";
+import { bookingApi } from "../services/api";
+import { galleryApi } from "../services/api";
+import { reviewApi } from "../services/api";
+import { generateBookingPDF } from "../utils/pdfGenerator";
+import { EditProfileModal } from "../components/EditProfileModal";
+import { useTranslation } from "react-i18next";
 
 const UserAccountPage = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  // Show toast helper
+  function showToast(message, type = "info") {
+    setToast({ message, type });
+  }
 
-  // Role-based redirect: if driver or guide, redirect to their dashboard
-  useEffect(() => {
-    if (user?.role === 'driver') {
-      navigate('/driver-dashboard', { replace: true });
-    } else if (user?.role === 'tour_guide') {
-      navigate('/tour-guide-dashboard', { replace: true });
+  // Handle review deletion
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const res = await reviewApi.deleteReview(reviewId);
+      if (res.success) {
+        // Optimistically remove from local state for instant UI feedback
+  setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+  setCurrentReviewsPage(1); // Reset to first page after delete
+        showToast("Review deleted successfully!", "success");
+        // Optionally reload from server for sync
+        loadUserReviews();
+      } else {
+        showToast(res.message || "Failed to delete review.", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting review.", "error");
     }
-  }, [user, navigate]);
-  const { t } = useLanguage();
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [showBookings, setShowBookings] = useState(false);
-  const [bookings, setBookings] = useState([]);
-  const [loadingBookings, setLoadingBookings] = useState(false);
-  const [bookingsError, setBookingsError] = useState(null);
-  const [showReviewForBookingId, setShowReviewForBookingId] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loadingReviews, setLoadingReviews] = useState(false);
-  const [showReviewSuccess, setShowReviewSuccess] = useState(false);
-  const [showAlreadyReviewedMessage, setShowAlreadyReviewedMessage] = useState(false);
-  const [downloadingPDF, setDownloadingPDF] = useState(null); // Track which booking is being downloaded
-  
-  // Pagination states
-  const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
-  const [currentBookingsPage, setCurrentBookingsPage] = useState(1);
-  const [reviewsPerPage] = useState(10);
-  const [bookingsPerPage] = useState(10);
-  const [showCurrentBookings, setShowCurrentBookings] = useState(true);
+  };
 
+  // Handle review edit (open modal with existing data)
+  const handleEditReview = (review) => {
+    setShowReviewForBookingId(review.bookingId?._id || review.bookingId);
+    setModalReview(review); // Pass review to modal for editing
+  };
+  const { logout } = useAuth();
+  // Loading state for initial data fetch
+  const [initialLoading, setInitialLoading] = useState(true);
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
-
-  const handleEditProfile = () => {
-    setShowEditProfile(true);
-  };
-
-  const handleCloseEditProfile = () => {
+  const handleEditProfile = () => setShowEditProfile(true);
+  // Refetch user data after closing edit profile modal
+  const handleCloseEditProfile = async () => {
     setShowEditProfile(false);
-  };
-
-  const handleViewBookings = useCallback(async () => {
-    if (showBookings) {
-      setShowBookings(false);
-      return;
+    try {
+      const token = localStorage.getItem("auth_token");
+      const userResponse = await fetch("http://localhost:5000/api/users/me", {
+        credentials: "include",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+      });
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUser(userData);
+      }
+    } catch (err) {
+      // Optionally show a toast or ignore
     }
-    
-    setShowBookings(true);
+  };
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [toast, setToast] = useState({ message: "", type: "" });
+  const [activeTab, setActiveTab] = useState("profile");
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (toast.message) {
+      const timer = setTimeout(() => {
+        setToast({ message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast.message]);
+  const [reviews, setReviews] = useState([]);
+  const [userGallery, setUserGallery] = useState([]);
+  const [loadingGallery, setLoadingGallery] = useState(false);
+  const [showCurrentBookings, setShowCurrentBookings] = useState(true);
+  const [currentBookingsPage, setCurrentBookingsPage] = useState(1);
+  const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(null);
+  const [galleryTab, setGalleryTab] = useState("pending");
+  const [showReviewForBookingId, setShowReviewForBookingId] = useState(null);
+  const [showReviewSuccess, setShowReviewSuccess] = useState(false);
+  const [modalReview, setModalReview] = useState(null);
+  const [showAlreadyReviewedMessage, setShowAlreadyReviewedMessage] =
+    useState(false);
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const bookingsPerPage = 5;
+  const reviewsPerPage = 3;
+
+  // Fetch user data, bookings, reviews, and gallery on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("auth_token");
+        const userResponse = await fetch("http://localhost:5000/api/users/me", {
+          credentials: "include",
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser(userData);
+        } else {
+          setToast({ message: "Failed to load user data.", type: "error" });
+        }
+
+        // Fetch bookings, reviews, and gallery in parallel
+        const [bookingsResponse, reviewsResponse, galleryResponse] =
+          await Promise.all([
+            bookingApi.getUserBookings(),
+            reviewApi.getUserReviews(),
+            galleryApi.getUserGallery(),
+          ]);
+
+        if (bookingsResponse.success) {
+          setBookings(bookingsResponse.bookings);
+        } else {
+          setToast({ message: "Failed to load bookings.", type: "error" });
+        }
+
+        if (reviewsResponse.reviews) {
+          setReviews(reviewsResponse.reviews);
+        } else {
+          setToast({ message: "Failed to load reviews.", type: "error" });
+        }
+
+        if (
+          galleryResponse &&
+          galleryResponse.success &&
+          Array.isArray(galleryResponse.images)
+        ) {
+          setUserGallery(galleryResponse.images);
+        } else {
+          setToast({ message: "Failed to load gallery.", type: "error" });
+        }
+      } catch (error) {
+        setToast({
+          message: error.message || "An error occurred.",
+          type: "error",
+        });
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Handle view bookings button
+  const handleViewBookings = useCallback(async () => {
     setLoadingBookings(true);
-    setBookingsError(null);
-    
     try {
       const response = await bookingApi.getUserBookings();
       if (response.success) {
         setBookings(response.bookings);
       } else {
-        setBookingsError(response.message || t('userAccount.errors.failedToLoadBookings'));
+        setToast({ message: "Failed to load bookings.", type: "error" });
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
-      setBookingsError(`${t('userAccount.errors.failedToLoadBookings')}. ${t('userAccount.errors.pleaseTryAgain')}`);
+      setToast({
+        message: `${t("userAccount.errors.failedToLoadBookings")}. ${t(
+          "userAccount.errors.pleaseTryAgain"
+        )}`,
+        type: "error",
+      });
     } finally {
       setLoadingBookings(false);
     }
-  }, [showBookings, t]);
+  }, [t]);
 
   // Fetch bookings when component mounts if user has any
   useEffect(() => {
@@ -92,10 +197,10 @@ const UserAccountPage = () => {
           setBookings(response.bookings);
         }
       } catch (error) {
-        console.error('Error checking initial bookings:', error);
+        console.error("Error checking initial bookings:", error);
       }
     };
-    
+
     checkBookings();
   }, []);
 
@@ -106,20 +211,20 @@ const UserAccountPage = () => {
 
   // Load bookings when bookings tab is selected
   useEffect(() => {
-    if (activeTab === 'bookings' && bookings.length === 0) {
+    if (activeTab === "bookings" && bookings.length === 0) {
       handleViewBookings();
     }
   }, [activeTab, bookings.length, handleViewBookings]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'bookings') {
+    if (tab === "bookings") {
       setCurrentBookingsPage(1);
       if (bookings.length === 0) {
         handleViewBookings();
       }
     }
-    if (tab === 'reviews') {
+    if (tab === "reviews") {
       setCurrentReviewsPage(1);
       loadUserReviews();
     }
@@ -133,17 +238,17 @@ const UserAccountPage = () => {
         setReviews(response.reviews);
       }
     } catch (error) {
-      console.error('Error loading user reviews:', error);
+      console.error("Error loading user reviews:", error);
     } finally {
       setLoadingReviews(false);
     }
   };
 
   const checkIfAlreadyReviewed = (bookingId) => {
-    return reviews.some(review => {
+    return reviews.some((review) => {
       if (!review.bookingId) return false;
       // bookingId can be string or object
-      if (typeof review.bookingId === 'string') {
+      if (typeof review.bookingId === "string") {
         return review.bookingId === bookingId;
       }
       // If populated, compare _id
@@ -154,7 +259,7 @@ const UserAccountPage = () => {
   const handleAddReview = (bookingId) => {
     if (checkIfAlreadyReviewed(bookingId)) {
       setShowAlreadyReviewedMessage(true);
-      // Hide message after 3 seconds
+      showToast("You have already reviewed this booking.", "error");
       setTimeout(() => setShowAlreadyReviewedMessage(false), 3000);
       return;
     }
@@ -174,137 +279,300 @@ const UserAccountPage = () => {
   // Pagination functions for bookings
   const indexOfLastBooking = currentBookingsPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
-  const currentBookings = bookings.slice(indexOfFirstBooking, indexOfLastBooking);
-  const totalBookingsPages = Math.ceil(bookings.length / bookingsPerPage);
 
-  const handleBookingsPageChange = (pageNumber) => {
-    setCurrentBookingsPage(pageNumber);
-  };
+  const currentBookings = bookings.slice(
+    indexOfFirstBooking,
+    indexOfLastBooking
+  );
 
   const handleDownloadPDF = async (booking) => {
     setDownloadingPDF(booking._id);
     try {
       await generateBookingPDF(booking, user);
     } catch (error) {
-      console.error('Error downloading PDF:', error);
+      console.error("Error downloading PDF:", error);
       // You could add a toast notification here for better UX
     } finally {
       setDownloadingPDF(null);
     }
   };
 
-
-
-
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Decorative top wave for visual separation */}
+      <div className="absolute top-0 left-0 w-full h-24 md:h-32 lg:h-40 z-0">
+        <svg viewBox="0 0 1440 320" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#059669" fillOpacity="0.15" d="M0,160L60,170.7C120,181,240,203,360,197.3C480,192,600,160,720,133.3C840,107,960,85,1080,101.3C1200,117,1320,171,1380,197.3L1440,224L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path>
+        </svg>
+      </div>
+      {/* Initial loading spinner overlay */}
+      {initialLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-opacity-95">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-400 mb-6"></div>
+            <span className="text-green-300 text-xl font-bold font-abeze">Loading your account...</span>
+          </div>
+        </div>
+      )}
       {/* Add Review Modal */}
       {showReviewForBookingId && (
-        <AddReviewModal
-          onClose={() => setShowReviewForBookingId(null)}
-          onSubmit={async (reviewData) => {
-            try {
-              // Convert reviewData to FormData, use 'images' field for files
-              const formData = new FormData();
-              formData.append('rating', reviewData.rating);
-              formData.append('comment', reviewData.comment || '');
-              if (reviewData.files && reviewData.files.length > 0) {
-                reviewData.files.forEach(file => {
-                  formData.append('images', file);
-                });
-              }
-              await reviewApi.createReview(showReviewForBookingId, formData);
-              setShowReviewSuccess(true);
+        <div className="animate-fade-in-fast">
+          <AddReviewModal
+            onClose={() => {
               setShowReviewForBookingId(null);
-              loadUserReviews();
-            } catch (error) {
-              alert('Failed to submit review.');
-            }
-          }}
-        />
+              setModalReview(null);
+            }}
+            initialData={modalReview}
+            onSubmit={async (reviewData) => {
+              try {
+                if (modalReview && modalReview._id) {
+                  // Edit existing review (no file upload for edit)
+                  await reviewApi.updateReview(modalReview._id, {
+                    rating: reviewData.rating,
+                    comment: reviewData.comment,
+                  });
+                  showToast("Review updated successfully!", "success");
+                } else {
+                  // New review (allow file upload)
+                  const formData = new FormData();
+                  formData.append("rating", reviewData.rating);
+                  formData.append("comment", reviewData.comment || "");
+                  if (reviewData.files && reviewData.files.length > 0) {
+                    reviewData.files.forEach((file) => {
+                      formData.append("images", file);
+                    });
+                  }
+                  await reviewApi.createReview(showReviewForBookingId, formData);
+                  showToast("Review submitted successfully!", "success");
+                }
+                setShowReviewSuccess(true);
+                setShowReviewForBookingId(null);
+                setModalReview(null);
+                loadUserReviews();
+              } catch (error) {
+                showToast("Failed to submit review.", "error");
+              }
+            }}
+          />
+        </div>
       )}
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gray-800/50"></div>
       <div className="absolute inset-0 opacity-30">
-        <div className="w-full h-full bg-repeat bg-center" 
-             style={{
-               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-             }}>
-        </div>
+        <div
+          className="w-full h-full bg-repeat bg-center"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
       </div>
-      
       <Header />
-      
-             {/* Main Content */}
-       <div className="pt-24 pb-16 relative z-10">
-         <div className="container mx-auto px-6">
-           {/* Page Header */}
-           <div className="text-center mb-12">
-             <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 animate-fade-in">
-               {t('userAccount.pageTitle')}
-             </h1>
-             <p className="text-slate-300 font-abeze text-lg opacity-90">
-               {t('userAccount.pageSubtitle')}
-             </p>
-           </div>
-
+      {/* Main Content */}
+      <div className="pt-28 pb-20 relative z-10">
+        <div className="container mx-auto px-4 md:px-12 lg:px-20 xl:px-32">
+          {/* Page Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-6 animate-fade-in drop-shadow-lg tracking-tight">
+              {t("userAccount.pageTitle")}
+            </h1>
+            <p className="text-slate-300 font-abeze text-lg opacity-90 max-w-2xl mx-auto">
+              {t("userAccount.pageSubtitle")}
+            </p>
+          </div>
           {/* Account Content */}
-          <div className="max-w-4xl mx-auto">
-                         {/* Tab Navigation */}
-             <div className="flex flex-wrap justify-center mb-8 bg-gray-800/80 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 shadow-2xl">
-               <button
-                 onClick={() => handleTabChange('profile')}
-                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
-                   activeTab === 'profile'
-                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                     : 'text-slate-300 hover:text-white hover:bg-emerald-600/20'
-                 }`}
-               >
-                 {t('userAccount.tabs.profile')}
-               </button>
-               <button
-                 onClick={() => handleTabChange('bookings')}
-                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
-                   activeTab === 'bookings'
-                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                     : 'text-slate-300 hover:text-white hover:bg-emerald-600/20'
-                 }`}
-               >
-                 {t('userAccount.tabs.bookings')}
-               </button>
-               <button
-                 onClick={() => handleTabChange('messages')}
-                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
-                   activeTab === 'messages'
-                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                     : 'text-slate-300 hover:text-white hover:bg-emerald-600/20'
-                 }`}
-               >
-                 {t('userAccount.tabs.messages')}
-               </button>
-               <button
-                 onClick={() => handleTabChange('reviews')}
-                 className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
-                   activeTab === 'reviews'
-                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                     : 'text-slate-300 hover:text-white hover:bg-emerald-600/20'
-                 }`}
-               >
-                 {t('userAccount.myReviews')}
-               </button>
+          <div className="max-w-6xl mx-auto">
+            {/* Tab Navigation */}
+            <div className="flex flex-wrap justify-center mb-10 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 w-full shadow-xl gap-2 animate-fade-in">
+              <button
+                onClick={() => handleTabChange("profile")}
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 hover:scale-105 ${
+                  activeTab === "profile"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                }`}
+              >
+                {t("userAccount.tabs.profile")}
+              </button>
+              <button
+                onClick={() => handleTabChange("bookings")}
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
+                  activeTab === "bookings"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                }`}
+              >
+                {t("userAccount.tabs.bookings")}
+              </button>
+              <button
+                onClick={() => handleTabChange("messages")}
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
+                  activeTab === "messages"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                }`}
+              >
+                {t("userAccount.tabs.messages")}
+              </button>
+              <button
+                onClick={() => handleTabChange("gallery")}
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                  activeTab === "gallery"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                }`}
+              >
+                Gallery
+              </button>
+              <button
+                onClick={() => handleTabChange("reviews")}
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
+                  activeTab === "reviews"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
+                    : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                }`}
+              >
+                {t("userAccount.myReviews")}
+              </button>
             </div>
-            {/* Bookings Tab Content (Current & History) */}
-            {activeTab === 'bookings' && (
-              <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                <div className="flex gap-4 mb-8 justify-center">
+            {/* Gallery Upload Section (now outside tab navigation) */}
+            {activeTab === "gallery" && (
+              <div className="w-full flex flex-col items-center mt-10">
+                <div className="bg-gray-900/80 rounded-2xl p-10 border border-gray-700/50 shadow-2xl w-full max-w-xl mb-10">
+                  <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-6 text-center">
+                    Upload Your Photos to Sell
+                  </h3>
                   <button
-                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 mb-4"
+                    onClick={() => setShowPhotoUpload(true)}
+                  >
+                    Upload Photo
+                  </button>
+                  <p className="text-slate-400 text-sm mt-4 text-center">
+                    Photos will be reviewed by admin before being listed for
+                    sale.
+                    <br />
+                    <span className="text-emerald-400">
+                      Commission applies.
+                    </span>
+                  </p>
+                </div>
+                <div className="w-full max-w-3xl mt-4">
+                  <h4 className="text-lg font-bold text-white mb-4">
+                    Your Gallery Images
+                  </h4>
+                  {/* Gallery status tabs */}
+                  <div className="flex space-x-2 mb-6">
+                    {["pending", "approved", "rejected"].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setGalleryTab(tab)}
+                        className={`px-4 py-2 rounded-t-lg font-bold capitalize transition-colors duration-150 ${
+                          galleryTab === tab
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-800 text-slate-300 hover:bg-gray-700"
+                        }`}
+                      >
+                        {tab}
+                        {(Array.isArray(userGallery) ? userGallery : []).filter(
+                          (img) => img.status === tab
+                        ).length > 0
+                          ? ` (${
+                              (Array.isArray(userGallery)
+                                ? userGallery
+                                : []
+                              ).filter((img) => img.status === tab).length
+                            })`
+                          : ""}
+                      </button>
+                    ))}
+                  </div>
+                  {loadingGallery ? (
+                    <div className="text-slate-300">Loading your images...</div>
+                  ) : !(
+                      Array.isArray(userGallery) && userGallery.length > 0
+                    ) ? (
+                    <div className="flex flex-col items-center gap-2 text-slate-400 py-8">
+                      <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16l2-2 2 2 4-4" /></svg>
+                      <div>No images found.</div>
+                      <div className="text-xs text-slate-500">Upload your best wildlife photos to start your gallery!</div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {userGallery.filter((img) => img.status === galleryTab)
+                        .length === 0 ? (
+                        <div className="flex flex-col items-center gap-2 text-slate-400 py-8">
+                          <svg width="60" height="60" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16l2-2 2 2 4-4" /></svg>
+                          <div>No {galleryTab} images.</div>
+                        </div>
+                      ) : (
+                        userGallery
+                          .filter((img) => img.status === galleryTab)
+                          .map((img) => (
+                            <div
+                              key={img._id}
+                              className="bg-gray-800 rounded-lg p-4 flex flex-col items-center border border-gray-700/40"
+                            >
+                              <div className="w-40 h-40 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden mb-2">
+                                {img.imageUrl ? (
+                                  <img
+                                    src={img.imageUrl}
+                                    alt={img.title || "Gallery Image"}
+                                    className="object-cover w-full h-full"
+                                  />
+                                ) : (
+                                  <span className="text-slate-400">
+                                    No image
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-white font-bold mb-1">
+                                {img.title || "Untitled"}
+                              </div>
+                              <div className="text-slate-300 mb-1">
+                                Price: ${img.price}
+                              </div>
+                              <div
+                                className={`text-xs px-2 py-1 rounded-full mb-1 font-bold ${
+                                  img.status === "approved"
+                                    ? "bg-green-600 text-white"
+                                    : img.status === "pending"
+                                    ? "bg-yellow-600 text-white"
+                                    : "bg-red-600 text-white"
+                                }`}
+                              >
+                                {img.status}
+                              </div>
+                              <div className="text-slate-400 text-xs">
+                                Commission: {img.commission || 0}
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {/* Bookings Tab Content (Current & History) */}
+            {activeTab === "bookings" && (
+              <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl mt-8">
+                <div className="flex gap-4 mb-10 justify-center">
+                  <button
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                      showCurrentBookings
+                        ? "bg-emerald-600 text-white"
+                        : "bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                    }`}
                     onClick={() => setShowCurrentBookings(true)}
                   >
                     Current Bookings
                   </button>
                   <button
-                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg ${!showCurrentBookings ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20'}`}
+                    className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                      !showCurrentBookings
+                        ? "bg-emerald-600 text-white"
+                        : "bg-gray-700 text-slate-300 hover:text-white hover:bg-emerald-600/20"
+                    }`}
                     onClick={() => setShowCurrentBookings(false)}
                   >
                     Booking History
@@ -318,125 +586,244 @@ const UserAccountPage = () => {
                     {loadingBookings ? (
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
-                        <p className="text-gray-300 font-abeze">Loading your bookings...</p>
+                        <p className="text-gray-300 font-abeze">
+                          Loading your bookings...
+                        </p>
                       </div>
-                    ) : bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-300 font-abeze">No current bookings found.</p>
+                    ) : bookings.filter(
+                        (b) =>
+                          b.status !== "Completed" && b.status !== "Cancelled"
+                      ).length === 0 ? (
+                      <div className="text-center py-8 flex flex-col items-center gap-4">
+                        <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20.24 12.24A9 9 0 105.76 5.76 9 9 0 0020.24 12.24z" /></svg>
+                        <p className="text-gray-300 font-abeze text-lg">No current bookings found.</p>
+                        <p className="text-gray-400 font-abeze text-sm max-w-xs">Ready for your next adventure? Book a wildlife safari package to get started!</p>
                       </div>
                     ) : (
                       <div className="overflow-x-auto mb-8">
                         <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
                           <thead>
                             <tr className="bg-emerald-700/40 text-white">
-                              <th className="px-6 py-3 text-left font-abeze">Package</th>
-                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
-                              <th className="px-6 py-3 text-left font-abeze">Status</th>
-                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
-                              <th className="px-6 py-3 text-left font-abeze">Actions</th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Package
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Dates
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Status
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Total Price
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Actions
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
-                            {bookings.filter(b => b.status !== 'Completed' && b.status !== 'Cancelled').map((booking) => (
-                              <tr key={booking._id} className="border-b border-gray-700/30">
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  {booking.packageDetails?.title || 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  {booking.bookingDetails?.startDate ? new Date(booking.bookingDetails.startDate).toLocaleDateString() : 'N/A'}
-                                  {' - '}
-                                  {booking.bookingDetails?.endDate ? new Date(booking.bookingDetails.endDate).toLocaleDateString() : 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 font-abeze">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    booking.status === 'Pending' ? 'bg-yellow-500 text-white' :
-                                    'bg-gray-700 text-white'
-                                  }`}>
-                                    {booking.status}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  Rs. {booking.totalPrice?.toLocaleString() || 'N/A'}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex flex-wrap gap-2">
-                                    {/* Download PDF Button */}
-                                    {(booking.status === 'Payment Confirmed' || booking.status === 'Confirmed' || booking.status === 'In Progress' || booking.status === 'Completed') && (
-                                      <button
-                                        onClick={() => handleDownloadPDF(booking)}
-                                        disabled={downloadingPDF === booking._id}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-blue-600 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
-                                      >
-                                        {downloadingPDF === booking._id ? 'Generating PDF...' : 'Download PDF'}
-                                      </button>
-                                    )}
-                                    {/* Update Booking Button */}
-                                    {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
-                                      <button
-                                        onClick={() => navigate(`/update-booking/${booking._id}`)}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-600 hover:bg-green-700 border-green-400/30 text-white"
-                                      >
-                                        Update
-                                      </button>
-                                    )}
-                                    {/* Pay Now Button for Pending bookings */}
-                                    {booking.status === 'Pending' && !booking.payment && (
-                                      <button
-                                        onClick={async () => {
-                                          try {
-                                            const payload = { bookingId: booking._id };
-                                            const res = await bookingApi.createStripeCheckout(payload);
-                                            if (res.success && res.session_url) {
-                                              window.location.href = res.session_url;
-                                            } else {
-                                              alert(res.message || 'Failed to start payment.');
-                                            }
-                                          } catch (err) {
-                                            alert('Error starting payment.');
+                            {bookings
+                              .filter(
+                                (b) =>
+                                  b.status !== "Completed" &&
+                                  b.status !== "Cancelled"
+                              )
+                              .map((booking) => (
+                                <tr
+                                  key={booking._id}
+                                  className="border-b border-gray-700/30"
+                                >
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    {booking.packageDetails?.title || "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    {booking.bookingDetails?.startDate
+                                      ? new Date(
+                                          booking.bookingDetails.startDate
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                    {" - "}
+                                    {booking.bookingDetails?.endDate
+                                      ? new Date(
+                                          booking.bookingDetails.endDate
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4 font-abeze">
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                                        booking.status === "Pending"
+                                          ? "bg-yellow-500 text-white"
+                                          : booking.status === "Payment Confirmed"
+                                          ? "bg-blue-500 text-white"
+                                          : booking.status === "Completed"
+                                          ? "bg-green-600 text-white"
+                                          : booking.status === "Cancelled"
+                                          ? "bg-red-600 text-white"
+                                          : "bg-gray-700 text-white"
+                                      }`}
+                                    >
+                                      {booking.status === "Pending" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      )}
+                                      {booking.status === "Payment Confirmed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                                      )}
+                                      {booking.status === "Completed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                      )}
+                                      {booking.status === "Cancelled" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                      )}
+                                      {booking.status}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    Rs.{" "}
+                                    {booking.totalPrice?.toLocaleString() ||
+                                      "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex flex-wrap gap-2">
+                                      {/* Download PDF Button */}
+                                      {downloadingPDF === booking._id ? (
+                                        <button
+                                          onClick={() =>
+                                            handleDownloadPDF(booking)
                                           }
-                                        }}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-yellow-500 hover:bg-yellow-600 border-yellow-400/30 text-white"
-                                      >
-                                        Pay Now
-                                      </button>
-                                    )}
-                                    {/* Cancel Booking Button */}
-                                    {(booking.status === 'Pending' || booking.status === 'Payment Confirmed') && (
-                                      <button
-                                        onClick={async () => {
-                                          if (window.confirm('Are you sure you want to cancel this booking?')) {
-                                            try {
-                                              const res = await bookingApi.updateBookingStatus(booking._id, 'Cancelled');
-                                              if (!res.success) {
-                                                alert(res.message || 'Failed to cancel booking.');
-                                              } else {
-                                                handleViewBookings();
+                                          disabled
+                                          title="Download your booking details as PDF"
+                                          className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-blue-500 hover:bg-blue-700 border-blue-400/30 disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                                        >
+                                          Generating PDF...
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            handleDownloadPDF(booking)
+                                          }
+                                          title="Download your booking details as PDF (for your records or travel)"
+                                          className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-blue-500 hover:bg-blue-700 border-blue-400/30 text-white"
+                                        >
+                                          Download PDF
+                                        </button>
+                                      )}
+                                      {/* Update Booking Button: Only for Book Now, Pay Later */}
+                                      {(booking.status === "Pending" ||
+                                        booking.status === "Payment Confirmed") &&
+                                        (booking.paymentMethod === "COD" || booking.paymentMethod === "Book Now, Pay Later") && (
+                                          <button
+                                            onClick={() =>
+                                              navigate(
+                                                `/update-booking/${booking._id}`
+                                              )
+                                            }
+                                            title="Edit or update your booking details (only for Book Now, Pay Later)"
+                                            className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-700 border-green-400/30 text-white"
+                                          >
+                                            Update
+                                          </button>
+                                        )}
+                                      {/* Pay Now Button for Pending bookings */}
+                                      {booking.status === "Pending" &&
+                                        !booking.payment && (
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                const payload = {
+                                                  bookingId: booking._id,
+                                                };
+                                                const res =
+                                                  await bookingApi.createStripeCheckout(
+                                                    payload
+                                                  );
+                                                if (
+                                                  res.success &&
+                                                  res.session_url
+                                                ) {
+                                                  window.location.href =
+                                                    res.session_url;
+                                                } else {
+                                                  alert(
+                                                    res.message ||
+                                                      "Failed to start payment."
+                                                  );
+                                                }
+                                              } catch (err) {
+                                                alert(
+                                                  "Error starting payment."
+                                                );
                                               }
-                                            } catch (err) {
-                                              alert('An error occurred while cancelling the booking.');
+                                            }}
+                                            title="Pay for your booking now (secure online payment)"
+                                            className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-yellow-400 hover:bg-yellow-500 border-yellow-300/30 text-white"
+                                          >
+                                            Pay Now
+                                          </button>
+                                        )}
+                                      {/* Cancel Booking Button */}
+                                      {(booking.status === "Pending" ||
+                                        booking.status ===
+                                          "Payment Confirmed") && (
+                                        <button
+                                          onClick={async () => {
+                                            if (
+                                              window.confirm(
+                                                "Are you sure you want to cancel this booking?"
+                                              )
+                                            ) {
+                                              try {
+                                                const res =
+                                                  await bookingApi.updateBookingStatus(
+                                                    booking._id,
+                                                    "Cancelled"
+                                                  );
+                                                if (!res.success) {
+                                                  showToast(
+                                                    res.message ||
+                                                      "Failed to cancel booking.",
+                                                    "error"
+                                                  );
+                                                } else {
+                                                  handleViewBookings();
+                                                  showToast(
+                                                    "Booking cancelled.",
+                                                    "success"
+                                                  );
+                                                }
+                                              } catch (err) {
+                                                showToast(
+                                                  "An error occurred while cancelling the booking.",
+                                                  "error"
+                                                );
+                                              }
                                             }
-                                          }
-                                        }}
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-red-600 hover:bg-red-700 border-red-400/30 text-white"
-                                      >
-                                        Cancel
-                                      </button>
-                                    )}
-                                    {/* WhatsApp Contact Button for In Progress bookings */}
-                                    {booking.guideId && booking.guideId.phone && (
-                                      <a
-                                        href={`https://wa.me/${booking.guideId.phone}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group relative px-4 py-2 rounded font-abeze font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-600 border-green-400/30 text-white"
-                                      >
-                                        WhatsApp Guide: {booking.guideId.firstName} {booking.guideId.lastName}
-                                      </a>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
+                                          }}
+                                          title="Cancel this booking (this action cannot be undone)"
+                                          className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-red-500 hover:bg-red-700 border-red-400/30 text-white"
+                                        >
+                                          Cancel
+                                        </button>
+                                      )}
+                                      {/* WhatsApp Contact Button for In Progress bookings */}
+                                      {booking.guideId &&
+                                        booking.guideId.phone && (
+                                          <a
+                                            href={`https://wa.me/${booking.guideId.phone}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            title={`Contact your guide (${booking.guideId.firstName} ${booking.guideId.lastName}) on WhatsApp`}
+                                            className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-400 hover:bg-green-600 border-green-300/30 text-white"
+                                          >
+                                            WhatsApp Guide:{" "}
+                                            {booking.guideId.firstName}{" "}
+                                            {booking.guideId.lastName}
+                                          </a>
+                                        )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
@@ -450,65 +837,116 @@ const UserAccountPage = () => {
                     {loadingBookings ? (
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
-                        <p className="text-gray-300 font-abeze">Loading your booking history...</p>
+                        <p className="text-gray-300 font-abeze">
+                          Loading your booking history...
+                        </p>
                       </div>
-                    ) : bookings.filter(b => b.status === 'Completed' || b.status === 'Cancelled').length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-300 font-abeze">No booking history found.</p>
+                    ) : bookings.filter(
+                        (b) =>
+                          b.status === "Completed" || b.status === "Cancelled"
+                      ).length === 0 ? (
+                      <div className="text-center py-8 flex flex-col items-center gap-4">
+                        <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><circle cx="12" cy="12" r="10" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h4l3 3" /></svg>
+                        <p className="text-gray-300 font-abeze text-lg">No booking history found.</p>
+                        <p className="text-gray-400 font-abeze text-sm max-w-xs">Your past safaris will appear here. Complete a booking to see your history.</p>
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
                           <thead>
                             <tr className="bg-emerald-700/40 text-white">
-                              <th className="px-6 py-3 text-left font-abeze">Package</th>
-                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
-                              <th className="px-6 py-3 text-left font-abeze">Status</th>
-                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
-                              <th className="px-6 py-3 text-left font-abeze">Review</th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Package
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Dates
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Status
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Total Price
+                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">
+                                Review
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
-                            {bookings.filter(b => b.status === 'Completed' || b.status === 'Cancelled').map((booking) => (
-                              <tr key={booking._id} className="border-b border-gray-700/30">
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  {booking.packageDetails?.title || 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  {booking.bookingDetails?.startDate ? new Date(booking.bookingDetails.startDate).toLocaleDateString() : 'N/A'}
-                                  {' - '}
-                                  {booking.bookingDetails?.endDate ? new Date(booking.bookingDetails.endDate).toLocaleDateString() : 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 font-abeze">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    booking.status === 'Completed' ? 'bg-green-600 text-white' :
-                                    booking.status === 'Cancelled' ? 'bg-red-600 text-white' :
-                                    'bg-gray-700 text-white'
-                                  }`}>
-                                    {booking.status}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 text-white font-abeze">
-                                  Rs. {booking.totalPrice?.toLocaleString() || 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 font-abeze">
-                                  {booking.status === 'Completed' ? (
-                                    checkIfAlreadyReviewed(booking._id) ? (
-                                      <span className="text-green-400">Reviewed</span>
+                            {bookings
+                              .filter(
+                                (b) =>
+                                  b.status === "Completed" ||
+                                  b.status === "Cancelled"
+                              )
+                              .map((booking) => (
+                                <tr
+                                  key={booking._id}
+                                  className="border-b border-gray-700/30"
+                                >
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    {booking.packageDetails?.title || "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    {booking.bookingDetails?.startDate
+                                      ? new Date(
+                                          booking.bookingDetails.startDate
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                    {" - "}
+                                    {booking.bookingDetails?.endDate
+                                      ? new Date(
+                                          booking.bookingDetails.endDate
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4 font-abeze">
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                                        booking.status === "Completed"
+                                          ? "bg-green-600 text-white"
+                                          : booking.status === "Cancelled"
+                                          ? "bg-red-600 text-white"
+                                          : "bg-gray-700 text-white"
+                                      }`}
+                                    >
+                                      {booking.status === "Completed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                      )}
+                                      {booking.status === "Cancelled" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                      )}
+                                      {booking.status}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-white font-abeze">
+                                    Rs.{" "}
+                                    {booking.totalPrice?.toLocaleString() ||
+                                      "N/A"}
+                                  </td>
+                                  <td className="px-6 py-4 font-abeze">
+                                    {booking.status === "Completed" ? (
+                                      checkIfAlreadyReviewed(booking._id) ? (
+                                        <span className="text-green-400">
+                                          Reviewed
+                                        </span>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            handleAddReview(booking._id)
+                                          }
+                                          title="Add a review for this completed booking"
+                                          className="bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                        >
+                                          Add Review
+                                        </button>
+                                      )
                                     ) : (
-                                      <button
-                                        onClick={() => handleAddReview(booking._id)}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
-                                      >
-                                        Add Review
-                                      </button>
-                                    )
-                                  ) : (
-                                    <span className="text-gray-400">-</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
+                                      <span className="text-gray-400">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
@@ -519,228 +957,541 @@ const UserAccountPage = () => {
             )}
 
             {/* Profile Tab Content */}
-            {activeTab === 'profile' && (
-              <div className="grid md:grid-cols-3 gap-8">
-                                 {/* Profile Card */}
-                 <div className="md:col-span-1">
-                   <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 transform hover:scale-[1.02]">
-                                         <div className="text-center mb-6">
-                       <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1">
-                                                 <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800">
-                           {user?.profilePicture?.url ? (
-                             <img 
-                               src={user.profilePicture.url} 
-                               alt={t('userAccount.common.profileImageAlt')} 
-                               className="w-full h-full object-cover"
-                             />
-                           ) : (
-                             <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center justify-center">
-                               <span className="text-2xl font-abeze font-bold text-white">
-                                 {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-                               </span>
-                             </div>
-                           )}
-                         </div>
-                         {/* Online indicator */}
-                         <div className="absolute bottom-2 right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg"></div>
+            {activeTab === "profile" && (
+              <div className="grid md:grid-cols-3 gap-16 w-full mt-8 animate-fade-in">
+                {/* Profile Card */}
+                <div className="md:col-span-1">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-xl transition-shadow duration-300 hover:shadow-emerald-400/40">
+                    <div className="text-center mb-6">
+                      <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1 shadow-xl transition-all duration-500 hover:border-emerald-400 animate-avatar">
+                        <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                          {user?.profilePicture?.url ? (
+                            <img
+                              src={user.profilePicture.url}
+                              alt={t("userAccount.common.profileImageAlt")}
+                              className="w-full h-full object-cover drop-shadow-lg"
+                            />
+                          ) : (
+                            <svg
+                              className="w-16 h-16 text-emerald-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle cx="12" cy="8" r="4" strokeWidth="2" />
+                              <path
+                                strokeWidth="2"
+                                d="M4 20c0-4 4-6 8-6s8 2 8 6"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        {/* Online indicator */}
+                        <div className="absolute bottom-2 right-2 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white shadow-lg"></div>
                       </div>
-                                             <h2 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-2">
-                         {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.firstName || t('userAccount.common.defaultUser')}
-                       </h2>
-                       <p className="text-slate-400 font-abeze text-sm break-all truncate min-w-0">
-                         {user?.email}
-                       </p>
+                      <h2 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-2">
+                        {user?.firstName && user?.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user?.firstName ||
+                            t("userAccount.common.defaultUser")}
+                      </h2>
+                      <p className="text-slate-400 font-abeze text-sm break-all truncate min-w-0">
+                        {user?.email}
+                      </p>
                     </div>
 
-                                         <div className="space-y-4">
-                       <button
-                         onClick={handleEditProfile}
-                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
-                       >
-                         {t('userAccount.profile.editProfile')}
-                       </button>
-                       <button
-                         onClick={handleLogout}
-                         className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/25"
-                       >
-                         {t('userAccount.profile.logout')}
-                       </button>
-                     </div>
+                    <div className="space-y-4">
+                      <button
+                        onClick={handleEditProfile}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
+                      >
+                        {t("userAccount.profile.editProfile")}
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/25"
+                      >
+                        {t("userAccount.profile.logout")}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                                 {/* Account Details */}
-                 <div className="md:col-span-2">
-                   <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                     <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
-                       {t('userAccount.profile.accountInformation')}
-                     </h3>
-                    
-                                         <div className="grid md:grid-cols-2 gap-6">
-                       <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.firstName')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
-                           {user?.firstName || t('userAccount.profile.notProvided')}
-                         </div>
-                       </div>
+                {/* Account Details */}
+                <div className="md:col-span-2">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-12 border border-gray-700/50 w-full shadow-xl transition-shadow duration-300 hover:shadow-emerald-400/40">
+                    <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
+                      {t("userAccount.profile.accountInformation")}
+                    </h3>
 
-                                             <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.lastName')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
-                           {user?.lastName || t('userAccount.profile.notProvided')}
-                         </div>
-                       </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.firstName")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                          {user?.firstName ||
+                            t("userAccount.profile.notProvided")}
+                        </div>
+                      </div>
 
-                       <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.emailAddress')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300 break-all truncate min-w-0">
-                           {user?.email}
-                         </div>
-                       </div>
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.lastName")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                          {user?.lastName ||
+                            t("userAccount.profile.notProvided")}
+                        </div>
+                      </div>
 
-                       <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.phoneNumber')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
-                           {user?.phone || t('userAccount.profile.notProvided')}
-                         </div>
-                       </div>
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.emailAddress")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300 break-all truncate min-w-0">
+                          {user?.email}
+                        </div>
+                      </div>
 
-                       <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.country')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
-                           {user?.country || t('userAccount.profile.notProvided')}
-                         </div>
-                       </div>
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.phoneNumber")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                          {user?.phone || t("userAccount.profile.notProvided")}
+                        </div>
+                      </div>
 
-                       <div className="group">
-                         <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                           {t('userAccount.profile.memberSince')}
-                         </label>
-                         <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
-                           {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : t('userAccount.profile.recentlyJoined')}
-                         </div>
-                       </div>
-                     </div>
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.country")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                          {user?.country ||
+                            t("userAccount.profile.notProvided")}
+                        </div>
+                      </div>
+
+                      <div className="group">
+                        <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                          {t("userAccount.profile.memberSince")}
+                        </label>
+                        <div className="bg-gray-700/50 border border-gray-600/50 rounded-2xl px-6 py-4 text-white font-abeze group-hover:border-emerald-400/30 transition-all duration-300">
+                          {user?.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString()
+                            : t("userAccount.profile.recentlyJoined")}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  
                 </div>
               </div>
             )}
 
             {/* Messages Tab Content */}
-            {activeTab === 'messages' && (
+            {activeTab === "messages" && (
               <UserContactMessages userEmail={user?.email} />
             )}
 
-                         {/* Reviews Tab Content */}
-             {activeTab === 'reviews' && (
-               <div className="bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                 <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
-                   {t('userAccount.myReviews')}
-                 </h3>
-                
+            {/* Reviews Tab Content */}
+            {activeTab === "reviews" && (
+              <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl transition-colors duration-500 hover:shadow-emerald-400/30 w-full">
+                <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
+                  {t("userAccount.myReviews")}
+                </h3>
                 {loadingReviews ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
-                    <p className="text-gray-300 font-abeze">{t('userAccount.loadingReviews')}</p>
+                    <p className="text-gray-300 font-abeze">
+                      {t("userAccount.loadingReviews")}
+                    </p>
                   </div>
                 ) : reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="bg-gray-600/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-300 font-abeze mb-4">{t('userAccount.noReviewsYet')}</p>
-                    <p className="text-gray-400 font-abeze text-sm">{t('userAccount.completeBookingToReview')}</p>
+                  <div className="text-center py-8 flex flex-col items-center gap-4">
+                    <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 20h.01M12 4a8 8 0 100 16 8 8 0 000-16zm0 0v4m0 8v4" /></svg>
+                    <p className="text-gray-300 font-abeze mb-4 text-lg">{t("userAccount.noReviewsYet")}</p>
+                    <p className="text-gray-400 font-abeze text-sm">{t("userAccount.completeBookingToReview")}</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {currentReviews.map((review) => (
-                      <div key={review._id} className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md transition-all duration-300 transform hover:scale-[1.01]">
-                        {/* Review Images Section */}
-                        {review.images && review.images.length > 0 && (
-                          <div className="flex flex-wrap gap-3 mb-4">
-                            {review.images.map((img, idx) => (
-                              <img
-                                key={img.id || idx}
-                                src={img.url}
-                                alt={`Review image ${idx + 1}`}
-                                className="w-24 h-24 object-cover rounded-lg border border-gray-600 shadow"
-                              />
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center">
-                            {/* Removed circular package image for cleaner review card */}
-                            <div>
-                              <p className="text-white font-abeze font-semibold text-lg">
-                                {review.packageId?.title || review.bookingId.packageDetails?.title || 'N/A'}
-                              </p>
-                              <p className="text-slate-400 font-abeze text-sm">
-                                {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'N/A'}
-                              </p>
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {currentReviews.map((review) => (
+                        <div
+                          key={review._id}
+                          className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md flex flex-col justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <p className="text-white font-abeze font-semibold text-lg">
+                                  {review.packageId?.title ||
+                                    review.bookingId.packageDetails?.title ||
+                                    "N/A"}
+                                </p>
+                                <p className="text-slate-400 font-abeze text-sm">
+                                  {review.createdAt
+                                    ? new Date(
+                                        review.createdAt
+                                      ).toLocaleDateString()
+                                    : "N/A"}
+                                </p>
+                              </div>
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                  review.rating === 5
+                                    ? "bg-green-500 text-white"
+                                    : review.rating >= 3
+                                    ? "bg-yellow-400 text-white"
+                                    : "bg-red-500 text-white"
+                                }`}
+                              >
+                                {review.rating} stars
+                              </span>
                             </div>
+                            <p className="text-slate-300 font-abeze mb-2 line-clamp-3">
+                              {review.comment ||
+                                t("userAccount.reviews.noComment")}
+                            </p>
+                            {review.images && review.images.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {review.images.slice(0, 3).map((img, idx) => (
+                                  <img
+                                    key={img.id || idx}
+                                    src={img.url}
+                                    alt={`Review image ${idx + 1}`}
+                                    className="w-16 h-16 object-cover rounded border border-gray-600 shadow cursor-pointer"
+                                    onClick={() => setModalReview(review)}
+                                  />
+                                ))}
+                                {review.images.length > 3 && (
+                                  <span className="text-xs text-gray-400 ml-2">
+                                    +{review.images.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex-shrink-0">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              review.rating === 5 ? 'bg-green-600 text-white' :
-                              review.rating >= 3 ? 'bg-yellow-500 text-white' :
-                              'bg-red-600 text-white'
-                            }`}>
-                              {review.rating} stars
-                            </span>
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => handleEditReview(review)}
+                              title="Edit your review for this booking"
+                              className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(review._id)}
+                              title="Delete this review"
+                              className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setModalReview(review)}
+                              title="View Details"
+                              className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            >
+                              View
+                            </button>
                           </div>
                         </div>
-                        <p className="text-slate-300 font-abeze mb-4">
-                          {review.comment || t('userAccount.reviews.noComment')}
-                        </p>
-                        <div className="flex gap-4">
+                      ))}
+                    </div>
+                    {/* Modal for review details */}
+                    {modalReview && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                        <div className="bg-gray-900 rounded-2xl p-8 max-w-lg w-full relative">
                           <button
-                            onClick={() => handleAddReview(review.bookingId._id)}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                            onClick={() => setModalReview(null)}
+                            className="absolute top-4 right-4 text-white text-2xl font-bold"
+                            title="Close"
                           >
-                            Edit Review
+                            ×
                           </button>
-                          <button
-                            onClick={() => handleDeleteReview(review._id)}
-                            className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                          <h4 className="text-xl font-bold text-white mb-2">
+                            {modalReview.packageId?.title ||
+                              modalReview.bookingId.packageDetails?.title ||
+                              "N/A"}
+                          </h4>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block ${
+                              modalReview.rating === 5
+                                ? "bg-green-500 text-white"
+                                : modalReview.rating >= 3
+                                ? "bg-yellow-400 text-white"
+                                : "bg-red-500 text-white"
+                            }`}
                           >
-                            Delete Review
-                          </button>
+                            {modalReview.rating} stars
+                          </span>
+                          <p className="text-slate-300 font-abeze mb-4">
+                            {modalReview.comment ||
+                              t("userAccount.reviews.noComment")}
+                          </p>
+                          {modalReview.images &&
+                            modalReview.images.length > 0 && (
+                              <div className="flex flex-wrap gap-3 mb-4">
+                                {modalReview.images.map((img, idx) => (
+                                  <img
+                                    key={img.id || idx}
+                                    src={img.url}
+                                    alt={`Review image ${idx + 1}`}
+                                    className="w-32 h-32 object-cover rounded border border-gray-600 shadow"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          <p className="text-slate-400 text-sm">
+                            {modalReview.createdAt
+                              ? new Date(
+                                  modalReview.createdAt
+                                ).toLocaleDateString()
+                              : "N/A"}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
-          </div> {/* Close .max-w-4xl mx-auto */}
-        </div> {/* Close .container mx-auto px-6 */}
-      </div> {/* Close .pt-24 pb-16 relative z-10 */}
-
+          </div>{" "}
+          {/* Close .max-w-4xl mx-auto */}
+        </div>{" "}
+        {/* Close .container mx-auto px-6 */}
+      </div>{" "}
+      {/* Close .pt-24 pb-16 relative z-10 */}
       {/* Render EditProfileModal when showEditProfile is true */}
       {showEditProfile && (
-        <EditProfileModal
-          onClose={handleCloseEditProfile}
-          user={user}
-        />
+        <EditProfileModal onClose={handleCloseEditProfile} user={user} />
       )}
       <Footer />
+      {showPhotoUpload && (
+        <PhotoUploadModal
+          user={user}
+          setToast={setToast}
+          onClose={() => setShowPhotoUpload(false)}
+          fetchUserGallery={async () => {
+            setLoadingGallery(true);
+            try {
+              const galleryResponse = await galleryApi.getUserGallery();
+              if (
+                galleryResponse &&
+                galleryResponse.success &&
+                Array.isArray(galleryResponse.images)
+              ) {
+                setUserGallery(galleryResponse.images);
+              } else {
+                setUserGallery([]);
+              }
+            } catch (err) {
+              setToast({
+                message: "Failed to refresh gallery.",
+                type: "error",
+              });
+            } finally {
+              setLoadingGallery(false);
+            }
+          }}
+        />
+      )}
+      {toast.message && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: "", type: "" })}
+        />
+      )}
     </div>
   );
 };
 
 export default UserAccountPage;
+
+export function PhotoUploadModal({
+  user,
+  setToast,
+  onClose,
+  fetchUserGallery,
+}) {
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [tags, setTags] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const handleFilesChange = (e) => {
+    setSelectedFiles(Array.from(e.target.files));
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFiles || selectedFiles.length === 0) {
+      setToast({
+        message: "Please select at least one image to upload.",
+        type: "error",
+      });
+      return;
+    }
+    setUploading(true);
+    const formData = new FormData();
+    selectedFiles.forEach((file) => formData.append("images", file));
+    formData.append("title", description);
+    formData.append("price", price);
+    formData.append("tags", tags);
+    if (user && user._id) {
+      formData.append("userId", user._id);
+      formData.append("userEmail", user.email);
+    }
+    setToast({ message: "Uploading...", type: "success" });
+    try {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch("http://localhost:5000/api/gallery/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        setToast({
+          message: "Your photos have been submitted for review!",
+          type: "success",
+        });
+        setSelectedFiles([]);
+        setDescription("");
+        setPrice("");
+        setTags("");
+        fetchUserGallery();
+        onClose();
+      } else {
+        const error = await response.json();
+        setToast({
+          message: error.error || error.message || "Upload failed.",
+          type: "error",
+        });
+      }
+    } catch (err) {
+      setToast({
+        message: err.message || "An error occurred while uploading.",
+        type: "error",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xl">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-700/60 relative">
+        <button
+          className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 rounded-full p-2 shadow-lg flex items-center justify-center transition-all duration-300 group"
+          onClick={onClose}
+          title="Close"
+        >
+          <svg
+            className="w-6 h-6 text-white group-hover:text-gray-200 transition-colors duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        <h4 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8 text-center font-abeze">
+          Upload Photo
+        </h4>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="mb-2">
+            <label
+              htmlFor="photo-upload-input"
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold cursor-pointer transition-all font-abeze shadow-lg"
+            >
+              Browse...
+              <input
+                id="photo-upload-input"
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleFilesChange}
+              />
+            </label>
+            {selectedFiles.length > 0 && (
+              <div className="mt-2 text-slate-300 text-sm text-center">
+                {selectedFiles.length} file(s) selected
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Description
+            </label>
+            <input
+              type="text"
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Price (USD)
+            </label>
+            <input
+              type="number"
+              placeholder="Price (USD)"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+              min="0"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-slate-300 font-abeze font-medium mb-2 text-sm uppercase tracking-wider">
+              Tags
+            </label>
+            <input
+              type="text"
+              placeholder="Tags (comma separated)"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 border-white/10 focus:border-emerald-400 hover:border-emerald-400/50"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={uploading}
+            className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold font-abeze mt-2 shadow-lg transition-all duration-300 ${
+              uploading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+          >
+            {uploading ? "Uploading..." : "Submit"}
+          </button>
+        </form>
+        {selectedFiles.length > 0 && (
+          <div className="mt-6">
+            <div className="text-slate-300 mb-2 font-abeze">Preview:</div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {selectedFiles.map((file, idx) => (
+                <img
+                  key={idx}
+                  src={URL.createObjectURL(file)}
+                  alt={file.name}
+                  className="w-24 h-24 object-cover rounded-2xl border border-gray-700 shadow"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

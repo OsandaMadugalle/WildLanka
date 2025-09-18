@@ -699,4 +699,4 @@ const EditProfileModal = ({ onClose, user }) => {
   );
 };
 
-export default EditProfileModal;
+export { EditProfileModal };
