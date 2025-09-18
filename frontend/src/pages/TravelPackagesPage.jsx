@@ -165,17 +165,17 @@ const TravelPackagesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+  <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <Header triggerLogin={loginTriggerRef} />
       
-      <div className="pt-30">
-        <div className="container mx-auto px-6">
+  <div className="pt-24 md:pt-32">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6">
           {/* Page Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-abeze font-bold text-white mb-4">
+          <div className="text-center mb-10 md:mb-16 px-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
               {t('Safari')} <span className="text-green-400">Packages</span>
             </h1>
-            <p className="text-gray-300 font-abeze text-lg max-w-3xl mx-auto">
+            <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
               {t('packages.subtitle')}
             </p>
           </div>
@@ -195,8 +195,8 @@ const TravelPackagesPage = () => {
           )}
 
           {/* Filter Section */}
-          <div className="mb-12">
-            <div className="flex flex-wrap justify-center gap-4">
+          <div className="mb-8 md:mb-12">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
               {filters.map((filter) => (
                 <button
                   key={filter}
@@ -223,13 +223,13 @@ const TravelPackagesPage = () => {
               <div className="text-gray-300 font-abeze">{t('packages.noPackagesFound')}</div>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div id="packages-section" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-10 md:mb-16">
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
                   className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101"
                 >
-                  <div className="relative h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
+                  <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
                     {pkg.image?.url ? (
                       <img 
                         src={pkg.image.url} 
@@ -255,9 +255,9 @@ const TravelPackagesPage = () => {
                     </div>
                   </div>
                   
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-2xl font-abeze font-bold text-white">
+                      <h3 className="text-lg sm:text-xl md:text-2xl font-abeze font-bold text-white">
                         {pkg.title}
                       </h3>
                       {pkg.isPopular && (
@@ -295,12 +295,12 @@ const TravelPackagesPage = () => {
                       </div>
                     )}
                     
-                    <p className="text-gray-300 font-abeze text-sm mb-4 leading-relaxed">
+                    <p className="text-gray-300 font-abeze text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
                       {pkg.description}
                     </p>
                     
                     {/* Package Details */}
-                    <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs">
                       {pkg.location && (
                         <div className="flex items-center space-x-1">
                           <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,7 +323,7 @@ const TravelPackagesPage = () => {
                     {/* Highlights */}
                     {pkg.highlights && pkg.highlights.length > 0 && (
                       <div className="space-y-3 mb-6">
-                        <h4 className="text-green-400 font-abeze font-medium text-base">{t('packages.highlights')}</h4>
+                        <h4 className="text-green-400 font-abeze font-medium text-xs sm:text-base">{t('packages.highlights')}</h4>
                         <div className="space-y-2">
                           {pkg.highlights.slice(0, 4).map((highlight, index) => (
                             <div key={index} className="flex items-center space-x-3">
@@ -340,7 +340,7 @@ const TravelPackagesPage = () => {
                     {/* Features */}
                     {pkg.features && pkg.features.length > 0 && (
                       <div className="space-y-3 mb-6">
-                        <h4 className="text-blue-400 font-abeze font-medium text-base">{t('packages.features')}</h4>
+                        <h4 className="text-blue-400 font-abeze font-medium text-xs sm:text-base">{t('packages.features')}</h4>
                         <div className="space-y-2">
                           {pkg.features.slice(0, 3).map((feature, index) => (
                             <div key={index} className="flex items-center space-x-3">
@@ -356,17 +356,19 @@ const TravelPackagesPage = () => {
                     
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <span className="text-3xl font-abeze font-bold text-green-400">LKR {pkg.price?.toLocaleString()}</span>
+                        <span className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-green-400">LKR {pkg.price?.toLocaleString()}</span>
                         <span className="text-gray-400 font-abeze text-sm">{t('packages.perPerson')}</span>
                       </div>
                     </div>
                     
-                    <button 
-                      onClick={() => handleBookNow(pkg._id)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"
-                    >
-                      {t('packages.bookNow')}
-                    </button>
+                    <div className="mt-auto">
+                      <button 
+                        onClick={() => handleBookNow(pkg._id)}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"
+                      >
+                        {t('packages.bookNow')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -374,23 +376,38 @@ const TravelPackagesPage = () => {
           )}
 
           {/* Call to Action */}
-          <div className="text-center mb-16">
-            <div className="bg-gradient-to-r from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-8 border border-green-400/30">
-              <h3 className="text-2xl font-abeze font-bold text-white mb-4">
+          <div className="text-center mb-10 md:mb-16 px-2">
+            <div className="bg-gradient-to-r from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-green-400/30">
+              <h3 className="text-lg sm:text-2xl font-abeze font-bold text-white mb-2 sm:mb-4">
                 {t('packages.customPackage.title')}
               </h3>
-              <p className="text-gray-300 font-abeze mb-6 max-w-2xl mx-auto">
+              <p className="text-gray-300 font-abeze mb-4 sm:mb-6 max-w-xl sm:max-w-2xl mx-auto text-xs sm:text-base">
                 {t('packages.customPackage.description')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center">
                 <button 
-                  onClick={() => setShowRequestForm(!showRequestForm)}
+                  onClick={() => {
+                    if (showRequestForm) {
+                      setShowRequestForm(false);
+                    } else {
+                      setShowRequestForm(true);
+                      setTimeout(() => {
+                        const el = document.getElementById('request-safari-form');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-abeze font-bold transition-colors duration-300"
                 >
                   {showRequestForm ? t('packages.customPackage.hideForm') : t('packages.customPackage.requestSafari')}
                 </button>
                 <button 
-                  onClick={() => navigate('/contact')}
+                  onClick={() => {
+                    navigate('/contact');
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 400);
+                  }}
                   className="bg-transparent border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-white px-8 py-3 rounded-full font-abeze font-bold transition-all duration-300"
                 >
                   {t('packages.customPackage.contactUs')}
@@ -401,22 +418,22 @@ const TravelPackagesPage = () => {
 
           {/* Request Safari Form */}
           {showRequestForm && (
-            <div className="mb-16">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                <div className="text-center mb-8">
-                  <h3 className="text-3xl font-abeze font-bold text-white mb-2">
+            <div id="request-safari-form" className="mb-10 md:mb-16">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-white/20">
+                <div className="text-center mb-6 sm:mb-8">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white mb-1 sm:mb-2">
                     {t('packages.requestForm.title')}
                   </h3>
-                  <p className="text-gray-300 font-abeze">
+                  <p className="text-gray-300 font-abeze text-xs sm:text-base">
                     {t('packages.requestForm.subtitle')}
                   </p>
                 </div>
 
-                <form onSubmit={handleRequestSafari} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
+                <form onSubmit={handleRequestSafari} className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {/* Personal Information */}
                     <div className="space-y-4">
-                      <h4 className="text-xl font-abeze font-bold text-white mb-4">{t('packages.requestForm.personalInfo')}</h4>
+                      <h4 className="text-base sm:text-xl font-abeze font-bold text-white mb-2 sm:mb-4">{t('packages.requestForm.personalInfo')}</h4>
                       
                       <div>
                         <label className="block text-white font-abeze font-medium mb-2">
@@ -480,7 +497,7 @@ const TravelPackagesPage = () => {
 
                     {/* Safari Details */}
                     <div className="space-y-4">
-                      <h4 className="text-xl font-abeze font-bold text-white mb-4">{t('packages.requestForm.safariDetails')}</h4>
+                      <h4 className="text-base sm:text-xl font-abeze font-bold text-white mb-2 sm:mb-4">{t('packages.requestForm.safariDetails')}</h4>
                       
                       <div>
                         <label className="block text-white font-abeze font-medium mb-2">
@@ -544,10 +561,9 @@ const TravelPackagesPage = () => {
                   </div>
 
                   {/* Additional Information */}
-                  <div className="space-y-4">
-                    <h4 className="text-xl font-abeze font-bold text-white mb-4">{t('packages.requestForm.additionalInfo')}</h4>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <h4 className="text-base sm:text-xl font-abeze font-bold text-white mb-2 sm:mb-4">{t('packages.requestForm.additionalInfo')}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-white font-abeze font-medium mb-2">
                           {t('packages.requestForm.budget')}
@@ -613,18 +629,18 @@ const TravelPackagesPage = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex justify-end space-x-4">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
                     <button
                       type="button"
                       onClick={() => setShowRequestForm(false)}
-                      className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300"
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300"
                     >
                       {t('packages.requestForm.cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmittingRequest}
-                      className="px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-abeze font-bold transition-colors duration-300"
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-abeze font-bold transition-colors duration-300"
                     >
                       {isSubmittingRequest ? t('packages.requestForm.submitting') : t('packages.requestForm.submit')}
                     </button>

@@ -119,9 +119,9 @@ const AboutUsPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <Header />
 
-      <div className="pt-20">
+      <div className="pt-16 md:pt-20">
         {/* Hero Section with Background Image */}
-        <div className="relative h-96 mb-16">
+        <div className="relative h-56 sm:h-72 md:h-96 mb-10 md:mb-16">
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${image4})` }}
@@ -129,20 +129,20 @@ const AboutUsPage = () => {
             <div className="absolute inset-0 bg-black/50"></div>
           </div>
           <div className="relative z-10 flex items-center justify-center h-full">
-            <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-abeze font-bold text-white mb-4">
+            <div className="text-center px-2">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
                 {t("About")} <span className="text-green-400">Wild Path</span>
               </h1>
-              <p className="text-gray-200 text-lg font-abeze max-w-3xl mx-auto px-4">
+              <p className="text-gray-200 text-base sm:text-lg font-abeze max-w-xl md:max-w-3xl mx-auto px-2">
                 {t("about.subtitle")}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="container mx-auto px-6">
+  <div className="container mx-auto px-2 sm:px-4 md:px-6">
           {/* Story Section */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-12 md:mb-20">
             <div>
               <h3 className="text-3xl font-abeze font-bold text-white mb-6">
                 {t("about.story.title")}
@@ -153,7 +153,7 @@ const AboutUsPage = () => {
                 <p>{t("about.story.today")}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-8 border border-green-400/30">
+            <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-green-400/30">
               <h4 className="text-2xl font-abeze font-bold text-white mb-4">
                 {t("about.mission.title")}
               </h4>
@@ -170,11 +170,11 @@ const AboutUsPage = () => {
           </div>
 
           {/* Image Gallery Section */}
-          <div className="mb-20">
-            <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
+          <div className="mb-12 md:mb-20">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
               Our <span className="text-green-400">Wildlife Gallery</span>
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
               {galleryImages.map((image, index) => (
                 <div
                   key={index}
@@ -183,7 +183,7 @@ const AboutUsPage = () => {
                   <img
                     src={image.src}
                     alt={image.alt}
-                    className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-28 sm:h-36 md:h-48 object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
               ))}
@@ -191,21 +191,21 @@ const AboutUsPage = () => {
           </div>
 
           {/* Values Section */}
-          <div className="mb-20">
-            <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
+          <div className="mb-12 md:mb-20">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
               {t("about.values.title")}
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {values.map((value, index) => (
                 <div
                   key={index}
                   className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105"
                 >
-                  <div className="text-4xl mb-4 text-center">{value.icon}</div>
-                  <h4 className="text-xl font-abeze font-bold text-white mb-3 text-center">
+                  <div className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-4 text-center">{value.icon}</div>
+                  <h4 className="text-base sm:text-lg md:text-xl font-abeze font-bold text-white mb-2 sm:mb-3 text-center">
                     {value.title}
                   </h4>
-                  <p className="text-gray-300 font-abeze text-sm text-center leading-relaxed">
+                  <p className="text-gray-300 font-abeze text-xs sm:text-sm text-center leading-relaxed">
                     {value.description}
                   </p>
                 </div>
@@ -214,29 +214,29 @@ const AboutUsPage = () => {
           </div>
 
           {/* Team Section */}
-          <div className="mb-20">
-            <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
+          <div className="mb-12 md:mb-20">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
               {t("about.team.title")}
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {teamMembers.map((member, index) => (
                 <div
                   key={index}
                   className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105"
                 >
-                  <div className="text-6xl mb-4 text-center">
+                  <div className="text-3xl sm:text-4xl md:text-6xl mb-2 sm:mb-4 text-center">
                     {member.image}
                   </div>
-                  <h4 className="text-xl font-abeze font-bold text-white mb-2 text-center">
+                  <h4 className="text-base sm:text-lg md:text-xl font-abeze font-bold text-white mb-1 sm:mb-2 text-center">
                     {member.name}
                   </h4>
-                  <p className="text-green-400 font-abeze text-sm text-center mb-3">
+                  <p className="text-green-400 font-abeze text-xs sm:text-sm text-center mb-2 sm:mb-3">
                     {member.role}
                   </p>
-                  <p className="text-gray-300 font-abeze text-sm text-center mb-3 leading-relaxed">
+                  <p className="text-gray-300 font-abeze text-xs sm:text-sm text-center mb-2 sm:mb-3 leading-relaxed">
                     {member.description}
                   </p>
-                  <div className="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-center">
+                  <div className="bg-green-600/20 text-green-400 px-2 sm:px-3 py-1 rounded-lg text-center">
                     <span className="font-abeze font-medium text-xs">
                       {member.expertise}
                     </span>
@@ -247,23 +247,23 @@ const AboutUsPage = () => {
           </div>
 
           {/* Achievements Section */}
-          <div className="mb-16">
-            <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
+          <div className="mb-8 md:mb-16">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
               {t("about.achievements.title")}
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {achievements.map((achievement, index) => (
                 <div
                   key={index}
                   className="text-center bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-6 border border-green-400/30"
                 >
-                  <div className="text-4xl font-abeze font-bold text-green-400 mb-2">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-abeze font-bold text-green-400 mb-1 sm:mb-2">
                     {achievement.number}
                   </div>
-                  <h4 className="text-xl font-abeze font-bold text-white mb-2">
+                  <h4 className="text-base sm:text-lg md:text-xl font-abeze font-bold text-white mb-1 sm:mb-2">
                     {achievement.label}
                   </h4>
-                  <p className="text-gray-300 font-abeze text-sm">
+                  <p className="text-gray-300 font-abeze text-xs sm:text-sm">
                     {achievement.description}
                   </p>
                 </div>
@@ -272,15 +272,15 @@ const AboutUsPage = () => {
           </div>
 
           {/* Call to Action */}
-          <div className="text-center mb-16">
-            <div className="bg-gradient-to-r from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-8 border border-green-400/30">
-              <h3 className="text-2xl font-abeze font-bold text-white mb-4">
+          <div className="text-center mb-8 md:mb-16 px-2">
+            <div className="bg-gradient-to-r from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-green-400/30">
+              <h3 className="text-lg sm:text-2xl font-abeze font-bold text-white mb-2 sm:mb-4">
                 {t("about.cta.title")}
               </h3>
-              <p className="text-gray-300 font-abeze mb-6 max-w-2xl mx-auto">
+              <p className="text-gray-300 font-abeze mb-4 sm:mb-6 max-w-xl sm:max-w-2xl mx-auto text-xs sm:text-base">
                 {t("about.cta.description")}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center">
                 <button
                   onClick={() => navigate("/travel-packages")}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-abeze font-bold transition-colors duration-300"

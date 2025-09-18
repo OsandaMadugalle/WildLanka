@@ -32,6 +32,7 @@ import ProtectedAdminRoute from './components/ProtectedAdminRoute'
 import ProtectedStaffRoute from './components/ProtectedStaffRoute'
 import ReviewsPage from './pages/ReviewsPage';
 import './App.css'
+import GoToTopButton from './components/GoToTopButton';
 
 function MainPage() {
   return (
@@ -119,6 +120,7 @@ function App() {
               <Route path="/reviews" element={<ReviewsPage />} />
             </Routes>
             <ChatbotWrapper />
+            <GoToTopButton />
           </div>
         </Router>
       </AuthProvider>
