@@ -30,7 +30,7 @@ const TravelPackagesPage = () => {
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const loginTriggerRef = useRef(null);
 
-  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure'];
+  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure', 'Marine'];
 
   useEffect(() => {
     loadPackages();

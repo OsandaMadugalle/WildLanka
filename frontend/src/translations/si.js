@@ -282,6 +282,7 @@ export default {
   'packages.subtitle': 'ශ්‍රී ලංකාවේ වඩාත් පිරිසිදු ජාතික උද්‍යාන හරහා අපගේ සැලසුම් කර ඇති සෆාරි පැකේජ සමඟ පරිපූර්ණ වනජීවී ගවේෂණය සොයාගන්න.',
   'packages.loginToContinue': 'ඔබේ වෙන් කිරීම අඛණ්ඩව කිරීමට කරුණාකර පිවිසෙන්න',
   'packages.filters.all': 'සියල්ල',
+  'packages.filters.marine': 'මහිකාන්ත',
   'packages.filters.safari': 'සෆාරි',
   'packages.filters.hiking': 'හයිකිං',
   'packages.filters.photography': 'ඡායාරූපකරණය',

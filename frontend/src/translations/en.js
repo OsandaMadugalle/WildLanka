@@ -283,6 +283,7 @@ export default {
   'packages.subtitle': 'Discover the perfect wildlife adventure with our carefully curated safari packages across Sri Lanka\'s most pristine national parks.',
   'packages.loginToContinue': 'Please login to continue with your booking',
   'packages.filters.all': 'All',
+  'packages.filters.marine': 'Marine',
   'packages.filters.safari': 'Safari',
   'packages.filters.hiking': 'Hiking',
   'packages.filters.photography': 'Photography',

@@ -174,6 +174,7 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
                 <option value="Photography">Photography</option>
                 <option value="Birding">Birding</option>
                 <option value="Adventure">Adventure</option>
+                <option value="Marine">Marine</option>
               </select>
               {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
             </div>
