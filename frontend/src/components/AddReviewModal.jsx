@@ -257,33 +257,34 @@ const AddReviewModal = ({ onClose, onSubmit, initialData }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 via-green-800 to-green-700 rounded-3xl shadow-2xl max-w-2xl w-full border border-green-600/50 overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900/95 backdrop-blur-md rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20">
         {/* Header */}
-        <div className="relative p-6 border-b border-green-600/50 bg-gradient-to-r from-green-800/50 to-green-700/50">
-          <div className="text-center">
-            <h3 className="text-2xl font-abeze font-bold text-white mb-2">{getStepTitle()}</h3>
-            <p className="text-green-200 font-abeze">{getStepDescription()}</p>
-          </div>
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 text-green-200 hover:text-white hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-all duration-200"
-          >
-            ✕
-          </button>
+        <div className="text-center mb-8">
+          <h3 className="text-3xl font-abeze font-bold text-white mb-2">{getStepTitle()}</h3>
+          <p className="text-gray-300 font-abeze">{getStepDescription()}</p>
         </div>
-
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          aria-label="Close"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         {/* Progress Bar */}
-        <div className="px-6 py-4 bg-green-800/30">
+        <div className="px-6 py-4 bg-gray-800/30">
           <div className="flex justify-between items-center mb-2">
             {[1, 2, 3, 4].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                  stepNum < step 
-                    ? 'bg-green-500 text-white' 
-                    : stepNum === step 
-                    ? 'bg-green-400 text-white ring-4 ring-green-400/30' 
-                    : 'bg-white/20 text-green-200'
+                  stepNum < step
+                    ? 'bg-green-500 text-white'
+                    : stepNum === step
+                    ? 'bg-green-400 text-white ring-4 ring-green-400/30'
+                    : 'bg-white/20 text-gray-300'
                 }`}>
                   {stepNum < step ? '✓' : stepNum}
                 </div>
