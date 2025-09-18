@@ -227,7 +227,7 @@ const TravelPackagesPage = () => {
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105"
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105 flex flex-col"
                 >
                   <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
                     {pkg.image?.url ? (
@@ -255,7 +255,7 @@ const TravelPackagesPage = () => {
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6">
+                  <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-lg sm:text-xl md:text-2xl font-abeze font-bold text-white">
                         {pkg.title}
@@ -361,12 +361,14 @@ const TravelPackagesPage = () => {
                       </div>
                     </div>
                     
-                    <button 
-                      onClick={() => handleBookNow(pkg._id)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"
-                    >
-                      {t('packages.bookNow')}
-                    </button>
+                    <div className="mt-auto">
+                      <button 
+                        onClick={() => handleBookNow(pkg._id)}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"
+                      >
+                        {t('packages.bookNow')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
