@@ -150,7 +150,7 @@ export default {
   'staff.completedTasks': 'Completed Tasks',
 
   // Footer
-  'footer.copyright': '© 2024 Wild Path Safari. All rights reserved.',
+  'footer.copyright': '© 2025 WildLanka. All rights reserved.',
   'footer.privacy': 'Privacy Policy',
   'footer.terms': 'Terms of Service',
   'footer.social': 'Follow Us',
@@ -586,7 +586,7 @@ export default {
   'footer.contact.phone': '+94 11 234 5678',
   'footer.contact.email': 'info@wildlanka.lk',
   'footer.contact.hours': 'Mon - Sun: 6:00 AM - 8:00 PM',
-  'footer.copyright': 'Wild Path. All rights reserved.',
+  'footer.copyright': '© 2025 WildLanka. All rights reserved.',
   'footer.policies.privacy': 'Privacy Policy',
   'footer.policies.terms': 'Terms of Service',
   'footer.policies.cookies': 'Cookie Policy',
