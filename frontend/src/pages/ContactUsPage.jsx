@@ -309,19 +309,19 @@ const ContactUsPage = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <Header triggerLogin={loginTriggerRef} />
 
-      <div className="pt-30">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-abeze font-bold text-white mb-4">
+  <div className="pt-24 md:pt-32">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6">
+          <div className="text-center mb-10 md:mb-16 px-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
               Contact <span className="text-green-400">Us</span>
             </h1>
-            <p className="text-gray-300 text-lg font-abeze max-w-3xl mx-auto">
+            <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
               {t("contact.subtitle")}
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 mb-16">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 mb-10 md:mb-16">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-white/20">
               <h3 className="text-2xl font-abeze font-bold text-white mb-6">
                 {t("contact.form.title")}
               </h3>
@@ -350,7 +350,7 @@ const ContactUsPage = () => {
                   </div>
                 )}
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-white font-abeze font-medium mb-2">
                       {t("contact.form.firstName")}{" "}
@@ -507,8 +507,8 @@ const ContactUsPage = () => {
               </form>
             </div>
 
-            <div className="space-y-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <div className="space-y-4 sm:space-y-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
                 <div className="flex items-start space-x-4">
                   <div className="bg-green-600/20 p-3 rounded-lg">
                     <svg
@@ -546,7 +546,7 @@ const ContactUsPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
                 <div className="flex items-start space-x-4">
                   <div className="bg-green-600/20 p-3 rounded-lg">
                     <svg
@@ -591,7 +591,7 @@ const ContactUsPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
                 <div className="flex items-start space-x-4">
                   <div className="bg-green-600/20 p-3 rounded-lg">
                     <svg
@@ -636,7 +636,7 @@ const ContactUsPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
                 <h4 className="text-xl font-abeze font-bold text-white mb-4">
                   Follow Us
                 </h4>
@@ -723,7 +723,7 @@ const ContactUsPage = () => {
               Our <span className="text-green-400">Destinations</span> by
               Category
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {/* Safari Parks */}
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                 <div className="flex items-center space-x-3 mb-4">
@@ -866,18 +866,18 @@ const ContactUsPage = () => {
             </div>
           </div>
 
-          <div className="mb-16">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-              <h3 className="text-2xl font-abeze font-bold text-white mb-6 text-center">
+          <div className="mb-10 md:mb-16">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-white/20">
+              <h3 className="text-lg sm:text-2xl font-abeze font-bold text-white mb-4 sm:mb-6 text-center">
                 {t("contact.map.title")}
               </h3>
 
               {/* Map Legend */}
-              <div className="mb-6 p-4 bg-gray-800/50 rounded-lg border border-white/10">
-                <h4 className="text-lg font-abeze font-bold text-white mb-4 text-center">
+              <div className="mb-4 sm:mb-6 p-2 sm:p-4 bg-gray-800/50 rounded-lg border border-white/10">
+                <h4 className="text-base sm:text-lg font-abeze font-bold text-white mb-2 sm:mb-4 text-center">
                   Location Categories
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-green-500"></div>
                     <span className="text-white font-abeze text-sm">
@@ -906,8 +906,8 @@ const ContactUsPage = () => {
               </div>
 
               <div className="bg-gray-800 rounded-lg overflow-hidden">
-                <div ref={mapContainerRef} className="w-full h-96" />
-                <div className="p-3 text-center">
+                <div ref={mapContainerRef} className="w-full h-56 sm:h-80 md:h-96" />
+                <div className="p-2 sm:p-3 text-center">
                   <a
                     href="https://www.openstreetmap.org/#map=7/7.500/80.700"
                     target="_blank"
@@ -924,12 +924,11 @@ const ContactUsPage = () => {
             </div>
           </div>
 
-          <div className="mb-16">
-            <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
-              {t("contact.faq.title")}{" "}
-              <span className="text-green-400">Questions</span>
+          <div className="mb-10 md:mb-16">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
+              {t("contact.faq.title")} <span className="text-green-400">Questions</span>
             </h3>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {faqs.map((faq, index) => (
                 <div
                   key={index}

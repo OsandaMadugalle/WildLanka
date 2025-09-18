@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,6 +23,37 @@ const Header = ({ triggerLogin = null }) => {
   const location = useLocation();
   // ...existing code...
   const { t } = useLanguage();
+  const [awarenessActive, setAwarenessActive] = useState(false);
+
+  // Highlight Awareness nav when section is in view or hash is #awareness
+  useEffect(() => {
+    const handleScrollOrHash = () => {
+      if (location.pathname === '/') {
+        const hash = window.location.hash;
+        if (hash === '#awareness') {
+          setAwarenessActive(true);
+          return;
+        }
+        const awareness = document.getElementById('awareness');
+        if (awareness) {
+          const rect = awareness.getBoundingClientRect();
+          const inView = rect.top <= 100 && rect.bottom >= 100;
+          setAwarenessActive(inView);
+        } else {
+          setAwarenessActive(false);
+        }
+      } else {
+        setAwarenessActive(false);
+      }
+    };
+    window.addEventListener('scroll', handleScrollOrHash);
+    window.addEventListener('hashchange', handleScrollOrHash);
+    handleScrollOrHash();
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrHash);
+      window.removeEventListener('hashchange', handleScrollOrHash);
+    };
+  }, [location.pathname]);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showStaffLogin, setShowStaffLogin] = useState(false);
@@ -102,11 +133,26 @@ const Header = ({ triggerLogin = null }) => {
     setIsMobileMenuOpen(false);
   };
 
-  const navigateToHome = () => navigateAndScroll('/');
-  const navigateToTravelPackages = () => navigateAndScroll('/travel-packages');
-  const navigateToContact = () => navigateAndScroll('/contact');
-  const navigateToAbout = () => navigateAndScroll('/about');
-  const navigateToGallery = () => navigateAndScroll('/gallery');
+  const navigateToHome = () => {
+    navigateAndScroll('/');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToTravelPackages = () => {
+    navigateAndScroll('/travel-packages');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToContact = () => {
+    navigateAndScroll('/contact');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToAbout = () => {
+    navigateAndScroll('/about');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToGallery = () => {
+    navigateAndScroll('/gallery');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
 
   const navigateToAccount = () => {
     // Only allow navigation if authenticated
@@ -194,14 +240,14 @@ const Header = ({ triggerLogin = null }) => {
               <button 
                 onClick={navigateToHome}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/' && !awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.home')}
               </button>
               <button 
                 onClick={scrollToAwareness}
-                className="text-white font-abeze font-medium hover:text-green-400 transition-colors"
+                className={`font-abeze font-medium transition-colors ${awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'}`}
               >
                 {t('nav.awareness')}
               </button>
@@ -214,20 +260,20 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.packages')}
               </button>
               <button 
+                onClick={() => navigateAndScroll('/reviews')}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.reviews') || 'Reviews'}
+              </button>
+              <button 
                 onClick={navigateToGallery}
                 className={`font-abeze font-medium transition-colors ${
                   location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.gallery')}
-              </button>
-              <button 
-                onClick={navigateToAbout}
-                className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                }`}
-              >
-                {t('nav.about')}
               </button>
               <button 
                 onClick={navigateToContact}
@@ -238,12 +284,12 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.contact')}
               </button>
               <button 
-                onClick={() => navigateAndScroll('/reviews')}
+                onClick={navigateToAbout}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
-                {t('nav.reviews') || 'Reviews'}
+                {t('nav.about')}
               </button>
             </nav>
 
@@ -336,20 +382,20 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.packages')}
                 </button>
                 <button 
+                  onClick={() => navigateAndScroll('/reviews')}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.reviews') || 'Reviews'}
+                </button>
+                <button 
                   onClick={navigateToGallery}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
                   {t('nav.gallery')}
-                </button>
-                <button 
-                  onClick={navigateToAbout}
-                  className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                  }`}
-                >
-                  {t('nav.about')}
                 </button>
                 <button 
                   onClick={navigateToContact}
@@ -360,12 +406,12 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.contact')}
                 </button>
                 <button 
-                  onClick={() => navigateAndScroll('/reviews')}
+                  onClick={navigateToAbout}
                   className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
-                  {t('nav.reviews') || 'Reviews'}
+                  {t('nav.about')}
                 </button>
                 {isAuthenticated ? (
                   <button 
