@@ -223,7 +223,7 @@ const TravelPackagesPage = () => {
               <div className="text-gray-300 font-abeze">{t('packages.noPackagesFound')}</div>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div id="packages-section" className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
@@ -384,13 +384,28 @@ const TravelPackagesPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
-                  onClick={() => setShowRequestForm(!showRequestForm)}
+                  onClick={() => {
+                    if (showRequestForm) {
+                      setShowRequestForm(false);
+                    } else {
+                      setShowRequestForm(true);
+                      setTimeout(() => {
+                        const el = document.getElementById('request-safari-form');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }
+                  }}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-abeze font-bold transition-colors duration-300"
                 >
                   {showRequestForm ? t('packages.customPackage.hideForm') : t('packages.customPackage.requestSafari')}
                 </button>
                 <button 
-                  onClick={() => navigate('/contact')}
+                  onClick={() => {
+                    navigate('/contact');
+                    setTimeout(() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 400);
+                  }}
                   className="bg-transparent border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-white px-8 py-3 rounded-full font-abeze font-bold transition-all duration-300"
                 >
                   {t('packages.customPackage.contactUs')}
@@ -401,7 +416,7 @@ const TravelPackagesPage = () => {
 
           {/* Request Safari Form */}
           {showRequestForm && (
-            <div className="mb-16">
+            <div id="request-safari-form" className="mb-16">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
                 <div className="text-center mb-8">
                   <h3 className="text-3xl font-abeze font-bold text-white mb-2">

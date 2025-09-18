@@ -193,7 +193,12 @@ const Awareness = () => {
                 {t('safariPackages.discoverMore')}
               </p>
               <button 
-                onClick={() => navigate('/travel-packages')}
+                onClick={() => {
+                  navigate('/travel-packages');
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }, 400);
+                }}
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-abeze font-bold transition-colors duration-300"
               >
                 {t('safariPackages.seeAllPackages')}

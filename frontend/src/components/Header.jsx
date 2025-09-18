@@ -10,11 +10,10 @@ import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
   const [loggingOut, setLoggingOut] = useState(false);
+  const { isAuthenticated, user, redirectAfterLogin, logout } = useAuth();
   const handleLogout = async () => {
     setLoggingOut(true);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-    }
+    logout(); // Use AuthContext logout to clear state
     setTimeout(() => {
       setLoggingOut(false);
       window.location.href = '/';
@@ -22,7 +21,7 @@ const Header = ({ triggerLogin = null }) => {
   };
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, redirectAfterLogin } = useAuth();
+  // ...existing code...
   const { t } = useLanguage();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -87,35 +86,27 @@ const Header = ({ triggerLogin = null }) => {
     setShowLogin(true);
   };
 
-  const navigateToHome = () => {
-    navigate('/');
-    window.scrollTo(0, 0);
+  // Generalized navigation with optional hash scroll
+  const navigateAndScroll = (path, hash = null) => {
+    navigate(path);
+    setTimeout(() => {
+      if (hash) {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 400); // Adjust delay if needed
     setIsMobileMenuOpen(false);
   };
 
-  const navigateToTravelPackages = () => {
-    navigate('/travel-packages');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
-  };
-
-  const navigateToContact = () => {
-    navigate('/contact');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
-  };
-
-  const navigateToAbout = () => {
-    navigate('/about');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
-  };
-
-  const navigateToGallery = () => {
-    navigate('/gallery');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
-  };
+  const navigateToHome = () => navigateAndScroll('/');
+  const navigateToTravelPackages = () => navigateAndScroll('/travel-packages');
+  const navigateToContact = () => navigateAndScroll('/contact');
+  const navigateToAbout = () => navigateAndScroll('/about');
+  const navigateToGallery = () => navigateAndScroll('/gallery');
 
   const navigateToAccount = () => {
     // Only allow navigation if authenticated
@@ -139,7 +130,14 @@ const Header = ({ triggerLogin = null }) => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      navigate('/#awareness');
+      navigate('/');
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById('awareness');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 400); // Adjust delay if needed
     }
     setIsMobileMenuOpen(false);
   };
@@ -240,7 +238,7 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.contact')}
               </button>
               <button 
-                onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                onClick={() => navigateAndScroll('/reviews')}
                 className={`font-abeze font-medium transition-colors ${
                   location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
@@ -362,7 +360,7 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.contact')}
                 </button>
                 <button 
-                  onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                  onClick={() => navigateAndScroll('/reviews')}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
