@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
 
-const AddReviewModal = ({ onClose, onSubmit }) => {
-  const [rating, setRating] = useState(0);
+import React, { useState, useEffect } from 'react';
+
+const AddReviewModal = ({ onClose, onSubmit, initialData }) => {
+  const [rating, setRating] = useState(initialData?.rating || 0);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState(initialData?.comment || '');
   const [files, setFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1); // 1: rating, 2: comment, 3: photos, 4: review
+
+  // If editing, pre-fill files with empty (user must re-upload if needed)
+  useEffect(() => {
+    setRating(initialData?.rating || 0);
+    setComment(initialData?.comment || '');
+    setFiles([]); // Do not pre-fill files for security reasons
+  }, [initialData]);
 
   const handleFilesChange = (e) => {
     const selected = Array.from(e.target.files || []).slice(0, 5);

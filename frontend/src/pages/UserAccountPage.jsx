@@ -14,6 +14,36 @@ import { EditProfileModal } from "../components/EditProfileModal";
 import { useTranslation } from "react-i18next";
 
 const UserAccountPage = () => {
+  // Show toast helper
+  function showToast(message, type = "info") {
+    setToast({ message, type });
+  }
+
+  // Handle review deletion
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const res = await reviewApi.deleteReview(reviewId);
+      if (res.success) {
+        // Optimistically remove from local state for instant UI feedback
+  setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+  setCurrentReviewsPage(1); // Reset to first page after delete
+        showToast("Review deleted successfully!", "success");
+        // Optionally reload from server for sync
+        loadUserReviews();
+      } else {
+        showToast(res.message || "Failed to delete review.", "error");
+      }
+    } catch (err) {
+      showToast("Error deleting review.", "error");
+    }
+  };
+
+  // Handle review edit (open modal with existing data)
+  const handleEditReview = (review) => {
+    setShowReviewForBookingId(review.bookingId?._id || review.bookingId);
+    setModalReview(review); // Pass review to modal for editing
+  };
   const { logout } = useAuth();
   // Loading state for initial data fetch
   const [initialLoading, setInitialLoading] = useState(true);
@@ -281,7 +311,11 @@ const UserAccountPage = () => {
       {/* Add Review Modal */}
       {showReviewForBookingId && (
         <AddReviewModal
-          onClose={() => setShowReviewForBookingId(null)}
+          onClose={() => {
+            setShowReviewForBookingId(null);
+            setModalReview(null);
+          }}
+          initialData={modalReview}
           onSubmit={async (reviewData) => {
             try {
               // Convert reviewData to FormData, use 'images' field for files
@@ -293,9 +327,14 @@ const UserAccountPage = () => {
                   formData.append("images", file);
                 });
               }
+              if (modalReview && modalReview._id) {
+                // Update existing review (delete then create new)
+                await reviewApi.deleteReview(modalReview._id);
+              }
               await reviewApi.createReview(showReviewForBookingId, formData);
               setShowReviewSuccess(true);
               setShowReviewForBookingId(null);
+              setModalReview(null);
               loadUserReviews();
               showToast("Review submitted successfully!", "success");
             } catch (error) {
@@ -1111,9 +1150,7 @@ const UserAccountPage = () => {
                           </div>
                           <div className="flex gap-2 mt-4">
                             <button
-                              onClick={() =>
-                                handleAddReview(review.bookingId._id)
-                              }
+                              onClick={() => handleEditReview(review)}
                               title="Edit your review for this booking"
                               className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
                             >
