@@ -133,11 +133,26 @@ const Header = ({ triggerLogin = null }) => {
     setIsMobileMenuOpen(false);
   };
 
-  const navigateToHome = () => navigateAndScroll('/');
-  const navigateToTravelPackages = () => navigateAndScroll('/travel-packages');
-  const navigateToContact = () => navigateAndScroll('/contact');
-  const navigateToAbout = () => navigateAndScroll('/about');
-  const navigateToGallery = () => navigateAndScroll('/gallery');
+  const navigateToHome = () => {
+    navigateAndScroll('/');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToTravelPackages = () => {
+    navigateAndScroll('/travel-packages');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToContact = () => {
+    navigateAndScroll('/contact');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToAbout = () => {
+    navigateAndScroll('/about');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
+  const navigateToGallery = () => {
+    navigateAndScroll('/gallery');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
+  };
 
   const navigateToAccount = () => {
     // Only allow navigation if authenticated
