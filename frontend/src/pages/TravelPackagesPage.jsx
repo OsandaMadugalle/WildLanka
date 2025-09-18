@@ -30,7 +30,7 @@ const TravelPackagesPage = () => {
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const loginTriggerRef = useRef(null);
 
-  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure'];
+  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure', 'Marine'];
 
   useEffect(() => {
     loadPackages();
@@ -227,7 +227,7 @@ const TravelPackagesPage = () => {
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105 flex flex-col"
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105"
                 >
                   <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
                     {pkg.image?.url ? (
