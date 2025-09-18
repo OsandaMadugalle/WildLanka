@@ -20,7 +20,17 @@ const UpdateBookingPage = () => {
       try {
         const res = await bookingApi.getBookingDetails(bookingId);
         if (res.success) {
-          console.log("Booking details response:", res.booking);
+          // Restrict update to Book Now, Pay Later only
+          if (
+            !(
+              res.booking.paymentMethod === "COD" ||
+              res.booking.paymentMethod === "Book Now, Pay Later"
+            )
+          ) {
+            alert("Only 'Book Now, Pay Later' bookings can be updated.");
+            navigate("/account");
+            return;
+          }
           let initialForm = { ...res.booking.bookingDetails };
           // Format startDate for input type="date"
           if (initialForm.startDate) {
@@ -35,7 +45,6 @@ const UpdateBookingPage = () => {
               res.booking.packageDetails.duration
             );
           }
-          console.log("Initial form:", initialForm);
           setBooking(res.booking);
           setForm(initialForm);
           setPackageData(res.booking.packageDetails);
