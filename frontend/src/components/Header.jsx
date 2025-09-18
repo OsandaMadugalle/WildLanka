@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,11 +10,10 @@ import logo from '../assets/logo.png';
 
 const Header = ({ triggerLogin = null }) => {
   const [loggingOut, setLoggingOut] = useState(false);
+  const { isAuthenticated, user, redirectAfterLogin, logout } = useAuth();
   const handleLogout = async () => {
     setLoggingOut(true);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-    }
+    logout(); // Use AuthContext logout to clear state
     setTimeout(() => {
       setLoggingOut(false);
       window.location.href = '/';
@@ -22,8 +21,39 @@ const Header = ({ triggerLogin = null }) => {
   };
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, redirectAfterLogin } = useAuth();
+  // ...existing code...
   const { t } = useLanguage();
+  const [awarenessActive, setAwarenessActive] = useState(false);
+
+  // Highlight Awareness nav when section is in view or hash is #awareness
+  useEffect(() => {
+    const handleScrollOrHash = () => {
+      if (location.pathname === '/') {
+        const hash = window.location.hash;
+        if (hash === '#awareness') {
+          setAwarenessActive(true);
+          return;
+        }
+        const awareness = document.getElementById('awareness');
+        if (awareness) {
+          const rect = awareness.getBoundingClientRect();
+          const inView = rect.top <= 100 && rect.bottom >= 100;
+          setAwarenessActive(inView);
+        } else {
+          setAwarenessActive(false);
+        }
+      } else {
+        setAwarenessActive(false);
+      }
+    };
+    window.addEventListener('scroll', handleScrollOrHash);
+    window.addEventListener('hashchange', handleScrollOrHash);
+    handleScrollOrHash();
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrHash);
+      window.removeEventListener('hashchange', handleScrollOrHash);
+    };
+  }, [location.pathname]);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showStaffLogin, setShowStaffLogin] = useState(false);
@@ -87,34 +117,41 @@ const Header = ({ triggerLogin = null }) => {
     setShowLogin(true);
   };
 
+  // Generalized navigation with optional hash scroll
+  const navigateAndScroll = (path, hash = null) => {
+    navigate(path);
+    setTimeout(() => {
+      if (hash) {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 400); // Adjust delay if needed
+    setIsMobileMenuOpen(false);
+  };
+
   const navigateToHome = () => {
-    navigate('/');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToTravelPackages = () => {
-    navigate('/travel-packages');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/travel-packages');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToContact = () => {
-    navigate('/contact');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/contact');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToAbout = () => {
-    navigate('/about');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/about');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
-
   const navigateToGallery = () => {
-    navigate('/gallery');
-    window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false);
+    navigateAndScroll('/gallery');
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 400);
   };
 
   const navigateToAccount = () => {
@@ -139,7 +176,14 @@ const Header = ({ triggerLogin = null }) => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      navigate('/#awareness');
+      navigate('/');
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById('awareness');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 400); // Adjust delay if needed
     }
     setIsMobileMenuOpen(false);
   };
@@ -196,14 +240,14 @@ const Header = ({ triggerLogin = null }) => {
               <button 
                 onClick={navigateToHome}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/' && !awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.home')}
               </button>
               <button 
                 onClick={scrollToAwareness}
-                className="text-white font-abeze font-medium hover:text-green-400 transition-colors"
+                className={`font-abeze font-medium transition-colors ${awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'}`}
               >
                 {t('nav.awareness')}
               </button>
@@ -216,20 +260,20 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.packages')}
               </button>
               <button 
+                onClick={() => navigateAndScroll('/reviews')}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.reviews') || 'Reviews'}
+              </button>
+              <button 
                 onClick={navigateToGallery}
                 className={`font-abeze font-medium transition-colors ${
                   location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.gallery')}
-              </button>
-              <button 
-                onClick={navigateToAbout}
-                className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                }`}
-              >
-                {t('nav.about')}
               </button>
               <button 
                 onClick={navigateToContact}
@@ -240,12 +284,12 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.contact')}
               </button>
               <button 
-                onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                onClick={navigateToAbout}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
-                {t('nav.reviews') || 'Reviews'}
+                {t('nav.about')}
               </button>
             </nav>
 
@@ -338,20 +382,20 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.packages')}
                 </button>
                 <button 
+                  onClick={() => navigateAndScroll('/reviews')}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.reviews') || 'Reviews'}
+                </button>
+                <button 
                   onClick={navigateToGallery}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
                   {t('nav.gallery')}
-                </button>
-                <button 
-                  onClick={navigateToAbout}
-                  className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                  }`}
-                >
-                  {t('nav.about')}
                 </button>
                 <button 
                   onClick={navigateToContact}
@@ -362,12 +406,12 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.contact')}
                 </button>
                 <button 
-                  onClick={() => { navigate('/reviews'); window.scrollTo(0, 0); }}
+                  onClick={navigateToAbout}
                   className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
-                  {t('nav.reviews') || 'Reviews'}
+                  {t('nav.about')}
                 </button>
                 {isAuthenticated ? (
                   <button 
