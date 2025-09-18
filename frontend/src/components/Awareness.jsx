@@ -1,4 +1,8 @@
 import React from 'react';
+import awaElephant from '../assets/awaElephant.png';
+import awaLeopard from '../assets/awaLeopard.png';
+import awaBird from '../assets/awaBird.png';
+import awaMarine from '../assets/awaMarine.png';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -16,7 +20,7 @@ const Awareness = () => {
       id: 1,
       title: t('awareness.topics.elephant.title'),
       description: t('awareness.topics.elephant.description'),
-      icon: "🐘",
+      icon: <img src={awaElephant} alt="Elephant" className="w-50 h-50 mx-auto" />,
       stats: t('awareness.topics.elephant.stats'),
       color: "from-emerald-500 to-teal-600"
     },
@@ -24,7 +28,7 @@ const Awareness = () => {
       id: 2,
       title: t('awareness.topics.leopard.title'),
       description: t('awareness.topics.leopard.description'),
-      icon: "🐆",
+      icon: <img src={awaLeopard} alt="Leopard" className="w-50 h-50 mx-auto" />,
       stats: t('awareness.topics.leopard.stats'),
       color: "from-amber-500 to-orange-600"
     },
@@ -32,7 +36,7 @@ const Awareness = () => {
       id: 3,
       title: t('awareness.topics.bird.title'),
       description: t('awareness.topics.bird.description'),
-      icon: "🦜",
+      icon: <img src={awaBird} alt="Bird" className="w-50 h-50 mx-auto" />,
       stats: t('awareness.topics.bird.stats'),
       color: "from-lime-500 to-green-600"
     },
@@ -40,7 +44,7 @@ const Awareness = () => {
       id: 4,
       title: t('awareness.topics.marine.title'),
       description: t('awareness.topics.marine.description'),
-      icon: "🐋",
+      icon: <img src={awaMarine} alt="Marine" className="w-50 h-50 mx-auto" />,
       stats: t('awareness.topics.marine.stats'),
       color: "from-cyan-500 to-blue-600"
     }
