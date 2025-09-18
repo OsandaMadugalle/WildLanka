@@ -155,24 +155,21 @@ export const staffLogin = async (req, res, next) => {
     let user = await User.findOne({ email });
     let userType = 'user';
     
-    // If not found in User collection, check Staff collection
+    // If not found in User collection, check Staff collection (by email only)
     if (!user) {
       const staff = await Staff.findOne({ email });
       if (!staff) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Staff not found for this email" });
       }
-      
       // Check if staff is active
       if (!staff.isActive) {
         return res.status(401).json({ message: "Account is deactivated" });
       }
-      
       // Verify staff password
       const isPasswordValid = await staff.comparePassword(password);
       if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid password" });
       }
-      
       // Convert staff to user format
       user = {
         _id: staff._id,
