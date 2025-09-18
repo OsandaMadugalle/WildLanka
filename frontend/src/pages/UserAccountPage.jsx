@@ -299,6 +299,12 @@ const UserAccountPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+      {/* Decorative top wave for visual separation */}
+      <div className="absolute top-0 left-0 w-full h-24 md:h-32 lg:h-40 z-0">
+        <svg viewBox="0 0 1440 320" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#059669" fillOpacity="0.15" d="M0,160L60,170.7C120,181,240,203,360,197.3C480,192,600,160,720,133.3C840,107,960,85,1080,101.3C1200,117,1320,171,1380,197.3L1440,224L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path>
+        </svg>
+      </div>
       {/* Initial loading spinner overlay */}
       {initialLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 bg-opacity-95">
@@ -310,43 +316,45 @@ const UserAccountPage = () => {
       )}
       {/* Add Review Modal */}
       {showReviewForBookingId && (
-        <AddReviewModal
-          onClose={() => {
-            setShowReviewForBookingId(null);
-            setModalReview(null);
-          }}
-          initialData={modalReview}
-          onSubmit={async (reviewData) => {
-            try {
-              if (modalReview && modalReview._id) {
-                // Edit existing review (no file upload for edit)
-                await reviewApi.updateReview(modalReview._id, {
-                  rating: reviewData.rating,
-                  comment: reviewData.comment,
-                });
-                showToast("Review updated successfully!", "success");
-              } else {
-                // New review (allow file upload)
-                const formData = new FormData();
-                formData.append("rating", reviewData.rating);
-                formData.append("comment", reviewData.comment || "");
-                if (reviewData.files && reviewData.files.length > 0) {
-                  reviewData.files.forEach((file) => {
-                    formData.append("images", file);
-                  });
-                }
-                await reviewApi.createReview(showReviewForBookingId, formData);
-                showToast("Review submitted successfully!", "success");
-              }
-              setShowReviewSuccess(true);
+        <div className="animate-fade-in-fast">
+          <AddReviewModal
+            onClose={() => {
               setShowReviewForBookingId(null);
               setModalReview(null);
-              loadUserReviews();
-            } catch (error) {
-              showToast("Failed to submit review.", "error");
-            }
-          }}
-        />
+            }}
+            initialData={modalReview}
+            onSubmit={async (reviewData) => {
+              try {
+                if (modalReview && modalReview._id) {
+                  // Edit existing review (no file upload for edit)
+                  await reviewApi.updateReview(modalReview._id, {
+                    rating: reviewData.rating,
+                    comment: reviewData.comment,
+                  });
+                  showToast("Review updated successfully!", "success");
+                } else {
+                  // New review (allow file upload)
+                  const formData = new FormData();
+                  formData.append("rating", reviewData.rating);
+                  formData.append("comment", reviewData.comment || "");
+                  if (reviewData.files && reviewData.files.length > 0) {
+                    reviewData.files.forEach((file) => {
+                      formData.append("images", file);
+                    });
+                  }
+                  await reviewApi.createReview(showReviewForBookingId, formData);
+                  showToast("Review submitted successfully!", "success");
+                }
+                setShowReviewSuccess(true);
+                setShowReviewForBookingId(null);
+                setModalReview(null);
+                loadUserReviews();
+              } catch (error) {
+                showToast("Failed to submit review.", "error");
+              }
+            }}
+          />
+        </div>
       )}
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gray-800/50"></div>
@@ -360,24 +368,24 @@ const UserAccountPage = () => {
       </div>
       <Header />
       {/* Main Content */}
-      <div className="pt-24 pb-16 relative z-10">
-        <div className="container mx-auto px-4 md:px-8">
+      <div className="pt-28 pb-20 relative z-10">
+        <div className="container mx-auto px-4 md:px-12 lg:px-20 xl:px-32">
           {/* Page Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-4 animate-fade-in drop-shadow-lg">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 mb-6 animate-fade-in drop-shadow-lg tracking-tight">
               {t("userAccount.pageTitle")}
             </h1>
-            <p className="text-slate-300 font-abeze text-lg opacity-90">
+            <p className="text-slate-300 font-abeze text-lg opacity-90 max-w-2xl mx-auto">
               {t("userAccount.pageSubtitle")}
             </p>
           </div>
           {/* Account Content */}
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {/* Tab Navigation */}
-            <div className="flex flex-wrap justify-center mb-8 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 w-full">
+            <div className="flex flex-wrap justify-center mb-10 bg-gray-800/90 backdrop-blur-xl rounded-3xl p-3 border border-gray-700/50 w-full shadow-xl gap-2 animate-fade-in">
               <button
                 onClick={() => handleTabChange("profile")}
-                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 hover:scale-105 ${
                   activeTab === "profile"
                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
@@ -387,7 +395,7 @@ const UserAccountPage = () => {
               </button>
               <button
                 onClick={() => handleTabChange("bookings")}
-                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
                   activeTab === "bookings"
                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
@@ -397,7 +405,7 @@ const UserAccountPage = () => {
               </button>
               <button
                 onClick={() => handleTabChange("messages")}
-                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
                   activeTab === "messages"
                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
@@ -407,7 +415,7 @@ const UserAccountPage = () => {
               </button>
               <button
                 onClick={() => handleTabChange("gallery")}
-                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                   activeTab === "gallery"
                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
@@ -417,7 +425,7 @@ const UserAccountPage = () => {
               </button>
               <button
                 onClick={() => handleTabChange("reviews")}
-                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-105 ${
+                className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-500 transform hover:scale-110 ${
                   activeTab === "reviews"
                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/25"
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
@@ -428,8 +436,8 @@ const UserAccountPage = () => {
             </div>
             {/* Gallery Upload Section (now outside tab navigation) */}
             {activeTab === "gallery" && (
-              <div className="w-full flex flex-col items-center mt-6">
-                <div className="bg-gray-900/80 rounded-2xl p-8 border border-gray-700/50 shadow-xl w-full max-w-xl mb-8">
+              <div className="w-full flex flex-col items-center mt-10">
+                <div className="bg-gray-900/80 rounded-2xl p-10 border border-gray-700/50 shadow-2xl w-full max-w-xl mb-10">
                   <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-6 text-center">
                     Upload Your Photos to Sell
                   </h3>
@@ -448,7 +456,7 @@ const UserAccountPage = () => {
                     </span>
                   </p>
                 </div>
-                <div className="w-full max-w-3xl">
+                <div className="w-full max-w-3xl mt-4">
                   <h4 className="text-lg font-bold text-white mb-4">
                     Your Gallery Images
                   </h4>
@@ -483,13 +491,18 @@ const UserAccountPage = () => {
                   ) : !(
                       Array.isArray(userGallery) && userGallery.length > 0
                     ) ? (
-                    <div className="text-slate-400">No images found.</div>
+                    <div className="flex flex-col items-center gap-2 text-slate-400 py-8">
+                      <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16l2-2 2 2 4-4" /></svg>
+                      <div>No images found.</div>
+                      <div className="text-xs text-slate-500">Upload your best wildlife photos to start your gallery!</div>
+                    </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {userGallery.filter((img) => img.status === galleryTab)
                         .length === 0 ? (
-                        <div className="text-slate-400">
-                          No {galleryTab} images.
+                        <div className="flex flex-col items-center gap-2 text-slate-400 py-8">
+                          <svg width="60" height="60" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><rect x="4" y="4" width="16" height="16" rx="4" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 16l2-2 2 2 4-4" /></svg>
+                          <div>No {galleryTab} images.</div>
                         </div>
                       ) : (
                         userGallery
@@ -542,8 +555,8 @@ const UserAccountPage = () => {
             )}
             {/* Bookings Tab Content (Current & History) */}
             {activeTab === "bookings" && (
-              <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
-                <div className="flex gap-4 mb-8 justify-center">
+              <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-2xl mt-8">
+                <div className="flex gap-4 mb-10 justify-center">
                   <button
                     className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
                       showCurrentBookings
@@ -581,10 +594,10 @@ const UserAccountPage = () => {
                         (b) =>
                           b.status !== "Completed" && b.status !== "Cancelled"
                       ).length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-300 font-abeze">
-                          No current bookings found.
-                        </p>
+                      <div className="text-center py-8 flex flex-col items-center gap-4">
+                        <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 17l4 4 4-4m-4-5v9" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20.24 12.24A9 9 0 105.76 5.76 9 9 0 0020.24 12.24z" /></svg>
+                        <p className="text-gray-300 font-abeze text-lg">No current bookings found.</p>
+                        <p className="text-gray-400 font-abeze text-sm max-w-xs">Ready for your next adventure? Book a wildlife safari package to get started!</p>
                       </div>
                     ) : (
                       <div className="overflow-x-auto mb-8">
@@ -638,12 +651,30 @@ const UserAccountPage = () => {
                                   </td>
                                   <td className="px-6 py-4 font-abeze">
                                     <span
-                                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                      className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
                                         booking.status === "Pending"
                                           ? "bg-yellow-500 text-white"
+                                          : booking.status === "Payment Confirmed"
+                                          ? "bg-blue-500 text-white"
+                                          : booking.status === "Completed"
+                                          ? "bg-green-600 text-white"
+                                          : booking.status === "Cancelled"
+                                          ? "bg-red-600 text-white"
                                           : "bg-gray-700 text-white"
                                       }`}
                                     >
+                                      {booking.status === "Pending" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                      )}
+                                      {booking.status === "Payment Confirmed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                                      )}
+                                      {booking.status === "Completed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                      )}
+                                      {booking.status === "Cancelled" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                      )}
                                       {booking.status}
                                     </span>
                                   </td>
@@ -671,7 +702,7 @@ const UserAccountPage = () => {
                                           onClick={() =>
                                             handleDownloadPDF(booking)
                                           }
-                                          title="Download your booking details as PDF"
+                                          title="Download your booking details as PDF (for your records or travel)"
                                           className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-blue-500 hover:bg-blue-700 border-blue-400/30 text-white"
                                         >
                                           Download PDF
@@ -687,7 +718,7 @@ const UserAccountPage = () => {
                                                 `/update-booking/${booking._id}`
                                               )
                                             }
-                                            title="Update your booking details (Book Now, Pay Later only)"
+                                            title="Edit or update your booking details (only for Book Now, Pay Later)"
                                             className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-green-500 hover:bg-green-700 border-green-400/30 text-white"
                                           >
                                             Update
@@ -724,7 +755,7 @@ const UserAccountPage = () => {
                                                 );
                                               }
                                             }}
-                                            title="Pay for your booking now"
+                                            title="Pay for your booking now (secure online payment)"
                                             className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-yellow-400 hover:bg-yellow-500 border-yellow-300/30 text-white"
                                           >
                                             Pay Now
@@ -768,7 +799,7 @@ const UserAccountPage = () => {
                                               }
                                             }
                                           }}
-                                          title="Cancel this booking"
+                                          title="Cancel this booking (this action cannot be undone)"
                                           className="group relative px-4 py-2 rounded font-abeze font-semibold transition-colors duration-300 shadow-lg hover:shadow-xl border bg-red-500 hover:bg-red-700 border-red-400/30 text-white"
                                         >
                                           Cancel
@@ -814,10 +845,10 @@ const UserAccountPage = () => {
                         (b) =>
                           b.status === "Completed" || b.status === "Cancelled"
                       ).length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-300 font-abeze">
-                          No booking history found.
-                        </p>
+                      <div className="text-center py-8 flex flex-col items-center gap-4">
+                        <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><circle cx="12" cy="12" r="10" strokeWidth="1.5" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h4l3 3" /></svg>
+                        <p className="text-gray-300 font-abeze text-lg">No booking history found.</p>
+                        <p className="text-gray-400 font-abeze text-sm max-w-xs">Your past safaris will appear here. Complete a booking to see your history.</p>
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
@@ -871,7 +902,7 @@ const UserAccountPage = () => {
                                   </td>
                                   <td className="px-6 py-4 font-abeze">
                                     <span
-                                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                      className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
                                         booking.status === "Completed"
                                           ? "bg-green-600 text-white"
                                           : booking.status === "Cancelled"
@@ -879,6 +910,12 @@ const UserAccountPage = () => {
                                           : "bg-gray-700 text-white"
                                       }`}
                                     >
+                                      {booking.status === "Completed" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                      )}
+                                      {booking.status === "Cancelled" && (
+                                        <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                      )}
                                       {booking.status}
                                     </span>
                                   </td>
@@ -921,10 +958,10 @@ const UserAccountPage = () => {
 
             {/* Profile Tab Content */}
             {activeTab === "profile" && (
-              <div className="grid md:grid-cols-3 gap-12 w-full">
+              <div className="grid md:grid-cols-3 gap-16 w-full mt-8 animate-fade-in">
                 {/* Profile Card */}
                 <div className="md:col-span-1">
-                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 shadow-xl transition-shadow duration-300 hover:shadow-emerald-400/40">
                     <div className="text-center mb-6">
                       <div className="relative w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden border-4 border-gradient-to-r from-emerald-400 to-green-500 p-1 shadow-xl transition-all duration-500 hover:border-emerald-400 animate-avatar">
                         <div className="w-full h-full rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -982,7 +1019,7 @@ const UserAccountPage = () => {
 
                 {/* Account Details */}
                 <div className="md:col-span-2">
-                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-10 border border-gray-700/50 w-full">
+                  <div className="bg-gray-800/90 backdrop-blur-xl rounded-3xl p-12 border border-gray-700/50 w-full shadow-xl transition-shadow duration-300 hover:shadow-emerald-400/40">
                     <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                       {t("userAccount.profile.accountInformation")}
                     </h3>
@@ -1071,28 +1108,10 @@ const UserAccountPage = () => {
                     </p>
                   </div>
                 ) : reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="bg-gray-600/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <svg
-                        className="w-8 h-8 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-gray-300 font-abeze mb-4">
-                      {t("userAccount.noReviewsYet")}
-                    </p>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      {t("userAccount.completeBookingToReview")}
-                    </p>
+                  <div className="text-center py-8 flex flex-col items-center gap-4">
+                    <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-emerald-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 20h.01M12 4a8 8 0 100 16 8 8 0 000-16zm0 0v4m0 8v4" /></svg>
+                    <p className="text-gray-300 font-abeze mb-4 text-lg">{t("userAccount.noReviewsYet")}</p>
+                    <p className="text-gray-400 font-abeze text-sm">{t("userAccount.completeBookingToReview")}</p>
                   </div>
                 ) : (
                   <>
