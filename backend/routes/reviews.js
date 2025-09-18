@@ -16,7 +16,7 @@ reviewRouter.get('/user', auth, getUserReviews);
 
 // Admin/staff
 reviewRouter.get('/all', auth, requireAdmin, getAllReviews);
-reviewRouter.delete('/:id', auth, requireAdmin, deleteReview);
+reviewRouter.delete('/:id', auth, deleteReview);
 
 export default reviewRouter;
 

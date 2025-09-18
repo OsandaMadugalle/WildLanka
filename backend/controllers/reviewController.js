@@ -125,17 +125,29 @@ export const getGalleryReviews = async (req, res, next) => {
   }
 };
 
-// Delete a review (admin only)
+// Delete a review (admin or review author)
 export const deleteReview = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user._id;
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
     const review = await Review.findById(id);
+    console.log('[deleteReview] req.user:', req.user);
+    console.log('[deleteReview] userId:', userId, 'type:', typeof userId);
+    console.log('[deleteReview] review.userId:', review ? review.userId : null, 'type:', review && review.userId ? typeof review.userId : 'null');
+    if (review && review.userId) {
+      console.log('[deleteReview] userId.toString():', userId?.toString());
+      console.log('[deleteReview] review.userId.toString():', review.userId.toString());
+      console.log('[deleteReview] userId === review.userId:', userId?.toString() === review.userId.toString());
+    }
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
-
+    // Only allow if admin or review author
+    if (!isAdmin && review.userId.toString() !== userId?.toString()) {
+      return res.status(403).json({ message: "You are not authorized to delete this review" });
+    }
     await Review.findByIdAndDelete(id);
-
     // Recalculate package stats
     try {
       const stats = await Review.aggregate([
@@ -153,8 +165,7 @@ export const deleteReview = async (req, res, next) => {
     } catch (aggErr) {
       console.error("Failed to update package rating stats", aggErr);
     }
-
-    return res.json({ message: "Review deleted" });
+  return res.json({ success: true, message: "Review deleted" });
   } catch (err) {
     next(err);
   }

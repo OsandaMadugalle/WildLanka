@@ -47,7 +47,6 @@ export const authenticateToken = async (req, res, next) => {
     
     // Try to find user in User collection first
     let user = await User.findById(decoded.userId).select('-passwordHash');
-    
     // If not found in User collection, try Staff collection
     if (!user) {
       const staff = await Staff.findById(decoded.userId).select('-passwordHash');
@@ -68,19 +67,19 @@ export const authenticateToken = async (req, res, next) => {
         };
       }
     }
-    
     if (!user) {
       return res.status(401).json({ message: "Invalid token" });
     }
-    
     // Set user info in request
     req.user = user;
-    
     // If token has role field, use it; otherwise use user's role from database
     if (decoded.role) {
       req.user.role = decoded.role;
     }
-
+    // Ensure req.user._id is always a string for comparison
+    if (req.user._id && typeof req.user._id !== 'string') {
+      req.user._id = req.user._id.toString();
+    }
     next();
   } catch (err) {
     if (err.name === 'JsonWebTokenError') {
