@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,6 +23,37 @@ const Header = ({ triggerLogin = null }) => {
   const location = useLocation();
   // ...existing code...
   const { t } = useLanguage();
+  const [awarenessActive, setAwarenessActive] = useState(false);
+
+  // Highlight Awareness nav when section is in view or hash is #awareness
+  useEffect(() => {
+    const handleScrollOrHash = () => {
+      if (location.pathname === '/') {
+        const hash = window.location.hash;
+        if (hash === '#awareness') {
+          setAwarenessActive(true);
+          return;
+        }
+        const awareness = document.getElementById('awareness');
+        if (awareness) {
+          const rect = awareness.getBoundingClientRect();
+          const inView = rect.top <= 100 && rect.bottom >= 100;
+          setAwarenessActive(inView);
+        } else {
+          setAwarenessActive(false);
+        }
+      } else {
+        setAwarenessActive(false);
+      }
+    };
+    window.addEventListener('scroll', handleScrollOrHash);
+    window.addEventListener('hashchange', handleScrollOrHash);
+    handleScrollOrHash();
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrHash);
+      window.removeEventListener('hashchange', handleScrollOrHash);
+    };
+  }, [location.pathname]);
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showStaffLogin, setShowStaffLogin] = useState(false);
@@ -194,14 +225,14 @@ const Header = ({ triggerLogin = null }) => {
               <button 
                 onClick={navigateToHome}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/' && !awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.home')}
               </button>
               <button 
                 onClick={scrollToAwareness}
-                className="text-white font-abeze font-medium hover:text-green-400 transition-colors"
+                className={`font-abeze font-medium transition-colors ${awarenessActive ? 'text-green-400' : 'text-white hover:text-green-400'}`}
               >
                 {t('nav.awareness')}
               </button>
