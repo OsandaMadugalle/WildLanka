@@ -260,20 +260,20 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.packages')}
               </button>
               <button 
+                onClick={() => navigateAndScroll('/reviews')}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.reviews') || 'Reviews'}
+              </button>
+              <button 
                 onClick={navigateToGallery}
                 className={`font-abeze font-medium transition-colors ${
                   location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
                 {t('nav.gallery')}
-              </button>
-              <button 
-                onClick={navigateToAbout}
-                className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                }`}
-              >
-                {t('nav.about')}
               </button>
               <button 
                 onClick={navigateToContact}
@@ -284,12 +284,12 @@ const Header = ({ triggerLogin = null }) => {
                 {t('nav.contact')}
               </button>
               <button 
-                onClick={() => navigateAndScroll('/reviews')}
+                onClick={navigateToAbout}
                 className={`font-abeze font-medium transition-colors ${
-                  location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                 }`}
               >
-                {t('nav.reviews') || 'Reviews'}
+                {t('nav.about')}
               </button>
             </nav>
 
@@ -382,20 +382,20 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.packages')}
                 </button>
                 <button 
+                  onClick={() => navigateAndScroll('/reviews')}
+                  className={`text-left font-abeze font-medium transition-colors ${
+                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                  }`}
+                >
+                  {t('nav.reviews') || 'Reviews'}
+                </button>
+                <button 
                   onClick={navigateToGallery}
                   className={`text-left font-abeze font-medium transition-colors ${
                     location.pathname === '/gallery' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
                   {t('nav.gallery')}
-                </button>
-                <button 
-                  onClick={navigateToAbout}
-                  className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
-                  }`}
-                >
-                  {t('nav.about')}
                 </button>
                 <button 
                   onClick={navigateToContact}
@@ -406,12 +406,12 @@ const Header = ({ triggerLogin = null }) => {
                   {t('nav.contact')}
                 </button>
                 <button 
-                  onClick={() => navigateAndScroll('/reviews')}
+                  onClick={navigateToAbout}
                   className={`text-left font-abeze font-medium transition-colors ${
-                    location.pathname === '/reviews' ? 'text-green-400' : 'text-white hover:text-green-400'
+                    location.pathname === '/about' ? 'text-green-400' : 'text-white hover:text-green-400'
                   }`}
                 >
-                  {t('nav.reviews') || 'Reviews'}
+                  {t('nav.about')}
                 </button>
                 {isAuthenticated ? (
                   <button 
