@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import GoToTopButton from "./GoToTopButton";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -7,6 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -39,10 +41,36 @@ const Chatbot = () => {
       address: "123 Wildlife Avenue, Colombo 03, Sri Lanka",
     },
     team: [
-      "Kumara Perera - Founder & Wildlife Expert",
-      "Dr. Anjali Silva - Hiking Director",
-      "Ravi Mendis - Safari Guide & Naturalist",
-      "Priya Fernando - Customer Experience Manager",
+      {
+        name: "Osanda Madugalle",
+        role: "Founder & Wildlife Expert",
+        description: "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
+        expertise: "Elephant Behavior, Hiking Trails",
+      },
+      {
+        name: "Ikshuka Malhengoda",
+        role: "Hiking Director",
+        description: "A PhD in Wildlife Biology, Dr. Silva oversees our research programs and community education initiatives.",
+        expertise: "Research & Monitoring, Community Outreach",
+      },
+      {
+        name: "Kalana Jayawardana",
+        role: "Safari Guide & Naturalist",
+        description: "Expert in Yala National Park, bird watching, and photography tours.",
+        expertise: "Bird watching, Photography tours",
+      },
+      {
+        name: "Ravindu Siyambalagoda",
+        role: "Safari Guide & Naturalist",
+        description: "Expert in Yala National Park, bird watching, and photography tours.",
+        expertise: "Bird watching, Photography tours",
+      },
+      {
+        name: "Malinda Sandaruwan",
+        role: "Customer Experience Manager",
+        description: "Ensuring every guest has an unforgettable and responsible wildlife experience in Sri Lanka.",
+        expertise: "Sustainable tourism, Guest relations",
+      },
     ],
   };
 
@@ -52,13 +80,13 @@ const Chatbot = () => {
       setMessages([
         {
           id: 1,
-          text: `Hello! I'm your wildlife safari assistant. I can help you with information about ${websiteInfo.name} and our services. What would you like to know?`,
+          text: t('chatbot.welcome', { name: websiteInfo.name }),
           sender: "bot",
           timestamp: new Date(),
         },
       ]);
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen, messages.length, t]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -81,46 +109,62 @@ const Chatbot = () => {
 
     let intent = "";
     const lowerMsg = inputMessage.toLowerCase();
-    if (lowerMsg.includes("my name is")) {
-      const name = inputMessage.split("my name is")[1].trim().split(" ")[0];
-      setUserName(name);
+    // Enhanced intent detection with regex and synonyms
+    const patterns = [
+      { intent: "greet", regex: /\b(my name is|hello|hi|hey|good (morning|afternoon|evening|night)|greetings|how are you|what's up)\b/ },
+      { intent: "package", regex: /\b(packages?|offers?|deals?|what.*package|show.*package)\b/ },
+      { intent: "booking-status", regex: /\b(booking status|check( my)? booking|status of my booking|is my booking confirmed|booking reference)\b/ },
+      { intent: "booking-create", regex: /\b(book( a)? safari|make( a)? booking|book( a)? tour|reserve( a)? (spot|place|tour|safari))\b/ },
+      { intent: "booking", regex: /\b(booking|how do i book|book now|reservation|reserve)\b/ },
+      { intent: "donation", regex: /\b(donation|donate|contribute|support wildlife|give to)\b/ },
+      { intent: "contact", regex: /\b(contact|phone|email|reach|call|how can i contact|get in touch)\b/ },
+      { intent: "feedback", regex: /\b(feedback|issue|problem|report|complain|suggestion|website is slow|bug)\b/ },
+      { intent: "team", regex: /\b(team|staff|guide|who.*team|who.*staff|who.*guide|about.*team|about.*staff)\b/ },
+      { intent: "price", regex: /\b(price|cost|how much|fee|charge|rate|what.*price)\b/ },
+      { intent: "about", regex: /\b(about|company|who are you|what is wildlanka|tell me about)\b/ },
+      { intent: "safety", regex: /\b(safety|safe|secure|is it safe|child.*safe|children.*safe)\b/ },
+      { intent: "gallery", regex: /\b(gallery|photo|picture|see.*gallery|show.*gallery|images|photos)\b/ },
+      { intent: "faq", regex: /\b(faq|question|frequently asked|help|common questions)\b/ },
+      { intent: "suggestion", regex: /\b(tour suggestion|suggest tour|recommend|what do you recommend|which tour|which safari|best tour|best safari)\b/ },
+    ];
+    // Name extraction
+    const nameMatch = lowerMsg.match(/my name is ([a-zA-Z]+)/);
+    if (nameMatch) {
+      setUserName(nameMatch[1]);
       intent = "greet";
     }
-    if (lowerMsg.includes("package")) intent = "package";
-    if (lowerMsg.includes("booking")) intent = "booking";
-    if (lowerMsg.includes("donation")) intent = "donation";
-    if (lowerMsg.includes("contact")) intent = "contact";
-    if (
-      lowerMsg.includes("team") ||
-      lowerMsg.includes("staff") ||
-      lowerMsg.includes("guide")
-    )
-      intent = "team";
-    if (lowerMsg.includes("price") || lowerMsg.includes("cost"))
-      intent = "price";
-    if (lowerMsg.includes("about") || lowerMsg.includes("company"))
-      intent = "about";
-    if (lowerMsg.includes("safety") || lowerMsg.includes("secure"))
-      intent = "safety";
-    if (
-      lowerMsg.includes("gallery") ||
-      lowerMsg.includes("photo") ||
-      lowerMsg.includes("picture")
-    )
-      intent = "gallery";
-    if (
-      lowerMsg.includes("hello") ||
-      lowerMsg.includes("hi") ||
-      lowerMsg.includes("hey") ||
-      lowerMsg.includes("good morning") ||
-      lowerMsg.includes("good afternoon") ||
-      lowerMsg.includes("good evening")
-    )
-      intent = "greet";
+    // Pattern matching
+    if (!intent) {
+      for (const p of patterns) {
+        if (p.regex.test(lowerMsg)) {
+          intent = p.intent;
+          break;
+        }
+      }
+    }
 
     setLastIntent(intent);
 
-    // Quick reply actions
+    // Language switch intent
+    if (lowerMsg.startsWith("lang ")) {
+      const lang = lowerMsg.split(" ")[1];
+      if (["en", "si", "ta"].includes(lang)) {
+        i18n.changeLanguage(lang);
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              text: t('chatbot.languageChanged', { lng: lang }),
+              sender: "bot",
+              timestamp: new Date(),
+            },
+          ]);
+          setIsTyping(false);
+        }, 500);
+        return;
+      }
+    }
     if (intent === "package") {
       try {
         const res = await fetch(`${API_BASE_URL}/api/packages`);
@@ -191,6 +235,93 @@ const Chatbot = () => {
         return;
       }
     }
+    // Booking status check (prompt for reference)
+    if (intent === "booking-status") {
+      setLastIntent("booking-status-await-ref");
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "Please enter your booking reference number to check the status.",
+            sender: "bot",
+            timestamp: new Date(),
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
+    // Awaiting booking reference
+    if (lastIntent === "booking-status-await-ref" && /\d{4,}/.test(lowerMsg)) {
+      setLastIntent("");
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: `Booking status for reference ${lowerMsg.match(/\d{4,}/)[0]}: Confirmed. (For real status, integrate with backend.)`,
+            sender: "bot",
+            timestamp: new Date(),
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
+    // Booking creation (simple prompt)
+    if (intent === "booking-create") {
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "To book a safari, please provide your name, preferred date, and package (or visit the Book Now page).",
+            sender: "bot",
+            timestamp: new Date(),
+            quickReplies: [
+              { label: "Book Now", action: () => handleNavigation("/bookings") },
+            ],
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
+    // Feedback/issue reporting (prompt for details)
+    if (intent === "feedback") {
+      setLastIntent("feedback-await-details");
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "Thank you for your feedback! Please describe your issue or suggestion, and our team will review it.",
+            sender: "bot",
+            timestamp: new Date(),
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
+    // Awaiting feedback details
+    if (lastIntent === "feedback-await-details") {
+      setLastIntent("");
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            text: "Thank you for your message! Our team will review your feedback or issue soon.",
+            sender: "bot",
+            timestamp: new Date(),
+          },
+        ]);
+        setIsTyping(false);
+      }, 800);
+      return;
+    }
 
     // Simulate typing delay for other messages
     setTimeout(() => {
@@ -209,18 +340,17 @@ const Chatbot = () => {
     }, 1000);
   };
 
+  // Multilingual support (using t)
   const generateBotResponse = (message, userName, lastIntent) => {
     // Personalization
     if (message.includes("my name is")) {
       return {
-        text: `Nice to meet you, ${userName}! How can I help you with WildLanka today?`,
+        text: t('chatbot.niceToMeet', { userName }),
       };
     }
     if (message.includes("good night")) {
       return {
-        text: `Good night${
-          userName ? ", " + userName : ""
-        }! If you need anything, I'm here 24/7. Sleep well and dream of wild adventures!`,
+        text: t('chatbot.goodNight', { userName }),
       };
     }
     if (
@@ -236,21 +366,15 @@ const Chatbot = () => {
       message.includes("what's up")
     ) {
       return {
-        text: `Hello${
-          userName ? ", " + userName : ""
-        }! Hope you're having a great day at WildLanka. How can I help you?`,
+        text: t('chatbot.hello', { userName }),
       };
     }
     if (message.includes("service") || message.includes("tour")) {
       return {
-        text: `We offer various wildlife experiences:\n${websiteInfo.services
-          .map((service) => `• ${service}`)
-          .join(
-            "\n"
-          )}\n\nWould you like to know more about any specific service?`,
+        text: t('chatbot.servicesList', { services: websiteInfo.services.map((service) => `• ${service}`).join('\n') }),
         quickReplies: [
           {
-            label: "View Packages",
+            label: t('chatbot.viewPackages'),
             action: () => handleNavigation("/packages"),
           },
         ],
@@ -262,11 +386,9 @@ const Chatbot = () => {
       message.includes("where")
     ) {
       return {
-        text: `We operate in several amazing locations:\n${websiteInfo.locations
-          .map((location) => `• ${location}`)
-          .join("\n")}\n\nWhich location interests you most?`,
+        text: t('chatbot.locationsList', { locations: websiteInfo.locations.map((location) => `• ${location}`).join('\n') }),
         quickReplies: [
-          { label: "Contact Us", action: () => handleNavigation("/contact") },
+          { label: t('chatbot.contactUs'), action: () => handleNavigation("/contact") },
         ],
       };
     }
@@ -276,9 +398,9 @@ const Chatbot = () => {
       message.includes("email")
     ) {
       return {
-        text: `You can reach us at:\n📞 Phone: ${websiteInfo.contact.phone}\n📧 Email: ${websiteInfo.contact.email}\n📍 Address: ${websiteInfo.contact.address}\n[Contact Us]`,
+        text: t('chatbot.contactInfo', { phone: websiteInfo.contact.phone, email: websiteInfo.contact.email, address: websiteInfo.contact.address }),
         quickReplies: [
-          { label: "Contact Us", action: () => handleNavigation("/contact") },
+          { label: t('chatbot.contactUs'), action: () => handleNavigation("/contact") },
         ],
       };
     }
@@ -287,18 +409,18 @@ const Chatbot = () => {
       message.includes("staff") ||
       message.includes("guide")
     ) {
+      // Show real team members with roles and expertise
+      const teamText = websiteInfo.team.map((member) => `• ${member.name} - ${member.role}\n  ${member.description}\n  Expertise: ${member.expertise}`).join('\n\n');
       return {
-        text: `Our expert team includes:\n${websiteInfo.team
-          .map((member) => `• ${member}`)
-          .join("\n")}`,
+        text: `Meet our team:\n${teamText}`,
       };
     }
     if (message.includes("price") || message.includes("cost")) {
       return {
-        text: "For pricing and booking information, please visit our travel packages page or contact us directly.",
+        text: t('chatbot.pricingInfo'),
         quickReplies: [
           {
-            label: "View Packages",
+            label: t('chatbot.viewPackages'),
             action: () => handleNavigation("/packages"),
           },
         ],
@@ -306,27 +428,27 @@ const Chatbot = () => {
     }
     if (message.includes("booking")) {
       return {
-        text: "To make a booking, please visit our packages page and select your preferred adventure. Need help?",
+        text: t('chatbot.bookingInfo'),
         quickReplies: [
-          { label: "Book Now", action: () => handleNavigation("/bookings") },
+          { label: t('chatbot.bookNow'), action: () => handleNavigation("/bookings") },
         ],
       };
     }
     if (message.includes("about") || message.includes("company")) {
       return {
-        text: `${websiteInfo.name} is a leading wildlife safari management system in Sri Lanka. We specialize in sustainable tourism and authentic wildlife experiences. We've been serving wildlife enthusiasts since 2014 with over 5,000 happy guests from 50+ countries.`,
+        text: t('chatbot.about', { name: websiteInfo.name }),
       };
     }
     if (message.includes("safety") || message.includes("secure")) {
       return {
-        text: "We maintain a 100% safety record with zero incidents in all our tours. Our experienced guides and strict safety protocols ensure your wildlife adventure is both thrilling and secure.",
+        text: t('chatbot.safetyInfo'),
       };
     }
     if (message.includes("donate") || message.includes("donation")) {
       return {
-        text: "We support wildlife conservation through our donation program. You can contribute to wildlife protection projects by visiting our donation page.\n[Donate Now]",
+        text: t('chatbot.donationInfo'),
         quickReplies: [
-          { label: "Donate Now", action: () => handleNavigation("/donations") },
+          { label: t('chatbot.donateNow'), action: () => handleNavigation("/donations") },
         ],
       };
     }
@@ -336,24 +458,74 @@ const Chatbot = () => {
       message.includes("picture")
     ) {
       return {
-        text: "We have a beautiful gallery showcasing wildlife photography from our tours. Would you like to see our gallery?\n[View Gallery]",
+        text: t('chatbot.galleryInfo'),
         quickReplies: [
-          { label: "View Gallery", action: () => handleNavigation("/gallery") },
+          { label: t('chatbot.viewGallery'), action: () => handleNavigation("/gallery") },
         ],
       };
     }
     // Expanded FAQ
     if (message.includes("faq") || message.includes("question")) {
       return {
-        text: "Frequently Asked Questions:\n- How do I book a safari?\n- What is included in the packages?\n- How do I make a donation?\n- Is it safe for children?\n- Can I customize my tour?",
+        text: t('chatbot.faq'),
       };
     }
+    // Guided tour suggestions (fetch package categories and suggest)
+    if (intent === "suggestion") {
+      setIsTyping(true);
+      fetch(`${API_BASE_URL}/api/packages`)
+        .then(res => res.json())
+        .then(pkgs => {
+          const categories = Array.from(new Set((pkgs || []).map(pkg => pkg.category)));
+          let text = "Here are our main tour categories:\n" +
+            categories.map(cat => `• ${cat}`).join("\n") +
+            "\n\nSelect a category to see packages.";
+          setMessages(prev => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              text,
+              sender: "bot",
+              timestamp: new Date(),
+              quickReplies: categories.map(cat => ({
+                label: cat,
+                action: () => handleNavigation(`/packages?category=${encodeURIComponent(cat)}`)
+              })).concat([
+                { label: t('chatbot.viewPackages'), action: () => handleNavigation("/packages") },
+                { label: t('chatbot.contactUs'), action: () => handleNavigation("/contact") }
+              ]),
+            },
+          ]);
+          setIsTyping(false);
+        })
+        .catch(() => {
+          setMessages(prev => [
+            ...prev,
+            {
+              id: Date.now() + 1,
+              text: "Sorry, I couldn't fetch tour categories right now.",
+              sender: "bot",
+              timestamp: new Date(),
+            },
+          ]);
+          setIsTyping(false);
+        });
+      return;
+    }
+    // Booking status follow-up (if user provides a reference number)
+    if (/ref(erence)? ?#?\d{4,}/.test(message)) {
+      // Simulate backend check (replace with real API call)
+      return {
+        text: t('chatbot.bookingStatus', { ref: message.match(/ref(erence)? ?#?(\d{4,})/i)?.[0] || t('chatbot.yourReference') }),
+      };
+    }
+// ...existing code...
     // Error handling & fallback
     return {
-      text: "Let me know what you need! You can ask about safaris, packages, booking, donations, our team, or anything about WildLanka.",
+      text: t('chatbot.fallback'),
       quickReplies: [
-        { label: "View Packages", action: () => handleNavigation("/packages") },
-        { label: "Contact Us", action: () => handleNavigation("/contact") },
+        { label: t('chatbot.viewPackages'), action: () => handleNavigation("/packages") },
+        { label: t('chatbot.contactUs'), action: () => handleNavigation("/contact") },
       ],
     };
   };
@@ -402,6 +574,12 @@ const Chatbot = () => {
       {isOpen && (
         <div className="fixed bottom-20 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col chatbot-container">
           {/* Chat Header */}
+          {/* Language Switcher */}
+          <div className="absolute top-2 right-2 flex gap-2">
+            <button onClick={() => i18n.changeLanguage('en')} className={`px-2 py-1 rounded ${i18n.language === 'en' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>EN</button>
+            <button onClick={() => i18n.changeLanguage('si')} className={`px-2 py-1 rounded ${i18n.language === 'si' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>සිං</button>
+            <button onClick={() => i18n.changeLanguage('ta')} className={`px-2 py-1 rounded ${i18n.language === 'ta' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>தமிழ்</button>
+          </div>
           <div className="bg-green-600 text-white p-4 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
