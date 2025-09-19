@@ -97,6 +97,14 @@ export const updatePackage = async (req, res, next) => {
       return res.status(404).json({ message: "Package not found" });
     }
 
+    // Helper to normalize string/array fields
+    const normalize = (val) => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') return val.split(',').map((v) => v.trim());
+      return [];
+    };
+
     const updatedPackage = await Package.findByIdAndUpdate(
       req.params.id,
       {
@@ -105,15 +113,15 @@ export const updatePackage = async (req, res, next) => {
         duration,
         price: Number(price),
         description,
-        features: features ? features.split(',').map(f => f.trim()) : [],
-        highlights: highlights ? highlights.split(',').map(h => h.trim()) : [],
-        isPopular: isPopular === 'true',
+        features: normalize(features),
+        highlights: normalize(highlights),
+        isPopular: isPopular === 'true' || isPopular === true,
         maxGroupSize: Number(maxGroupSize) || 10,
         difficulty,
         location,
-        included: included ? included.split(',').map(i => i.trim()) : [],
-        notIncluded: notIncluded ? notIncluded.split(',').map(n => n.trim()) : [],
-        requirements: requirements ? requirements.split(',').map(r => r.trim()) : []
+        included: normalize(included),
+        notIncluded: normalize(notIncluded),
+        requirements: normalize(requirements)
       },
       { new: true, runValidators: true }
     );

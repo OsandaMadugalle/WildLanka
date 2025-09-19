@@ -1452,6 +1452,25 @@ The Wildlife Safari Team`);
                   </div>
                 </div>
 
+                {/* Popular Toggle Button */}
+                <div className="flex flex-col items-end space-y-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        await packageApi.updatePackage(pkg._id, {
+                          ...pkg,
+                          isPopular: !pkg.isPopular,
+                        });
+                        loadPackages();
+                      } catch (err) {
+                        alert("Failed to update popular status");
+                      }
+                    }}
+                    className={`px-3 py-1 rounded text-xs font-abeze transition-colors ${pkg.isPopular ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30' : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'}`}
+                  >
+                    {pkg.isPopular ? 'Unmark Popular' : 'Mark as Popular'}
+                  </button>
+                </div>
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
                   <button
