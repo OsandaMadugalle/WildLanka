@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
+
 
 const LanguageSwitcher = () => {
-  const { currentLanguage, changeLanguage, t } = useLanguage();
+  const { i18n, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const languages = [
@@ -11,10 +12,10 @@ const LanguageSwitcher = () => {
     { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' }
   ];
 
-  const currentLang = languages.find(lang => lang.code === currentLanguage);
+  const currentLang = languages.find(lang => lang.code === i18n.language);
 
   const handleLanguageChange = (languageCode) => {
-    changeLanguage(languageCode);
+    i18n.changeLanguage(languageCode);
     setIsOpen(false);
   };
 
@@ -27,7 +28,7 @@ const LanguageSwitcher = () => {
       <button
         onClick={toggleDropdown}
         className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg transition-colors duration-200 backdrop-blur-sm border border-white/20"
-        aria-label={t('language.select')}
+  aria-label={t('language.select')}
       >
         <span className="text-lg">{currentLang?.flag}</span>
         <span className="hidden sm:block font-medium">{currentLang?.name}</span>
@@ -57,12 +58,12 @@ const LanguageSwitcher = () => {
                   key={language.code}
                   onClick={() => handleLanguageChange(language.code)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-100 transition-colors duration-150 ${
-                    currentLanguage === language.code ? 'bg-green-50 text-green-700' : 'text-gray-700'
+                    i18n.language === language.code ? 'bg-green-50 text-green-700' : 'text-gray-700'
                   }`}
                 >
                   <span className="text-lg">{language.flag}</span>
                   <span className="font-medium">{language.name}</span>
-                  {currentLanguage === language.code && (
+                  {i18n.language === language.code && (
                     <svg className="w-4 h-4 ml-auto text-green-600" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>

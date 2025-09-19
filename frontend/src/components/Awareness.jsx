@@ -4,11 +4,11 @@ import awaLeopard from '../assets/awaLeopard.png';
 import awaBird from '../assets/awaBird.png';
 import awaMarine from '../assets/awaMarine.png';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const Awareness = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const handleNavigateToDonate = () => {
     navigate('/donate');

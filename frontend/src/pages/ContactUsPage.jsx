@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { contactMessageApi } from "../services/api";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
 const ContactUsPage = () => {
   const { isAuthenticated, user } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const loginTriggerRef = useRef(null);
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);

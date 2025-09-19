@@ -1,4 +1,25 @@
 export default {
+  'faq.title': 'Frequently Asked Questions',
+  'faq.description': 'Find answers to the most common questions about our safaris, bookings, and services.',
+  // FAQ page translations
+  'faq.q1': 'How do I book a safari?',
+  'faq.a1': 'You can book a safari by visiting our Packages page, selecting your preferred package, and following the booking instructions. For help, contact our support team via the Contact page.',
+  'faq.q2': 'What is included in the packages?',
+  'faq.a2': 'Each package includes guided tours, park entry fees, and transportation. Please see the package details for specifics.',
+  'faq.q3': 'How do I make a donation?',
+  'faq.a3': 'Visit our Donations page to contribute to wildlife conservation projects.',
+  'faq.q4': 'Is it safe for children?',
+  'faq.a4': 'Yes, our tours are family-friendly and safety is our top priority. Please check age restrictions on each package.',
+  'faq.q5': 'Can I customize my tour?',
+  'faq.a5': 'Yes! Contact us to discuss custom tour options tailored to your interests.',
+  'faq.q6': 'How do I check my booking status?',
+  'faq.a6': 'After booking, you will receive a reference number. Use it in the chatbot or contact us to check your status.',
+  'faq.q7': 'What should I bring for a safari?',
+  'faq.a7': 'We recommend comfortable clothing, sun protection, a camera, and any personal medication.',
+  'faq.q8': 'What are the park opening hours?',
+  'faq.a8': 'Most parks open at 6:00 AM and close at 6:00 PM. Check your package details for specific timings.',
+  'nav.faq': 'FAQ',
+  'footer.links.faq': 'FAQ',
   // Privacy Policy Page
     // Cookie Policy Page
     'cookiePolicy.title': 'Cookie Policy',

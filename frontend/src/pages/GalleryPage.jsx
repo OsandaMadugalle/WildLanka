@@ -1,11 +1,11 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 
 const GalleryPage = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-[#0f172a]">
       <Header />

@@ -1,56 +1,52 @@
-import { useLanguage } from '../context/LanguageContext';
+import i18next from 'i18next';
 
-// Function to translate database content based on language
 export const translateDatabaseContent = (content, language) => {
   if (!content) return content;
-  
+
   // If content is an object with language-specific fields
   if (typeof content === 'object' && content[language]) {
     return content[language];
   }
-  
+
   // If content is an object with language-specific fields (common pattern)
   if (typeof content === 'object' && content[`${language}_text`]) {
     return content[`${language}_text`];
   }
-  
+
   // If content is an object with language-specific fields (another common pattern)
   if (typeof content === 'object' && content[`text_${language}`]) {
     return content[`text_${language}`];
   }
-  
+
   // If content has a translations field
   if (typeof content === 'object' && content.translations && content.translations[language]) {
     return content.translations[language];
   }
-  
+
   // If content has a localized field
   if (typeof content === 'object' && content.localized && content.localized[language]) {
     return content.localized[language];
   }
-  
+
   // Fallback to original content or English
   if (typeof content === 'object' && content.en) {
     return content.en;
   }
-  
+
   if (typeof content === 'object' && content.english) {
     return content.english;
   }
-  
+
   // If no translation found, return the original content
   return content;
 };
 
-// Hook for translating database content
+// Hook for translating database content using i18next
 export const useDatabaseTranslation = () => {
-  const { currentLanguage, t } = useLanguage();
-  
   const translateDB = (content) => {
-    return translateDatabaseContent(content, currentLanguage);
+    return translateDatabaseContent(content, i18next.language);
   };
-  
-  return { translateDB, currentLanguage, t };
+  return { translateDB };
 };
 
 // Function to translate common database fields

@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 const CookiePolicyPage = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const location = useLocation();
 
   useEffect(() => {

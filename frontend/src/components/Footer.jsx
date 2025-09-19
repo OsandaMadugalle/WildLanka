@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import logo from '../assets/logo.png';
 
 const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const navigateToHome = () => {
   navigate('/');
@@ -160,6 +160,14 @@ const Footer = () => {
                   className="text-gray-300 hover:text-green-400 transition-colors font-abeze text-sm cursor-pointer"
                 >
                   {t('footer.links.contact')}
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => navigate('/faq')}
+                  className="text-gray-300 hover:text-green-400 transition-colors font-abeze text-sm cursor-pointer"
+                >
+                  {t('nav.faq') || 'FAQ'}
                 </button>
               </li>
             </ul>

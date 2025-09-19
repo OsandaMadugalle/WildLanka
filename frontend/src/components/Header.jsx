@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import Login from './Login';
 import Signup from './Signup';
 import StaffLogin from './StaffLogin';
@@ -22,7 +22,7 @@ const Header = ({ triggerLogin = null }) => {
   const navigate = useNavigate();
   const location = useLocation();
   // ...existing code...
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [awarenessActive, setAwarenessActive] = useState(false);
 
   // Highlight Awareness nav when section is in view or hash is #awareness
@@ -290,6 +290,14 @@ const Header = ({ triggerLogin = null }) => {
                 }`}
               >
                 {t('nav.about')}
+              </button>
+              <button
+                onClick={() => navigateAndScroll('/faq')}
+                className={`font-abeze font-medium transition-colors ${
+                  location.pathname === '/faq' ? 'text-green-400' : 'text-white hover:text-green-400'
+                }`}
+              >
+                {t('nav.faq') || 'FAQ'}
               </button>
             </nav>
 

@@ -1,12 +1,12 @@
 
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 
 const PrivacyPolicyPage = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const location = useLocation();
   useEffect(() => {
