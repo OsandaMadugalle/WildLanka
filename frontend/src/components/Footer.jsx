@@ -9,23 +9,34 @@ const Footer = () => {
   const { t } = useLanguage();
 
   const navigateToHome = () => {
-    navigate('/');
+  navigate('/');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToTravelPackages = () => {
-    navigate('/travel-packages');
+  navigate('/travel-packages');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToContact = () => {
-    navigate('/contact');
+  navigate('/contact');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToAbout = () => {
-    navigate('/about');
+  navigate('/about');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToGallery = () => {
-    navigate('/gallery');
+  navigate('/gallery');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToPrivacyPolicy = () => {
@@ -41,21 +52,20 @@ const Footer = () => {
   };
 
   const handleWildlifeAwareness = () => {
-    // If we're on the homepage, scroll to awareness section
+    // Scroll to awareness section on home, or navigate then scroll
     if (location.pathname === '/') {
       const element = document.getElementById('awareness');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      // If we're on another page, navigate to homepage first, then scroll
       navigate('/');
       setTimeout(() => {
         const element = document.getElementById('awareness');
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100);
+      }, 300);
     }
   };
 
