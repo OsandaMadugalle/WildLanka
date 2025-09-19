@@ -1777,8 +1777,10 @@ The Wildlife Safari Team`);
                       Booking #{booking._id.slice(-6).toUpperCase()}
                     </h4>
                     <p className="text-gray-400 font-abeze text-sm">
-                      Created on{" "}
-                      {new Date(booking.createdAt).toLocaleDateString()}
+                      <span className="font-semibold text-white">Booking ID:</span> {booking._id}
+                    </p>
+                    <p className="text-gray-400 font-abeze text-sm">
+                      Created on {new Date(booking.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
