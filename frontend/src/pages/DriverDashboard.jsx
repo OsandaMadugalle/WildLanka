@@ -1,10 +1,3 @@
-// Utility function to check if a date string is in the current month and year
-function isSameMonth(dateStr) {
-  if (!dateStr) return false;
-  const d = new Date(dateStr);
-  const now = new Date();
-  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-}
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +6,296 @@ import AddVehicleModal from '../components/AddVehicleModal';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+// ...existing code...
 
 const DriverDashboard = () => {
+  // Tab state for Bookings section
+  const [bookingsTab, setBookingsTab] = useState('assigned');
+  // Returns bookings assigned to the driver that are pending acceptance
+
+  // Render Bookings section with Assigned Tasks, Schedule, Completed
+  const renderBookings = () => (
+    <>
+      {/* Bookings Tabs */}
+      <div>
+        <div className="flex gap-2 mb-6">
+          <button
+            className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${bookingsTab === 'assigned' ? 'bg-yellow-600 text-white' : 'bg-white/10 text-yellow-300 hover:bg-yellow-500/20'}`}
+            onClick={() => setBookingsTab('assigned')}
+          >
+            Assigned Tasks
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${bookingsTab === 'schedule' ? 'bg-blue-600 text-white' : 'bg-white/10 text-blue-300 hover:bg-blue-500/20'}`}
+            onClick={() => setBookingsTab('schedule')}
+          >
+            Schedule
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${bookingsTab === 'completed' ? 'bg-green-600 text-white' : 'bg-white/10 text-green-300 hover:bg-green-500/20'}`}
+            onClick={() => setBookingsTab('completed')}
+          >
+            Completed
+          </button>
+        </div>
+        {/* Tab Content */}
+        {bookingsTab === 'assigned' && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-yellow-400/30">
+            <h3 className="text-xl font-abeze font-bold text-yellow-300 mb-4 flex items-center">
+              <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Assigned Tasks (Pending Acceptance)
+            </h3>
+            {getAssignedBookings().length === 0 ? (
+              <div className="text-gray-400 font-abeze text-center py-4">No assigned tasks pending acceptance.</div>
+            ) : (
+              <div className="space-y-4">
+                {getAssignedBookings().map((booking) => (
+                  <div key={booking._id} className="flex items-center justify-between p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-abeze font-medium">
+                          {booking.userId?.firstName} {booking.userId?.lastName}
+                        </h4>
+                        <p className="text-gray-300 font-abeze text-sm">
+                          {booking.packageDetails?.title || booking.packageId?.title} • {new Date(booking.bookingDetails?.startDate).toLocaleDateString()}
+                        </p>
+                        <p className="text-gray-400 font-abeze text-xs">
+                          {booking.bookingDetails?.numberOfPeople} guests • Assigned by Admin
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleAcceptBooking(booking._id)}
+                      disabled={acceptingBooking === booking._id}
+                      className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${
+                        acceptingBooking === booking._id
+                          ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                          : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                      }`}
+                    >
+                      {acceptingBooking === booking._id ? 'Accepting...' : 'Accept Assignment'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {bookingsTab === 'schedule' && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-blue-400/30">
+            <h3 className="text-xl font-abeze font-bold text-blue-300 mb-4">Schedule</h3>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-300 font-abeze">Loading your schedule...</div>
+              </div>
+            ) : acceptedBookings.filter(booking => booking.status === 'Driver Assigned').length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-300 font-abeze">No scheduled bookings at the moment</div>
+                <p className="text-gray-400 font-abeze text-sm mt-2">Accept bookings to see them here</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {acceptedBookings
+                  .filter(booking => booking.status === 'Driver Assigned')
+                  .sort((a, b) => new Date(a.bookingDetails?.startDate) - new Date(b.bookingDetails?.startDate))
+                  .map((booking) => (
+                    <div key={booking._id} className="bg-white/5 rounded-lg p-6 border border-white/10">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="text-white font-abeze font-semibold text-lg">
+                                {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
+                              </h4>
+                              <p className="text-blue-300 font-abeze text-sm">
+                                {booking.packageId?.location || booking.packageDetails?.location || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Customer</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Start Date</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.bookingDetails?.startDate 
+                                  ? new Date(booking.bookingDetails.startDate).toLocaleDateString('en-US', {
+                                      weekday: 'short',
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })
+                                  : 'N/A'
+                                }
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">End Date</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.bookingDetails?.endDate 
+                                  ? new Date(booking.bookingDetails.endDate).toLocaleDateString('en-US', {
+                                      weekday: 'short',
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })
+                                  : 'N/A'
+                                }
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Guests</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.bookingDetails?.numberOfPeople || 'N/A'} people
+                              </p>
+                            </div>
+                          </div>
+                          {booking.bookingDetails?.specialRequests && (
+                            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-3">
+                              <p className="text-yellow-300 font-abeze text-sm font-medium">Special Requests:</p>
+                              <p className="text-yellow-200 font-abeze text-sm">{booking.bookingDetails.specialRequests}</p>
+                            </div>
+                          )}
+                          <div className="flex items-center space-x-2">
+                            <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-abeze">
+                              {booking.status}
+                            </span>
+                            <span className="text-gray-400 text-sm">
+                              Accepted on {booking.driverAcceptedAt 
+                                ? new Date(booking.driverAcceptedAt).toLocaleDateString()
+                                : 'N/A'
+                              }
+                            </span>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <button
+                            onClick={() => handleCompleteBooking(booking._id)}
+                            disabled={completingBooking === booking._id}
+                            className={`px-6 py-3 rounded-lg font-abeze font-medium transition-colors duration-300 ${
+                              completingBooking === booking._id
+                                ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                                : 'bg-green-600 hover:bg-green-700 text-white'
+                            }`}
+                          >
+                            {completingBooking === booking._id ? 'Completing...' : 'Complete Trip'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+        {bookingsTab === 'completed' && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-green-400/30">
+            <h3 className="text-xl font-abeze font-bold text-green-300 mb-4">Completed</h3>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="text-gray-300 font-abeze">Loading completed bookings...</div>
+              </div>
+            ) : acceptedBookings.filter(booking => booking.status === 'Completed').length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-300 font-abeze">No completed bookings yet</div>
+                <p className="text-gray-400 font-abeze text-sm mt-2">Complete your accepted bookings to see them here</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {acceptedBookings
+                  .filter(booking => booking.status === 'Completed')
+                  .sort((a, b) => new Date(b.bookingDetails?.startDate) - new Date(a.bookingDetails?.startDate))
+                  .map((booking) => (
+                    <div key={booking._id} className="bg-white/5 rounded-lg p-6 border border-white/10">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="text-white font-abeze font-semibold text-lg">
+                                {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
+                              </h4>
+                              <p className="text-green-300 font-abeze text-sm">
+                                {booking.packageId?.location || booking.packageDetails?.location || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Customer</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Trip Date</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.bookingDetails?.startDate 
+                                  ? new Date(booking.bookingDetails.startDate).toLocaleDateString('en-US', {
+                                      weekday: 'short',
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })
+                                  : 'N/A'
+                                }
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Guests</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.bookingDetails?.numberOfPeople || 'N/A'} people
+                              </p>
+                            </div>
+                            <div className="bg-white/5 rounded-lg p-3">
+                              <p className="text-gray-400 font-abeze text-xs">Completed</p>
+                              <p className="text-white font-abeze font-medium">
+                                {booking.updatedAt 
+                                  ? new Date(booking.updatedAt).toLocaleDateString()
+                                  : 'N/A'
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-abeze">
+                              {booking.status}
+                            </span>
+                            <span className="text-gray-400 text-sm">
+                              Trip completed successfully
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -483,6 +764,7 @@ const DriverDashboard = () => {
             </button>
           </div>
         </div>
+
       )}
     </div>
   );
@@ -502,208 +784,35 @@ const DriverDashboard = () => {
             <p className="text-gray-400 font-abeze text-sm mt-2">Accept bookings from the Dashboard to see them here</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {acceptedBookings
-              .filter(booking => booking.status === 'Driver Assigned')
-              .sort((a, b) => new Date(a.bookingDetails?.startDate) - new Date(b.bookingDetails?.startDate))
-              .map((booking) => (
-                <div key={booking._id} className="bg-white/5 rounded-lg p-6 border border-white/10">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="text-white font-abeze font-semibold text-lg">
-                            {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
-                          </h4>
-                          <p className="text-blue-300 font-abeze text-sm">
-                            {booking.packageId?.location || booking.packageDetails?.location || 'N/A'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <div className="bg-white/5 rounded-lg p-3">
-                          <p className="text-gray-400 font-abeze text-xs">Customer</p>
-                          <p className="text-white font-abeze font-medium">
-                            {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
-                          </p>
-                        </div>
-                        <div className="bg-white/5 rounded-lg p-3">
-                          <p className="text-gray-400 font-abeze text-xs">Start Date</p>
-                          <p className="text-white font-abeze font-medium">
-                            {booking.bookingDetails?.startDate 
-                              ? new Date(booking.bookingDetails.startDate).toLocaleDateString('en-US', {
-                                  weekday: 'short',
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })
-                              : 'N/A'
-                            }
-                          </p>
-                        </div>
-                        <div className="bg-white/5 rounded-lg p-3">
-                          <p className="text-gray-400 font-abeze text-xs">End Date</p>
-                          <p className="text-white font-abeze font-medium">
-                            {booking.bookingDetails?.endDate 
-                              ? new Date(booking.bookingDetails.endDate).toLocaleDateString('en-US', {
-                                  weekday: 'short',
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric'
-                                })
-                              : 'N/A'
-                            }
-                          </p>
-                        </div>
-                        <div className="bg-white/5 rounded-lg p-3">
-                          <p className="text-gray-400 font-abeze text-xs">Guests</p>
-                          <p className="text-white font-abeze font-medium">
-                            {booking.bookingDetails?.numberOfPeople || 'N/A'} people
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {booking.bookingDetails?.specialRequests && (
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-3">
-                          <p className="text-yellow-300 font-abeze text-sm font-medium">Special Requests:</p>
-                          <p className="text-yellow-200 font-abeze text-sm">{booking.bookingDetails.specialRequests}</p>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center space-x-2">
-                        <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-abeze">
-                          {booking.status}
-                        </span>
-                        <span className="text-gray-400 text-sm">
-                          Accepted on {booking.driverAcceptedAt 
-                            ? new Date(booking.driverAcceptedAt).toLocaleDateString()
-                            : 'N/A'
-                          }
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="ml-4">
-                      <button
-                        onClick={() => handleCompleteBooking(booking._id)}
-                        disabled={completingBooking === booking._id}
-                        className={`px-6 py-3 rounded-lg font-abeze font-medium transition-colors duration-300 ${
-                          completingBooking === booking._id
-                            ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700 text-white'
-                        }`}
-                      >
-                        {completingBooking === booking._id ? 'Completing...' : 'Complete Trip'}
-                      </button>
-                </div>
+          <div className="space-y-6">
+            {/* Stats Cards Only */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <p className="text-blue-200 font-abeze text-sm">Total Trips</p>
+                <p className="text-3xl font-abeze font-bold text-white">{dashboardStats.totalTrips}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <p className="text-green-200 font-abeze text-sm">Completed Trips</p>
+                <p className="text-3xl font-abeze font-bold text-white">{dashboardStats.completedTrips}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <p className="text-yellow-200 font-abeze text-sm">Pending Trips</p>
+                <p className="text-3xl font-abeze font-bold text-white">{dashboardStats.pendingTrips}</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                <p className="text-purple-200 font-abeze text-sm">Available Bookings</p>
+                <p className="text-3xl font-abeze font-bold text-white">{dashboardStats.availableBookings}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
         )}
       </div>
     </div>
   );
 
-  const renderCompletedBookings = () => (
-    <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-      <h3 className="text-xl font-abeze font-bold text-white mb-4">Completed Bookings</h3>
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">Loading completed bookings...</div>
-        </div>
-      ) : acceptedBookings.filter(booking => booking.status === 'Completed').length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">No completed bookings yet</div>
-          <p className="text-gray-400 font-abeze text-sm mt-2">Complete your accepted bookings to see them here</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {acceptedBookings
-            .filter(booking => booking.status === 'Completed')
-            .sort((a, b) => new Date(b.bookingDetails?.startDate) - new Date(a.bookingDetails?.startDate))
-            .map((booking) => (
-              <div key={booking._id} className="bg-white/5 rounded-lg p-6 border border-white/10">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="text-white font-abeze font-semibold text-lg">
-                          {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
-                        </h4>
-                        <p className="text-green-300 font-abeze text-sm">
-                          {booking.packageId?.location || booking.packageDetails?.location || 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-gray-400 font-abeze text-xs">Customer</p>
-                        <p className="text-white font-abeze font-medium">
-                          {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
-                        </p>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-gray-400 font-abeze text-xs">Trip Date</p>
-                        <p className="text-white font-abeze font-medium">
-                          {booking.bookingDetails?.startDate 
-                            ? new Date(booking.bookingDetails.startDate).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })
-                            : 'N/A'
-                          }
-                        </p>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-gray-400 font-abeze text-xs">Guests</p>
-                        <p className="text-white font-abeze font-medium">
-                          {booking.bookingDetails?.numberOfPeople || 'N/A'} people
-                        </p>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <p className="text-gray-400 font-abeze text-xs">Completed</p>
-                        <p className="text-white font-abeze font-medium">
-                          {booking.updatedAt 
-                            ? new Date(booking.updatedAt).toLocaleDateString()
-                            : 'N/A'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-abeze">
-                        {booking.status}
-                      </span>
-                      <span className="text-gray-400 text-sm">
-                        Trip completed successfully
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      )}
-    </div>
-  );
-
   const renderVehicle = () => (
+
+
     <div className="space-y-6">
       {/* Vehicle Header */}
       <div className="flex justify-between items-center">
@@ -744,669 +853,13 @@ const DriverDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle) => (
             <div key={vehicle._id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 relative flex flex-col justify-between h-full">
-              {/* ...existing code... */}
-              <div className="flex-grow">
-                {/* ...existing code for vehicle details... */}
-              </div>
-              
-              {/* Vehicle Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-abeze font-semibold">{vehicle.make} {vehicle.model}</h4>
-                    <p className="text-gray-300 font-abeze text-sm">{vehicle.vehicleType}</p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                  vehicle.isAvailable 
-                    ? 'bg-green-500/20 text-green-400' 
-                    : 'bg-red-500/20 text-red-400'
-                }`}>
-                  {vehicle.isAvailable ? 'Available' : 'Unavailable'}
-                </span>
-              </div>
-
-              {/* Vehicle Details */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">License Plate</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.licensePlate}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Year</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.year}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Color</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.color}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Capacity</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.capacity} people</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Fuel Type</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.fuelType}</p>
-                  </div>
-                  {vehicle.transmission && (
-                    <div>
-                      <p className="text-gray-400 font-abeze text-xs">Transmission</p>
-                      <p className="text-white font-abeze font-medium">{vehicle.transmission}</p>
-                    </div>
-                  )}
-                </div>
-
-                {vehicle.mileage > 0 && (
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Mileage</p>
-                    <p className="text-white font-abeze font-medium">{vehicle.mileage.toLocaleString()} km</p>
-                  </div>
-                )}
-
-                {/* Features */}
-                {vehicle.features && vehicle.features.length > 0 && (
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs mb-2">Features</p>
-                    <div className="flex flex-wrap gap-1">
-                      {vehicle.features.map((feature, index) => (
-                        <span key={index} className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs font-abeze">
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Insurance & Registration Status */}
-                <div className="pt-3 border-t border-white/10">
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <p className="text-gray-400 font-abeze text-xs">Insurance</p>
-                      <p className={`font-abeze text-sm ${
-                        new Date(vehicle.insuranceExpiry) < new Date() 
-                          ? 'text-red-400' 
-                          : new Date(vehicle.insuranceExpiry) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                          ? 'text-yellow-400'
-                          : 'text-green-400'
-                      }`}>
-                        {new Date(vehicle.insuranceExpiry).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {vehicle.registrationExpiry && (
-                      <div>
-                        <p className="text-gray-400 font-abeze text-xs">Registration</p>
-                        <p className={`font-abeze text-sm ${
-                          new Date(vehicle.registrationExpiry) < new Date() 
-                            ? 'text-red-400' 
-                            : new Date(vehicle.registrationExpiry) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                            ? 'text-yellow-400'
-                            : 'text-green-400'
-                        }`}>
-                          {new Date(vehicle.registrationExpiry).toLocaleDateString()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Notes */}
-                {vehicle.notes && (
-                  <div>
-                    <p className="text-gray-400 font-abeze text-xs">Notes</p>
-                    <p className="text-white font-abeze text-sm">{vehicle.notes}</p>
-                  </div>
-                )}
-
-                {/* Edit/Delete Buttons at bottom right */}
-              <div className="flex justify-end mt-6">
-                <div className="flex gap-2">
-                  <button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-abeze"
-                    title="Edit Vehicle"
-                    onClick={() => handleEditVehicle(vehicle)}
-                  >Edit</button>
-                  <button
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-abeze"
-                    title="Delete Vehicle"
-                    onClick={() => handleDeleteVehicle(vehicle._id)}
-                  >Delete</button>
-                </div>
-              </div>
-
-              </div>
+              {/* Vehicle details rendering here */}
             </div>
           ))}
         </div>
       )}
-
-      {/* Add Vehicle Modal */}
-      <AddVehicleModal
-        isOpen={showAddVehicle}
-        onClose={() => { setShowAddVehicle(false); setEditVehicle(null); }}
-        onVehicleAdded={handleVehicleAdded}
-        vehicle={editVehicle}
-        onVehicleUpdated={handleVehicleUpdated}
-      />
     </div>
   );
-
-  // Utility function for report filtering
-  function isSameMonth(dateStr) {
-    if (!dateStr) return false;
-    const d = new Date(dateStr);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }
-
-  const renderReportsSimple = () => {
-    const now = new Date();
-    const monthIdx = now.getMonth();
-    const year = now.getFullYear();
-
-    const monthlyCompleted = acceptedBookings
-      .filter(b => b.status === 'Completed' && (isSameMonth(b.updatedAt) || isSameMonth(b.bookingDetails?.endDate)));
-
-    const downloadMonthlyCompletedReport = () => {
-      const doc = new jsPDF();
-      const fileMonth = String(monthIdx + 1).padStart(2, '0');
-      doc.setFontSize(14);
-      doc.text(`Monthly Completed Bookings - ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, 14, 18);
-      const rows = monthlyCompleted.map(b => [
-        `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`.trim(),
-        b.packageId?.title || b.packageDetails?.title || '',
-        b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toLocaleDateString() : '-',
-        b.bookingDetails?.endDate ? new Date(b.bookingDetails.endDate).toLocaleDateString() : '-',
-        b.bookingDetails?.numberOfPeople ?? '-',
-        b.updatedAt ? new Date(b.updatedAt).toLocaleDateString() : '-'
-      ]);
-      autoTable(doc, {
-        startY: 24,
-        head: [['Customer', 'Package', 'Trip Start', 'Trip End', 'Guests', 'Completed']],
-        body: rows,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [16, 185, 129] }
-      });
-      doc.save(`driver-monthly-completed-bookings-${year}-${fileMonth}.pdf`);
-    };
-
-    const downloadPayrollReport = () => {
-      if (!payroll) return;
-      const doc = new jsPDF();
-      const fileMonth = String(monthIdx + 1).padStart(2, '0');
-      doc.setFontSize(14);
-      doc.text(`Payroll - ${payroll.monthYear || `${fileMonth}/${year}`}`, 14, 18);
-      const rows = [
-        ['Basic Salary (Rs.)', Number(payroll.basicSalary || 0).toLocaleString()],
-        ['Regular Pay (Rs.)', Number(payroll.regularPay || 0).toLocaleString()],
-        ['Overtime Pay (Rs.)', Number(payroll.overtimePay || 0).toLocaleString()],
-        ['Allowances (Rs.)', Number(payroll.allowances || 0).toLocaleString()],
-        ['Bonuses (Rs.)', Number(payroll.bonuses || 0).toLocaleString()],
-        ['Deductions (Rs.)', Number(payroll.deductions || 0).toLocaleString()],
-        ['Gross Pay (Rs.)', Number(payroll.grossPay || 0).toLocaleString()],
-        ['Net Pay (Rs.)', Number(payroll.netPay || 0).toLocaleString()],
-        ['Working Days', Number(payroll.totalWorkingDays || 0)],
-        ['Working Hours', Number(payroll.totalWorkingHours || 0)],
-        ['Status', payroll.statusFormatted || payroll.status || '']
-      ];
-      autoTable(doc, {
-        startY: 24,
-        head: [['Field', 'Value']],
-        body: rows,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [59, 130, 246] }
-      });
-      doc.save(`driver-payroll-${year}-${fileMonth}.pdf`);
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-abeze font-bold text-white">Monthly Completed Bookings - {now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
-            <button
-              onClick={downloadMonthlyCompletedReport}
-              disabled={monthlyCompleted.length === 0}
-              className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${
-                monthlyCompleted.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
-              Download Report
-            </button>
-          </div>
-          {/* Monthly Completed Bookings Chart (last 12 months) */}
-          <div className="bg-white/5 rounded-lg p-4 border border-white/10 mb-6">
-            <h4 className="text-white font-abeze font-medium mb-3">Completed Bookings - Last 12 Months</h4>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={Array.from({ length: 12 }, (_, i) => {
-                    const d = new Date(year, monthIdx - (11 - i), 1);
-                    const m = d.getMonth();
-                    const y = d.getFullYear();
-                    const count = acceptedBookings.filter(b => {
-                      if (b.status !== 'Completed') return false;
-                      const doneAt = b.updatedAt ? new Date(b.updatedAt) : null;
-                      return doneAt && doneAt.getMonth() === m && doneAt.getFullYear() === y;
-                    }).length;
-                    return { month: d.toLocaleDateString('en-US', { month: 'short' }), count };
-                  })}
-                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" tick={{ fill: '#9CA3AF' }} stroke="#9CA3AF" />
-                  <YAxis allowDecimals={false} tick={{ fill: '#9CA3AF' }} stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8, color: '#F9FAFB' }}
-                    labelStyle={{ color: '#F9FAFB' }}
-                  />
-                  <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-300 font-abeze">Loading completed bookings...</div>
-            </div>
-          ) : monthlyCompleted.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-300 font-abeze">No completed bookings this month</div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/20">
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Customer</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Package</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Trip Dates</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Guests</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Completed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthlyCompleted
-                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                    .map((booking) => (
-                    <tr key={booking._id} className="border-b border-white/10">
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.bookingDetails?.startDate && booking.bookingDetails?.endDate
-                          ? `${new Date(booking.bookingDetails.startDate).toLocaleDateString()} - ${new Date(booking.bookingDetails.endDate).toLocaleDateString()}`
-                          : 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.bookingDetails?.numberOfPeople || 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.updatedAt ? new Date(booking.updatedAt).toLocaleDateString() : 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-abeze font-bold text-white">Payroll </h3>
-            <button
-              onClick={downloadPayrollReport}
-              disabled={!payroll}
-              className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${
-                !payroll ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              Download Payroll
-            </button>
-          </div>
-          {!payroll ? (
-            <div className="text-gray-300 font-abeze">No payroll record found for this month yet.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Basic Salary</h4>
-                <p className="text-2xl font-abeze font-bold text-white">Rs. {Number(payroll.basicSalary || 0).toLocaleString()}</p>
-                <p className="text-gray-400 font-abeze text-xs">{payroll.monthYear || ''}</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Regular + Overtime</h4>
-                <p className="text-white font-abeze">Regular: Rs. {Number(payroll.regularPay || 0).toLocaleString()}</p>
-                <p className="text-white font-abeze">Overtime: Rs. {Number(payroll.overtimePay || 0).toLocaleString()}</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Net Pay</h4>
-                <p className="text-2xl font-abeze font-bold text-white">Rs. {Number(payroll.netPay || 0).toLocaleString()}</p>
-                <p className="text-gray-400 font-abeze text-xs">Status: {payroll.statusFormatted || payroll.status}</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Allowances & Bonuses</h4>
-                <p className="text-white font-abeze">Allowances: Rs. {Number(payroll.allowances || 0).toLocaleString()}</p>
-                <p className="text-white font-abeze">Bonuses: Rs. {Number(payroll.bonuses || 0).toLocaleString()}</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Deductions</h4>
-                <p className="text-white font-abeze">Rs. {Number(payroll.deductions || 0).toLocaleString()}</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-4">
-                <h4 className="text-gray-300 font-abeze text-sm mb-2">Hours</h4>
-                <p className="text-white font-abeze">Working Days: {Number(payroll.totalWorkingDays || 0)}</p>
-                <p className="text-white font-abeze">Working Hours: {Number(payroll.totalWorkingHours || 0)}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderReports = () => {
-    // Calculate report data
-    const completedBookings = acceptedBookings.filter(booking => booking.status === 'Completed');
-    const totalEarnings = completedBookings.length * 5000; // Assuming 5000 per booking
-    const monthlyEarnings = completedBookings
-      .filter(booking => {
-        const bookingDate = new Date(booking.updatedAt);
-        const currentMonth = new Date();
-        return bookingDate.getMonth() === currentMonth.getMonth() && 
-               bookingDate.getFullYear() === currentMonth.getFullYear();
-      })
-      .length * 5000;
-    
-    // Calculate monthly data for the last 6 months
-    const monthlyData = [];
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthBookings = completedBookings.filter(booking => {
-        const bookingDate = new Date(booking.updatedAt);
-        return bookingDate.getMonth() === date.getMonth() && 
-               bookingDate.getFullYear() === date.getFullYear();
-      });
-      monthlyData.push({
-        month: date.toLocaleDateString('en-US', { month: 'short' }),
-        bookings: monthBookings.length,
-        earnings: monthBookings.length * 5000
-      });
-    }
-
-    const totalTrips = completedBookings.length;
-    const formatCurrency = (value) => `Rs. ${Number(value || 0).toLocaleString()}`;
-    const maxMonthly = Math.max(1, ...monthlyData.map(d => d.earnings));
-    const hasAnyEarnings = monthlyData.some(d => d.earnings > 0);
-
-    // Download functions
-    const downloadCompletedTripsReport = () => {
-      const reportData = completedBookings.map(booking => ({
-        'Customer Name': `${booking.userId?.firstName || 'N/A'} ${booking.userId?.lastName || 'N/A'}`,
-        'Package': booking.packageId?.title || booking.packageDetails?.title || 'N/A',
-        'Trip Date': booking.bookingDetails?.startDate 
-          ? new Date(booking.bookingDetails.startDate).toLocaleDateString()
-          : 'N/A',
-        'Guests': booking.bookingDetails?.numberOfPeople || 'N/A',
-        'Completed Date': booking.updatedAt 
-          ? new Date(booking.updatedAt).toLocaleDateString()
-          : 'N/A',
-        'Earnings (Rs.)': '5,000'
-      }));
-
-      const csvContent = [
-        Object.keys(reportData[0] || {}).join(','),
-        ...reportData.map(row => Object.values(row).join(','))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `completed-trips-report-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    };
-
-    const downloadSalaryReport = () => {
-      const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const baseSalary = 25000;
-      const totalSalary = baseSalary + monthlyEarnings;
-
-      const reportData = {
-        'Report Period': currentMonth,
-        'Driver Name': `${user?.firstName || 'N/A'} ${user?.lastName || 'N/A'}`,
-        'Base Salary (Rs.)': baseSalary.toLocaleString(),
-        'Monthly Trip Bonus (Rs.)': monthlyEarnings.toLocaleString(),
-        'Total Salary (Rs.)': totalSalary.toLocaleString(),
-        'Total Trips Completed': totalTrips
-      };
-
-      const csvContent = [
-        Object.keys(reportData).join(','),
-        Object.values(reportData).join(',')
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `salary-report-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    };
-
-    return (
-      <div className="space-y-6">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-200 font-abeze text-sm">Total Earnings</p>
-                <p className="text-3xl font-abeze font-bold text-white">{formatCurrency(totalEarnings)}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-200 font-abeze text-sm">This Month</p>
-                <p className="text-3xl font-abeze font-bold text-white">{formatCurrency(monthlyEarnings)}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-200 font-abeze text-sm">Total Trips</p>
-                <p className="text-3xl font-abeze font-bold text-white">{totalTrips}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        
-
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Monthly Earnings Chart */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-            <h3 className="text-xl font-abeze font-bold text-white mb-4">Monthly Earnings</h3>
-            {hasAnyEarnings ? (
-              <div className="space-y-4">
-                {monthlyData.map((data, index) => (
-                  <div key={index} className="flex items-center space-x-4">
-                    <div className="w-16 text-gray-300 font-abeze text-sm">{data.month}</div>
-                    <div className="flex-1 bg-gray-700 rounded-full h-4">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(8, (data.earnings / maxMonthly) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="w-28 text-right text-white font-abeze text-sm">{formatCurrency(data.earnings)}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-gray-300 font-abeze">No completed trips in the past 6 months.</p>
-                <p className="text-gray-400 font-abeze text-sm">Earnings will appear here once trips are completed.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Completed Bookings Table */}
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-abeze font-bold text-white">Completed Bookings</h3>
-            <button
-              onClick={downloadCompletedTripsReport}
-              disabled={completedBookings.length === 0}
-              className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2 ${
-                completedBookings.length === 0
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>Download Report</span>
-            </button>
-          </div>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-300 font-abeze">Loading completed bookings...</div>
-            </div>
-          ) : completedBookings.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-300 font-abeze">No completed bookings yet</div>
-              <p className="text-gray-400 font-abeze text-sm mt-2">Complete your trips to see them here</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-300 font-abeze text-sm">Trips: {completedBookings.length}</span>
-                <span className="text-gray-300 font-abeze text-sm">Total Earned: {formatCurrency(totalEarnings)}</span>
-              </div>
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/20">
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Customer</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Package</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Trip Date</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Guests</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Completed</th>
-                    <th className="text-left py-3 px-4 text-blue-200 font-abeze">Earnings</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {completedBookings
-                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                    .map((booking) => (
-                    <tr key={booking._id} className="border-b border-white/10">
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.userId?.firstName || 'N/A'} {booking.userId?.lastName || 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.packageId?.title || booking.packageDetails?.title || 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.bookingDetails?.startDate 
-                          ? new Date(booking.bookingDetails.startDate).toLocaleDateString()
-                          : 'N/A'
-                        }
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.bookingDetails?.numberOfPeople || 'N/A'} people
-                      </td>
-                      <td className="py-3 px-4 text-white font-abeze">
-                        {booking.updatedAt 
-                          ? new Date(booking.updatedAt).toLocaleDateString()
-                          : 'N/A'
-                        }
-                      </td>
-                      <td className="py-3 px-4 text-green-400 font-abeze font-medium">
-                        Rs. 5,000
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Salary Information */}
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-abeze font-bold text-white">Salary Information</h3>
-            <button
-              onClick={downloadSalaryReport}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>Download Salary Report</span>
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white/5 rounded-lg p-4">
-              <h4 className="text-gray-300 font-abeze text-sm mb-2">Base Salary</h4>
-              <p className="text-2xl font-abeze font-bold text-white">Rs. 75,000</p>
-              <p className="text-gray-400 font-abeze text-xs">Per month</p>
-            </div>
-            <div className="bg-white/5 rounded-lg p-4">
-              <h4 className="text-gray-300 font-abeze text-sm mb-2">Trip Bonus</h4>
-              <p className="text-2xl font-abeze font-bold text-white">Rs. {totalEarnings.toLocaleString()}</p>
-              <p className="text-gray-400 font-abeze text-xs">Total earned</p>
-            </div>
-            <div className="bg-white/5 rounded-lg p-4">
-              <h4 className="text-gray-300 font-abeze text-sm mb-2">This Month</h4>
-              <p className="text-2xl font-abeze font-bold text-white">Rs. {(75000 + monthlyEarnings).toLocaleString()}</p>
-              <p className="text-gray-400 font-abeze text-xs">Total salary</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -1461,8 +914,7 @@ const DriverDashboard = () => {
             <div className="flex flex-wrap gap-2 mb-8">
               {[
                 { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                { id: 'schedule', label: 'Schedule', icon: '📅' },
-                    { id: 'completed', label: 'Completed', icon: '✅' },
+                { id: 'bookings', label: 'Bookings', icon: '📚' },
                 { id: 'vehicle', label: 'Vehicle', icon: '🚗' },
                 { id: 'reports', label: 'Reports', icon: '📈' },
               ].map((tab) => (
@@ -1484,10 +936,9 @@ const DriverDashboard = () => {
             {/* Tab Content */}
             <div className="min-h-96">
               {activeTab === 'dashboard' && renderDashboard()}
-              {activeTab === 'schedule' && renderSchedule()}
-                  {activeTab === 'completed' && renderCompletedBookings()}
+              {activeTab === 'bookings' && renderBookings()}
               {activeTab === 'vehicle' && renderVehicle()}
-              {activeTab === 'reports' && renderReportsSimple()}
+              {activeTab === 'reports' && renderReportsSimple && renderReportsSimple()}
             </div>
           </div>
         </div>
