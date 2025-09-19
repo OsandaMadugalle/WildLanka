@@ -41,6 +41,9 @@ const Footer = () => {
 
   const navigateToPrivacyPolicy = () => {
     navigate('/privacy-policy');
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, 100);
   };
 
   const navigateToTermsOfService = () => {
@@ -72,7 +75,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-white relative z-10">
+  <footer className="bg-gray-800 text-white border-t border-green-800 shadow-inner relative z-10">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Company Info */}
