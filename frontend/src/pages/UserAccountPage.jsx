@@ -610,9 +610,9 @@ const UserAccountPage = () => {
                       </div>
                     ) : (
                       <div className="overflow-x-auto mb-8">
-                        <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
+                        <table className="min-w-full bg-gray-900 rounded-3xl shadow-xl overflow-hidden">
                           <thead>
-                            <tr className="bg-emerald-700/40 text-white">
+                            <tr className="bg-gradient-to-r from-emerald-700/80 to-green-600/80 text-white">
                               <th className="px-6 py-3 text-left font-abeze">Booking ID</th>
                               <th className="px-6 py-3 text-left font-abeze">Package</th>
                               <th className="px-6 py-3 text-left font-abeze">Dates</th>
@@ -621,24 +621,32 @@ const UserAccountPage = () => {
                               <th className="px-6 py-3 text-left font-abeze">Actions</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody className="divide-y divide-gray-800">
                             {bookings
                               .filter(
                                 (b) =>
                                   b.status !== "Completed" &&
                                   b.status !== "Cancelled"
                               )
-                              .map((booking) => (
+                              .map((booking, idx) => (
                                 <tr
                                   key={booking._id}
-                                  className="border-b border-gray-700/30"
+                                  className={
+                                    `transition-colors duration-200 ${
+                                      idx % 2 === 0
+                                        ? 'bg-gray-900'
+                                        : 'bg-gray-800/80'
+                                    } hover:bg-emerald-950/60`
+                                  }
                                 >
                                   <td className="px-6 py-4 text-white font-abeze flex items-center gap-2">
-                                    <span>{booking.bookingId || booking._id}</span>
+                                    <span className="tracking-tight font-mono text-emerald-300 bg-gray-800/60 px-2 py-1 rounded select-all text-xs border border-emerald-900/30">
+                                      {booking.bookingId || booking._id}
+                                    </span>
                                     <button
                                       onClick={() => handleCopyBookingId(booking.bookingId || booking._id)}
                                       title="Copy Booking ID"
-                                      className="ml-1 px-2 py-1 rounded bg-gray-700 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-semibold transition-colors duration-200"
+                                      className={`ml-1 px-2 py-1 rounded-lg border border-emerald-400/40 bg-emerald-900/60 hover:bg-emerald-600 text-emerald-200 hover:text-white text-xs font-semibold transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${copiedBookingId === (booking.bookingId || booking._id) ? 'ring-2 ring-emerald-400/80 bg-emerald-700 text-white' : ''}`}
                                     >
                                       {copiedBookingId === (booking.bookingId || booking._id) ? "Copied!" : "Copy"}
                                     </button>
@@ -862,9 +870,9 @@ const UserAccountPage = () => {
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
+                        <table className="min-w-full bg-gray-900 rounded-3xl shadow-xl overflow-hidden">
                           <thead>
-                            <tr className="bg-emerald-700/40 text-white">
+                            <tr className="bg-gradient-to-r from-emerald-700/80 to-green-600/80 text-white">
                               <th className="px-6 py-3 text-left font-abeze">Booking ID</th>
                               <th className="px-6 py-3 text-left font-abeze">Package</th>
                               <th className="px-6 py-3 text-left font-abeze">Dates</th>
@@ -873,24 +881,32 @@ const UserAccountPage = () => {
                               <th className="px-6 py-3 text-left font-abeze">Review</th>
                             </tr>
                           </thead>
-                          <tbody>
+                          <tbody className="divide-y divide-gray-800">
                             {bookings
                               .filter(
                                 (b) =>
                                   b.status === "Completed" ||
                                   b.status === "Cancelled"
                               )
-                              .map((booking) => (
+                              .map((booking, idx) => (
                                 <tr
                                   key={booking._id}
-                                  className="border-b border-gray-700/30"
+                                  className={
+                                    `transition-colors duration-200 ${
+                                      idx % 2 === 0
+                                        ? 'bg-gray-900'
+                                        : 'bg-gray-800/80'
+                                    } hover:bg-emerald-950/60`
+                                  }
                                 >
                                   <td className="px-6 py-4 text-white font-abeze flex items-center gap-2">
-                                    <span>{booking.bookingId || booking._id}</span>
+                                    <span className="tracking-tight font-mono text-emerald-300 bg-gray-800/60 px-2 py-1 rounded select-all text-xs border border-emerald-900/30">
+                                      {booking.bookingId || booking._id}
+                                    </span>
                                     <button
                                       onClick={() => handleCopyBookingId(booking.bookingId || booking._id)}
                                       title="Copy Booking ID"
-                                      className="ml-1 px-2 py-1 rounded bg-gray-700 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-semibold transition-colors duration-200"
+                                      className={`ml-1 px-2 py-1 rounded-lg border border-emerald-400/40 bg-emerald-900/60 hover:bg-emerald-600 text-emerald-200 hover:text-white text-xs font-semibold transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/60 ${copiedBookingId === (booking.bookingId || booking._id) ? 'ring-2 ring-emerald-400/80 bg-emerald-700 text-white' : ''}`}
                                     >
                                       {copiedBookingId === (booking.bookingId || booking._id) ? "Copied!" : "Copy"}
                                     </button>
