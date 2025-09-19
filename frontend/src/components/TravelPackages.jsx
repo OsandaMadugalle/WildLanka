@@ -241,11 +241,11 @@ const TravelPackages = () => {
         </div>
 
         {/* Packages Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2 md:px-0">
           {filteredPackages.map((pkg) => (
             <div 
               key={pkg.id}
-              className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105"
+              className="relative bg-white/10 backdrop-blur-md rounded-3xl p-7 md:p-8 border border-white/20 shadow-lg hover:shadow-2xl hover:border-green-400/60 transition-all duration-300 hover:scale-[1.03] flex flex-col justify-between min-h-[480px]"
             >
               {/* Discount Badge */}
               {pkg.discount && (
@@ -298,14 +298,14 @@ const TravelPackages = () => {
               </div>
 
               {/* Description */}
-              <p className="text-gray-300 font-abeze text-sm mb-6 text-center leading-relaxed">
+              <p className="text-gray-300 font-abeze text-base mb-6 text-center leading-relaxed">
                 {pkg.description}
               </p>
 
               {/* Highlights */}
-              <ul className="space-y-2 mb-6">
+              <ul className="space-y-2 mb-6 px-2">
                 {pkg.highlights.map((highlight, index) => (
-                  <li key={index} className="flex items-center text-gray-300 font-abeze text-sm">
+                  <li key={index} className="flex items-center text-gray-300 font-abeze text-sm md:text-base">
                     <span className="text-green-400 mr-2">✓</span>
                     {highlight}
                   </li>
@@ -313,14 +313,14 @@ const TravelPackages = () => {
               </ul>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-3 mt-auto">
                 <button 
                   onClick={() => handleBookNow(pkg.id)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-abeze font-medium transition-colors duration-300"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-abeze font-bold transition-colors duration-300 shadow-md"
                 >
                   {t('travelPackages.bookNow')}
                 </button>
-                <button className="w-full bg-transparent border border-green-400 text-green-400 hover:bg-green-400 hover:text-white py-2 rounded-lg font-abeze font-medium transition-all duration-300">
+                <button className="w-full bg-transparent border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-white py-2 rounded-xl font-abeze font-bold transition-all duration-300">
                   {t('travelPackages.viewDetails')}
                 </button>
               </div>
