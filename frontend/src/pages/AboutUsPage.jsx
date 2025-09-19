@@ -116,7 +116,7 @@ const AboutUsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
       <Header />
 
       <div className="pt-16 md:pt-20">

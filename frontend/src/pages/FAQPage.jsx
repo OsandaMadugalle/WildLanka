@@ -43,8 +43,7 @@ const FAQPage = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pt-24 md:pt-32 flex flex-col justify-start">
-        <div className="container mx-auto px-2 sm:px-4 md:px-8 flex-1">
+
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
               {t('faq.title', 'Frequently Asked Questions')}
