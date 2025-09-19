@@ -92,10 +92,16 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
       // Upload gallery images if selected
       if (selectedImages.length > 0) {
         setIsUploadingImage(true);
-        for (const img of selectedImages) {
-          const imageFormData = new FormData();
-          imageFormData.append('image', img);
-          await packageApi.uploadPackageImage(newPackage._id, imageFormData);
+        const galleryFormData = new FormData();
+        selectedImages.forEach((img) => {
+          galleryFormData.append('images', img);
+        });
+        try {
+          const galleryRes = await packageApi.uploadPackageGalleryImage(newPackage._id, galleryFormData);
+          console.log('Gallery upload response:', galleryRes);
+        } catch (galleryErr) {
+          console.error('Gallery upload error:', galleryErr);
+          alert(galleryErr?.response?.data?.message || 'Gallery image upload failed');
         }
       }
       onPackageAdded();
