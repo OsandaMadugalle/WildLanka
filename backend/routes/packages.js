@@ -8,6 +8,7 @@ import {
   uploadPackageImage,
   togglePackageStatus
 } from "../controllers/packageController.js";
+import { uploadPackageGalleryImage } from "../controllers/packageGalleryController.js";
 import { authenticateToken } from "../middleware/auth.js";
 import upload from "../middleware/upload.js";
 
@@ -22,6 +23,8 @@ router.post("/", authenticateToken, createPackage);
 router.put("/:id", authenticateToken, updatePackage);
 router.delete("/:id", authenticateToken, deletePackage);
 router.post("/:id/image", authenticateToken, upload.single('image'), uploadPackageImage);
+// Gallery image upload (multiple)
+router.post("/:id/gallery", authenticateToken, upload.array('images', 10), uploadPackageGalleryImage);
 router.patch("/:id/toggle-status", authenticateToken, togglePackageStatus);
 
 export default router;
