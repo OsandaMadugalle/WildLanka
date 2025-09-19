@@ -95,7 +95,7 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
         for (const img of selectedImages) {
           const imageFormData = new FormData();
           imageFormData.append('image', img);
-          await packageApi.uploadPackageGalleryImage(newPackage._id, imageFormData);
+          await packageApi.uploadPackageImage(newPackage._id, imageFormData);
         }
       }
       onPackageAdded();
