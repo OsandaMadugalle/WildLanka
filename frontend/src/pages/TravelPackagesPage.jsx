@@ -173,7 +173,11 @@ const TravelPackagesPage = () => {
           {/* Page Header */}
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-              {t('Safari')} <span className="text-green-400">Packages</span>
+              {(() => {
+                const title = t('packages.title');
+                const [first, ...rest] = title.split(' ');
+                return <>{first} <span className="text-green-400">{rest.join(' ')}</span></>;
+              })()}
             </h1>
             <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
               {t('packages.subtitle')}
