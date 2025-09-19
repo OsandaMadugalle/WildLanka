@@ -43,7 +43,7 @@ const FAQPage = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 pt-24 md:pt-32">
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 pt-24 md:pt-32">
         <div className="container mx-auto px-2 sm:px-4 md:px-6">
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">

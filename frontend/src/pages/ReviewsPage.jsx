@@ -62,7 +62,7 @@ const ReviewsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
       <Header />
   <div className="pt-24 md:pt-32 pb-10 md:pb-16">
         <div className="container mx-auto px-2 sm:px-4 md:px-6">
