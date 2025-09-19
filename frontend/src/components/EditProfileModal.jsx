@@ -515,8 +515,8 @@ const EditProfileModal = ({ onClose, user }) => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   maxLength={formData.country !== 'Other' ? countryPhoneCodes[formData.country].maxDigits : 15}
-                  className={`flex-1 bg-gradient-to-r from-white/5 to-white/10 border border-white/10 rounded-r-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                    formData.country === 'Other' ? 'rounded-2xl' : ''
+                  className={`flex-1 bg-gradient-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                    formData.country === 'Other' ? 'rounded-2xl' : 'rounded-r-2xl rounded-l-none'
                   } ${
                     errors.phone ? 'border-red-400 focus:border-red-500' : 'focus:border-emerald-400 hover:border-emerald-400/50'
                   }`}
