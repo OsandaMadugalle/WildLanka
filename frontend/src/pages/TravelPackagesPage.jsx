@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { packageApi, safariRequestApi } from '../services/api';
+import Carousel from '../components/Carousel';
 
 const TravelPackagesPage = () => {
   const navigate = useNavigate();
@@ -234,11 +235,15 @@ const TravelPackagesPage = () => {
                   className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101"
                 >
                   <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
-                    {pkg.image?.url ? (
-                      <img 
-                        src={pkg.image.url} 
-                        alt={pkg.title} 
-                        className="w-full h-full object-cover"
+                    {/* Carousel for all images */}
+                    {pkg.image?.url || (pkg.gallery && pkg.gallery.length > 0) ? (
+                      <Carousel
+                        images={[
+                          ...(pkg.image?.url ? [pkg.image.url] : []),
+                          ...(pkg.gallery ? pkg.gallery.map(img => img.url) : [])
+                        ]}
+                        alt={pkg.title}
+                        className="w-full h-full"
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">

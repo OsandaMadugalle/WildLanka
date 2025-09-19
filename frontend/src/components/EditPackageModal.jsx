@@ -23,6 +23,10 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  // For gallery images
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const galleryInputRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Populate form data when package prop changes
@@ -44,7 +48,8 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
         difficulty: packageData.difficulty || 'Moderate',
         isPopular: packageData.isPopular || false
       });
-      setImagePreview(packageData.image?.url || null);
+  setImagePreview(packageData.image?.url || null);
+  setGalleryPreviews(packageData.gallery ? packageData.gallery.map(img => img.url) : []);
     }
   }, [packageData]);
 
@@ -69,6 +74,23 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
     }
+  };
+
+  // Handle gallery images
+  const handleGalleryImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedGalleryImages(files);
+    Promise.all(files.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    })).then(previews => setGalleryPreviews(previews));
+  };
+
+  const handleGalleryImageClick = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleImageClick = () => {
@@ -107,7 +129,21 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
         imageFormData.append('image', selectedImage);
         await packageApi.uploadPackageImage(updatedPackage._id, imageFormData);
       }
-      
+      // Upload new gallery images if selected
+      if (selectedGalleryImages.length > 0) {
+        setIsUploadingImage(true);
+        const galleryFormData = new FormData();
+        selectedGalleryImages.forEach((img) => {
+          galleryFormData.append('images', img);
+        });
+        try {
+          const galleryRes = await packageApi.uploadPackageGalleryImage(updatedPackage._id, galleryFormData);
+          console.log('Gallery upload response:', galleryRes);
+        } catch (galleryErr) {
+          console.error('Gallery upload error:', galleryErr);
+          alert(galleryErr?.response?.data?.message || 'Gallery image upload failed');
+        }
+      }
       onPackageUpdated();
       onClose();
     } catch (err) {
@@ -315,6 +351,39 @@ const EditPackageModal = ({ package: packageData, onClose, onPackageUpdated }) =
               type="file"
               accept="image/*"
               onChange={handleImageChange}
+              className="hidden"
+            />
+          </div>
+          {/* Gallery Images Upload */}
+          <div>
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Package Gallery Images
+            </label>
+            <div
+              onClick={handleGalleryImageClick}
+              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+            >
+              {galleryPreviews.length > 0 ? (
+                <div className="flex gap-2 w-full h-full">
+                  {galleryPreviews.map((preview, idx) => (
+                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <p className="text-gray-400 font-abeze text-sm">Click to upload images</p>
+                </div>
+              )}
+            </div>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryImageChange}
               className="hidden"
             />
           </div>
