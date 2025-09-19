@@ -204,7 +204,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-gray-800 mt-12 pt-8 pb-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 font-abeze text-sm mb-4 md:mb-0">
               © {currentYear} WildLanka. All rights reserved.
