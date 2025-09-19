@@ -162,6 +162,10 @@ const Header = ({ triggerLogin = null }) => {
     }
     if (user?.role === 'admin') {
       navigate('/admin');
+    } else if (user?.role === 'driver') {
+      navigate('/driver-dashboard');
+    } else if (user?.role === 'tour_guide') {
+      navigate('/tour-guide-dashboard');
     } else {
       navigate('/account');
     }
