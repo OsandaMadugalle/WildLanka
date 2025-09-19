@@ -362,9 +362,14 @@ const getUserBookings = async (req, res) => {
             .populate('driverId', 'firstName lastName phone role')
             .populate('guideId', 'firstName lastName phone role')
             .sort({ createdAt: -1 });
+        // Add bookingId field for clarity
+        const bookingsWithId = bookings.map(b => ({
+            ...b.toObject(),
+            bookingId: b._id
+        }));
         res.json({ 
             success: true, 
-            bookings: bookings 
+            bookings: bookingsWithId 
         });
     } catch (error) {
         console.log("Get user bookings error:", error);

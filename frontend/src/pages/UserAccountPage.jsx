@@ -1,3 +1,5 @@
+// ...existing code...
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -14,6 +16,13 @@ import { EditProfileModal } from "../components/EditProfileModal";
 import { useTranslation } from "react-i18next";
 
 const UserAccountPage = () => {
+  // Copy booking id helper
+  const [copiedBookingId, setCopiedBookingId] = useState("");
+  const handleCopyBookingId = (id) => {
+    navigator.clipboard.writeText(id);
+    setCopiedBookingId(id);
+    setTimeout(() => setCopiedBookingId(""), 1500);
+  };
   // Show toast helper
   function showToast(message, type = "info") {
     setToast({ message, type });
@@ -604,21 +613,12 @@ const UserAccountPage = () => {
                         <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
                           <thead>
                             <tr className="bg-emerald-700/40 text-white">
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Package
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Dates
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Status
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Total Price
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Actions
-                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">Booking ID</th>
+                              <th className="px-6 py-3 text-left font-abeze">Package</th>
+                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
+                              <th className="px-6 py-3 text-left font-abeze">Status</th>
+                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
+                              <th className="px-6 py-3 text-left font-abeze">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -633,6 +633,16 @@ const UserAccountPage = () => {
                                   key={booking._id}
                                   className="border-b border-gray-700/30"
                                 >
+                                  <td className="px-6 py-4 text-white font-abeze flex items-center gap-2">
+                                    <span>{booking.bookingId || booking._id}</span>
+                                    <button
+                                      onClick={() => handleCopyBookingId(booking.bookingId || booking._id)}
+                                      title="Copy Booking ID"
+                                      className="ml-1 px-2 py-1 rounded bg-gray-700 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-semibold transition-colors duration-200"
+                                    >
+                                      {copiedBookingId === (booking.bookingId || booking._id) ? "Copied!" : "Copy"}
+                                    </button>
+                                  </td>
                                   <td className="px-6 py-4 text-white font-abeze">
                                     {booking.packageDetails?.title || "N/A"}
                                   </td>
@@ -855,21 +865,12 @@ const UserAccountPage = () => {
                         <table className="min-w-full bg-gray-900 rounded-2xl overflow-hidden">
                           <thead>
                             <tr className="bg-emerald-700/40 text-white">
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Package
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Dates
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Status
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Total Price
-                              </th>
-                              <th className="px-6 py-3 text-left font-abeze">
-                                Review
-                              </th>
+                              <th className="px-6 py-3 text-left font-abeze">Booking ID</th>
+                              <th className="px-6 py-3 text-left font-abeze">Package</th>
+                              <th className="px-6 py-3 text-left font-abeze">Dates</th>
+                              <th className="px-6 py-3 text-left font-abeze">Status</th>
+                              <th className="px-6 py-3 text-left font-abeze">Total Price</th>
+                              <th className="px-6 py-3 text-left font-abeze">Review</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -884,6 +885,16 @@ const UserAccountPage = () => {
                                   key={booking._id}
                                   className="border-b border-gray-700/30"
                                 >
+                                  <td className="px-6 py-4 text-white font-abeze flex items-center gap-2">
+                                    <span>{booking.bookingId || booking._id}</span>
+                                    <button
+                                      onClick={() => handleCopyBookingId(booking.bookingId || booking._id)}
+                                      title="Copy Booking ID"
+                                      className="ml-1 px-2 py-1 rounded bg-gray-700 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-semibold transition-colors duration-200"
+                                    >
+                                      {copiedBookingId === (booking.bookingId || booking._id) ? "Copied!" : "Copy"}
+                                    </button>
+                                  </td>
                                   <td className="px-6 py-4 text-white font-abeze">
                                     {booking.packageDetails?.title || "N/A"}
                                   </td>
