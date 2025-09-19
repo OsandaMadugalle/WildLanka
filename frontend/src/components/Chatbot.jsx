@@ -393,14 +393,14 @@ const Chatbot = () => {
               />
             </svg>
           ) : (
-            <span className="text-3xl">🦁</span>
+            <span className="text-3xl">🤖</span>
           )}
         </button>
       </div>
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col chatbot-container">
+        <div className="fixed bottom-20 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col chatbot-container">
           {/* Chat Header */}
           <div className="bg-green-600 text-white p-4 rounded-t-lg">
             <div className="flex items-center justify-between">
