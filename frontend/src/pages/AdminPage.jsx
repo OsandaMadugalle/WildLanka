@@ -121,43 +121,38 @@ const AdminPage = () => {
   };
 
   // Booking status and date filter states
-  const [statusFilter, setStatusFilter] = useState("Ongoing");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [ongoingDateFilter, setOngoingDateFilter] = useState("");
   const [bookingSearch, setBookingSearch] = useState("");
 
-  // Filter bookings by status and date
+  // Filter bookings by status and date (custom options)
   const getFilteredBookings = () => {
     let filtered = bookings;
-    if (
-      [
-        "Pending",
-        "Payment Confirmed",
-        "Confirmed",
-        "In Progress",
-        "Completed",
-        "Cancelled",
-      ].includes(statusFilter)
-    ) {
-      filtered = bookings.filter((b) => b.status === statusFilter);
-      // Only show date filter for 'In Progress' or 'Confirmed' if needed
-      if (
-        (statusFilter === "In Progress" || statusFilter === "Confirmed") &&
-        ongoingDateFilter
-      ) {
-        filtered = filtered.filter((b) => {
-          const startDate = b.bookingDetails?.startDate
-            ? new Date(b.bookingDetails.startDate).toISOString().slice(0, 10)
-            : "";
-          return startDate === ongoingDateFilter;
-        });
+    if (statusFilter !== "All") {
+      if (statusFilter === "Payment Confirmed") {
+        filtered = bookings.filter((b) => b.status === "Payment Confirmed");
+      } else if (statusFilter === "Payment Ongoing") {
+        filtered = bookings.filter((b) => b.status === "Pending" || b.status === "Confirmed");
+      } else if (statusFilter === "In Progress - Tour Still Not Ended") {
+        filtered = bookings.filter((b) => b.status === "In Progress");
+        if (ongoingDateFilter) {
+          filtered = filtered.filter((b) => {
+            const startDate = b.bookingDetails?.startDate
+              ? new Date(b.bookingDetails.startDate).toISOString().slice(0, 10)
+              : "";
+            return startDate === ongoingDateFilter;
+          });
+        }
+      } else if (statusFilter === "Complete") {
+        filtered = bookings.filter((b) => b.status === "Completed");
+      } else if (statusFilter === "Cancelled - Tour Cancelled") {
+        filtered = bookings.filter((b) => b.status === "Cancelled");
       }
     }
     if (bookingSearch.trim()) {
       const searchLower = bookingSearch.trim().toLowerCase();
       filtered = filtered.filter((b) => {
-        const customer = `${b.userId?.firstName || ""} ${
-          b.userId?.lastName || ""
-        }`.toLowerCase();
+        const customer = `${b.userId?.firstName || ""} ${b.userId?.lastName || ""}`.toLowerCase();
         const packageName = (b.packageDetails?.title || "").toLowerCase();
         const bookingId = (b._id || "").toLowerCase();
         return (
@@ -1643,16 +1638,15 @@ The Wildlife Safari Team`);
               className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze"
               title="Filter bookings by status"
             >
-              <option value="Pending">Pending</option>
+              <option value="All">All</option>
               <option value="Payment Confirmed">Payment Confirmed</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="Payment Ongoing">Payment Ongoing</option>
+              <option value="In Progress - Tour Still Not Ended">In Progress - Tour Still Not Ended</option>
+              <option value="Complete">Complete</option>
+              <option value="Cancelled - Tour Cancelled">Cancelled - Tour Cancelled</option>
             </select>
-            {/* Date filter for 'In Progress' and 'Confirmed' */}
-            {(statusFilter === "In Progress" ||
-              statusFilter === "Confirmed") && (
+            {/* Date filter for 'In Progress - Tour Still Not Ended' */}
+            {statusFilter === "In Progress - Tour Still Not Ended" && (
               <input
                 type="date"
                 aria-label="Filter bookings by date"
@@ -2101,9 +2095,8 @@ The Wildlife Safari Team`);
                         : {}
                     }
                   >
-                    <option value="Pending">Pending</option>
                     <option value="Payment Confirmed">Payment Confirmed</option>
-                    <option value="Confirmed">Confirmed</option>
+                    <option value="Payment Pending">Payment Pending</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
