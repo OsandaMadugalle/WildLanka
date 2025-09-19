@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { packageApi, safariRequestApi } from '../services/api';
@@ -9,7 +9,7 @@ import { packageApi, safariRequestApi } from '../services/api';
 const TravelPackagesPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, setRedirectPath, redirectAfterLogin } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('All');
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const TravelPackagesPage = () => {
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
   const loginTriggerRef = useRef(null);
 
-  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure'];
+  const filters = ['All', 'Safari', 'Hiking', 'Photography', 'Birding', 'Adventure', 'Marine'];
 
   useEffect(() => {
     loadPackages();
@@ -173,7 +173,11 @@ const TravelPackagesPage = () => {
           {/* Page Header */}
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-              {t('Safari')} <span className="text-green-400">Packages</span>
+              {(() => {
+                const title = t('packages.title');
+                const [first, ...rest] = title.split(' ');
+                return <>{first} <span className="text-green-400">{rest.join(' ')}</span></>;
+              })()}
             </h1>
             <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
               {t('packages.subtitle')}
@@ -227,7 +231,7 @@ const TravelPackagesPage = () => {
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-105 flex flex-col"
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101"
                 >
                   <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
                     {pkg.image?.url ? (

@@ -282,6 +282,7 @@ export default {
   'packages.subtitle': 'இலங்கையின் மிகவும் தூய்மையான தேசிய பூங்காக்கள் முழுவதும் எங்கள் கவனமாக தேர்ந்தெடுக்கப்பட்ட சஃபாரி பேக்கேஜ்களுடன் சரியான வனவிலங்கு சாகசத்தை கண்டறியுங்கள்.',
   'packages.loginToContinue': 'உங்கள் முன்பதிவை தொடர கடவுச்சொல்லை உள்ளிடவும்',
   'packages.filters.all': 'அனைத்தும்',
+  'packages.filters.marine': 'கடல்',
   'packages.filters.safari': 'சஃபாரி',
   'packages.filters.hiking': 'ஹைக்கிங்',
   'packages.filters.photography': 'புகைப்படக்கலை',

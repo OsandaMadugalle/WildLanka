@@ -8,7 +8,7 @@ const AboutUs = () => {
       name: "Kumara Perera",
       role: "Founder & Wildlife Expert",
       description: "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
-expertise: "Elephant behavior, Hiking trails",
+      expertise: "Elephant behavior, Hiking trails",
       image: "👨‍🦱"
     },
     {

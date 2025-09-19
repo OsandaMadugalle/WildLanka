@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import image4 from "../assets/4.jpg";
@@ -14,15 +14,15 @@ import image11 from "../assets/11.jpg";
 
 const AboutUsPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const teamMembers = [
     {
       name: "Osanda Madugalle",
       role: "Founder & Wildlife Expert",
       description:
         "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
-      expertise: "Elephant behavior, Hiking trails",
-      image: "👨‍🦱",
+      expertise: "Leads the vision, ensures ecological integrity",
+      image: <img src="https://i.ibb.co/xqyj3NWX/auOsanda.png" alt="Osanda Madugalle" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Ikshuka Malhengoda",
@@ -30,23 +30,23 @@ const AboutUsPage = () => {
       description:
         "A PhD in Wildlife Biology, Dr. Silva oversees our research programs and community education initiatives.",
       expertise: "Research & Monitoring, Community Outreach",
-      image: "👩‍🔬",
+      image: <img src="https://i.ibb.co/3ycyzHPb/au-Ikshuka.jpg" alt="Ikshuka Malhengoda" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}} />,
     },
     {
-      name: "Kalana Jayawardana",
-      role: "Safari Guide & Naturalist",
+      name: "Kalana Jayawardhana",
+      role: "Tech & Data Analysts (in digital systems)",
       description:
-        "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
-      expertise: "Bird watching, Photography tours",
-      image: "👨‍🦰",
+        "Specializes in leveraging technology to enhance wildlife research and data collection.",
+      expertise: "Track animal movements, Analyze ecological data",
+      image: <img src="https://i.ibb.co/nqZtC4gt/auKalana.png" alt="Kalana Jayawardhana" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Ravindu Siyambalagoda",
       role: "Safari Guide & Naturalist",
       description:
-        "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
+        "Brings his passion for wildlife and conservation to every safari, ensuring guests have an unforgettable experience.",
       expertise: "Bird watching, Photography tours",
-      image: "👨‍🦰",
+      image: <img src="https://i.ibb.co/JR2jQQnt/au-Ravindu.png" alt="Ravindu Siyambalagoda" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Malinda Sandaruwan",
@@ -54,7 +54,7 @@ const AboutUsPage = () => {
       description:
         "Ensuring every guest has an unforgettable and responsible wildlife experience in Sri Lanka.",
       expertise: "Sustainable tourism, Guest relations",
-      image: "👩‍💼",
+      image: <img src="https://i.ibb.co/5gsGHrDR/au-Malinda.png" alt="Malinda Sandaruwan" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
   ];
 
@@ -131,7 +131,19 @@ const AboutUsPage = () => {
           <div className="relative z-10 flex items-center justify-center h-full">
             <div className="text-center px-2">
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-                {t("About")} <span className="text-green-400">Wild Path</span>
+                {(() => {
+                  const title = t("about.title");
+                  // Try to split on 'Wild Lanka' or 'වයිල්ඩ් ලංකා' for both languages
+                  if (title.includes('Wild Lanka')) {
+                    const [before, after] = title.split('Wild Lanka');
+                    return <>{before}<span className="text-green-400">Wild</span> <span className="text-green-400">Lanka</span>{after}</>;
+                  } else if (title.includes('වයිල්ඩ් ලංකා')) {
+                    const [before, after] = title.split('වයිල්ඩ් ලංකා');
+                    return <>{before}<span className="text-green-400">වයිල්ඩ්</span> <span className="text-green-400">ලංකා</span>{after}</>;
+                  } else {
+                    return title;
+                  }
+                })()}
               </h1>
               <p className="text-gray-200 text-base sm:text-lg font-abeze max-w-xl md:max-w-3xl mx-auto px-2">
                 {t("about.subtitle")}
@@ -172,7 +184,7 @@ const AboutUsPage = () => {
           {/* Image Gallery Section */}
           <div className="mb-12 md:mb-20">
             <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
-              Our <span className="text-green-400">Wildlife Gallery</span>
+              {t("about.gallery.title")}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
               {galleryImages.map((image, index) => (

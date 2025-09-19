@@ -1,11 +1,11 @@
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { reviewApi } from '../services/api';
 import React, { useEffect, useState } from 'react';
 
 const ReviewsPage = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');

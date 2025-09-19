@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
 const BookingCancelledPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">

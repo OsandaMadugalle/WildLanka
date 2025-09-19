@@ -18,7 +18,7 @@ const GoToTopButton = () => {
   return (
     <button
       onClick={handleClick}
-  className={`fixed bottom-8 right-24 z-50 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`fixed bottom-6 left-6 z-50 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       aria-label="Go to top"
     >
       ↑

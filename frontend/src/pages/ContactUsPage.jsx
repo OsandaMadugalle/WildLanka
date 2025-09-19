@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { contactMessageApi } from "../services/api";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
 const ContactUsPage = () => {
   const { isAuthenticated, user } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const loginTriggerRef = useRef(null);
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -80,81 +80,81 @@ const ContactUsPage = () => {
           // Safari Locations
           {
             coords: [6.3619, 81.5206],
-            title: "Yala National Park",
+            title: t('destinations.yala'),
             category: "safari",
-            desc: "Big cats and diverse wildlife",
+            desc: t('destinations.yalaDesc') || "Big cats and diverse wildlife",
           },
           {
             coords: [8.4871, 80.1069],
-            title: "Wilpattu National Park",
+            title: t('destinations.wilpattu'),
             category: "safari",
-            desc: "Largest national park",
+            desc: t('destinations.wilpattuDesc') || "Largest national park",
           },
           {
             coords: [8.0393, 80.8203],
-            title: "Minneriya National Park",
+            title: t('destinations.minneriya'),
             category: "safari",
-            desc: "Elephant gathering",
+            desc: t('destinations.minneriyaDesc') || "Elephant gathering",
           },
           {
             coords: [6.5833, 81.6833],
-            title: "Kumana National Park",
+            title: t('destinations.kumana'),
             category: "safari",
-            desc: "Bird sanctuary and wildlife",
+            desc: t('destinations.kumanaDesc') || "Bird sanctuary and wildlife",
           },
 
           // Water Adventure Locations
           {
             coords: [6.9833, 80.4167],
-            title: "Kithulgala Water Rafting",
+            title: t('destinations.kithulgalaRafting'),
             category: "water-adventure",
-            desc: "White water rafting on Kelani River",
+            desc: t('destinations.kithulgalaRaftingDesc') || "White water rafting on Kelani River",
           },
           {
             coords: [6.85, 80.55],
-            title: "Lakshapana Bungee Jumping",
+            title: t('destinations.lakshapanaBungee'),
             category: "adventure",
-            desc: "Thrilling bungee jumping experience",
+            desc: t('destinations.lakshapanaBungeeDesc') || "Thrilling bungee jumping experience",
           },
           {
             coords: [6.3667, 80.0167],
-            title: "Madu Ganga",
+            title: t('destinations.maduGangaBoat'),
             category: "water-adventure",
-            desc: "Mangrove ecosystem and boat tours",
+            desc: t('destinations.maduGangaBoatDesc') || "Mangrove ecosystem and boat tours",
           },
 
           // Hiking Locations
           {
             coords: [7.4653, 80.7782],
-            title: "Knuckles Mountain Range",
+            title: t('destinations.knuckles'),
             category: "hiking",
-            desc: "Scenic trails",
+            desc: t('destinations.knucklesDesc') || "Scenic trails",
           },
           {
             coords: [6.8667, 81.0465],
-            title: "Ella",
+            title: t('destinations.ella'),
             category: "hiking",
-            desc: "Little Adam's Peak & Nine Arches",
+            desc: t('destinations.ellaDesc') || "Little Adam's Peak & Nine Arches",
           },
           {
             coords: [6.8097, 80.499],
-            title: "Adam's Peak (Sri Pada)",
+            title: t('destinations.adamsPeak'),
             category: "hiking",
-            desc: "Sunrise pilgrimage hike",
+            desc: t('destinations.adamsPeakDesc') || "Sunrise pilgrimage hike",
           },
           {
             coords: [6.802, 80.7998],
-            title: "Horton Plains National Park",
+            title: t('destinations.hortonPlains'),
             category: "hiking",
-            desc: "World's End",
+            desc: t('destinations.hortonPlainsDesc') || "World's End",
           },
 
           // Other Adventure Locations
           {
             coords: [6.4108, 80.458],
-            title: "Sinharaja Forest Reserve",
+            title: t('destinations.sinharaja'),
             category: "adventure",
-            desc: "Rainforest biodiversity hotspot",
+            desc: t('destinations.sinharajaDesc') || "Rainforest biodiversity hotspot",
           },
         ];
 
@@ -313,7 +313,7 @@ const ContactUsPage = () => {
         <div className="container mx-auto px-2 sm:px-4 md:px-6">
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-              Contact <span className="text-green-400">Us</span>
+              {t("contact.title")}
             </h1>
             <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
               {t("contact.subtitle")}
@@ -638,7 +638,7 @@ const ContactUsPage = () => {
 
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
                 <h4 className="text-xl font-abeze font-bold text-white mb-4">
-                  Follow Us
+                  {t("contact.followUs")}
                 </h4>
                 <div className="flex space-x-4">
                   {/* Instagram */}
@@ -710,8 +710,7 @@ const ContactUsPage = () => {
                   </a>
                 </div>
                 <p className="text-gray-400 font-abeze text-sm mt-3">
-                  Follow us for wildlife updates, safari photos, and adventure
-                  stories!
+                  {t("contact.followUsDesc")}
                 </p>
               </div>
             </div>
@@ -720,8 +719,7 @@ const ContactUsPage = () => {
           {/* Location Categories Section */}
           <div className="mb-16">
             <h3 className="text-3xl font-abeze font-bold text-white text-center mb-12">
-              Our <span className="text-green-400">Destinations</span> by
-              Category
+              {t('destinations.byCategory')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {/* Safari Parks */}
@@ -743,22 +741,14 @@ const ContactUsPage = () => {
                     </svg>
                   </div>
                   <h4 className="text-xl font-abeze font-bold text-white">
-                    Safari Parks
+                    {t('destinations.safariParks')}
                   </h4>
                 </div>
                 <ul className="space-y-2">
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Yala National Park
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Wilpattu National Park
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Minneriya National Park
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Kumana National Park
-                  </li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.yala')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.wilpattu')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.minneriya')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.kumana')}</li>
                 </ul>
               </div>
 
@@ -775,22 +765,18 @@ const ContactUsPage = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth="2"
                         d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
                       />
                     </svg>
                   </div>
                   <h4 className="text-xl font-abeze font-bold text-white">
-                    Water Adventure
+                    {t('destinations.waterAdventure')}
                   </h4>
                 </div>
                 <ul className="space-y-2">
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Kithulgala Water Rafting
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Madu Ganga Boat Tours
-                  </li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.kithulgalaRafting')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.maduGangaBoat')}</li>
                 </ul>
               </div>
 
@@ -807,28 +793,20 @@ const ContactUsPage = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth="2"
                         d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
                       />
                     </svg>
                   </div>
                   <h4 className="text-xl font-abeze font-bold text-white">
-                    Hiking Trails
+                    {t('destinations.hikingTrails')}
                   </h4>
                 </div>
                 <ul className="space-y-2">
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Knuckles Mountain Range
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Ella (Little Adam's Peak)
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Adam's Peak (Sri Pada)
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Horton Plains
-                  </li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.knuckles')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.ella')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.adamsPeak')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.hortonPlains')}</li>
                 </ul>
               </div>
 
@@ -845,22 +823,18 @@ const ContactUsPage = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth="2"
                         d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
                   <h4 className="text-xl font-abeze font-bold text-white">
-                    Adventure Sports
+                    {t('destinations.adventureSports')}
                   </h4>
                 </div>
                 <ul className="space-y-2">
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Lakshapana Bungee Jumping
-                  </li>
-                  <li className="text-gray-300 font-abeze text-sm">
-                    • Sinharaja Forest Reserve
-                  </li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.lakshapanaBungee')}</li>
+                  <li className="text-gray-300 font-abeze text-sm">• {t('destinations.sinharaja')}</li>
                 </ul>
               </div>
             </div>
@@ -875,31 +849,31 @@ const ContactUsPage = () => {
               {/* Map Legend */}
               <div className="mb-4 sm:mb-6 p-2 sm:p-4 bg-gray-800/50 rounded-lg border border-white/10">
                 <h4 className="text-base sm:text-lg font-abeze font-bold text-white mb-2 sm:mb-4 text-center">
-                  Location Categories
+                  {t('destinations.byCategory')}
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-green-500"></div>
                     <span className="text-white font-abeze text-sm">
-                      Safari Parks
+                      {t('destinations.safariParks')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-blue-500"></div>
                     <span className="text-white font-abeze text-sm">
-                      Water Adventure
+                      {t('destinations.waterAdventure')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-purple-500"></div>
                     <span className="text-white font-abeze text-sm">
-                      Hiking Trails
+                      {t('destinations.hikingTrails')}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
                     <span className="text-white font-abeze text-sm">
-                      Adventure Sports
+                      {t('destinations.adventureSports')}
                     </span>
                   </div>
                 </div>
@@ -926,7 +900,18 @@ const ContactUsPage = () => {
 
           <div className="mb-10 md:mb-16">
             <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
-              {t("contact.faq.title")} <span className="text-green-400">Questions</span>
+              {(() => {
+                const title = t("contact.title");
+                if (title.endsWith('Us')) {
+                  const [before, after] = title.split('Us');
+                  return <>{before}<span className="text-green-400">Us</span>{after}</>;
+                } else if (title.endsWith('වන්න')) {
+                  const [before, after] = title.split('වන්න');
+                  return <>{before}<span className="text-green-400">වන්න</span>{after}</>;
+                } else {
+                  return title;
+                }
+              })()}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {faqs.map((faq, index) => (

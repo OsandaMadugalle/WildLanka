@@ -2,12 +2,12 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const EditProfileModal = ({ onClose, user }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   
   // Country to phone code mapping with max digits
   const countryPhoneCodes = {

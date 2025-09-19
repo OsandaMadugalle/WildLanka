@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const TravelPackages = () => {
   const navigate = useNavigate();
   const { isAuthenticated, setRedirectPath } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDuration, setSelectedDuration] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');

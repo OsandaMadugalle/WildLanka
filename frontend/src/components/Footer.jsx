@@ -1,35 +1,49 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import logo from '../assets/logo.png';
 
 const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const navigateToHome = () => {
-    navigate('/');
+  navigate('/');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToTravelPackages = () => {
-    navigate('/travel-packages');
+  navigate('/travel-packages');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToContact = () => {
-    navigate('/contact');
+  navigate('/contact');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToAbout = () => {
-    navigate('/about');
+  navigate('/about');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToGallery = () => {
-    navigate('/gallery');
+  navigate('/gallery');
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
   };
 
   const navigateToPrivacyPolicy = () => {
     navigate('/privacy-policy');
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, 100);
   };
 
   const navigateToTermsOfService = () => {
@@ -41,28 +55,27 @@ const Footer = () => {
   };
 
   const handleWildlifeAwareness = () => {
-    // If we're on the homepage, scroll to awareness section
+    // Scroll to awareness section on home, or navigate then scroll
     if (location.pathname === '/') {
       const element = document.getElementById('awareness');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      // If we're on another page, navigate to homepage first, then scroll
       navigate('/');
       setTimeout(() => {
         const element = document.getElementById('awareness');
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100);
+      }, 300);
     }
   };
 
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-white relative z-10">
+  <footer className="bg-gray-800 text-white border-t border-green-800 shadow-inner relative z-10">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Company Info */}
@@ -149,6 +162,14 @@ const Footer = () => {
                   {t('footer.links.contact')}
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => navigate('/faq')}
+                  className="text-gray-300 hover:text-green-400 transition-colors font-abeze text-sm cursor-pointer"
+                >
+                  {t('nav.faq') || 'FAQ'}
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -191,7 +212,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-gray-800 mt-12 pt-8 pb-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 font-abeze text-sm mb-4 md:mb-0">
               © {currentYear} WildLanka. All rights reserved.
