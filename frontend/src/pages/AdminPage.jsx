@@ -2097,9 +2097,9 @@ The Wildlife Safari Team`);
                   >
                     <option value="Payment Confirmed">Payment Confirmed</option>
                     <option value="Payment Pending">Payment Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="In Progress">Tour In Progress</option>
+                    <option value="Completed">Completed Tours</option>
+                    <option value="Cancelled">Cancelled Tours</option>
                   </select>
                   {booking.status === "Cancelled" && (
                     <span className="ml-2 text-red-500 font-abeze text-sm">
