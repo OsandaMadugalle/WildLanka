@@ -22,7 +22,7 @@ const AboutUsPage = () => {
       description:
         "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
       expertise: "Leads the vision, ensures ecological integrity",
-      image: <img src="https://i.ibb.co/xqyj3NWX/auOsanda.png" alt="Osanda Madugalle" className="w-50 h-50 rounded-full object-contain mx-auto" style={{backgroundColor: '#53AF53'}}/>,
+      image: <img src="https://i.ibb.co/xqyj3NWX/auOsanda.png" alt="Osanda Madugalle" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Ikshuka Malhengoda",
@@ -30,7 +30,7 @@ const AboutUsPage = () => {
       description:
         "A PhD in Wildlife Biology, Dr. Silva oversees our research programs and community education initiatives.",
       expertise: "Research & Monitoring, Community Outreach",
-      image: <img src="https://i.ibb.co/3ycyzHPb/au-Ikshuka.jpg" alt="Ikshuka Malhengoda" className="w-50 h-50 rounded-full object-contain mx-auto" style={{backgroundColor: '#53AF53'}} />,
+      image: <img src="https://i.ibb.co/3ycyzHPb/au-Ikshuka.jpg" alt="Ikshuka Malhengoda" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}} />,
     },
     {
       name: "Kalana Jayawardhana",
@@ -38,7 +38,7 @@ const AboutUsPage = () => {
       description:
         "Specializes in leveraging technology to enhance wildlife research and data collection.",
       expertise: "Track animal movements, Analyze ecological data",
-      image: <img src="https://i.ibb.co/nqZtC4gt/auKalana.png" alt="Kalana Jayawardhana" className="w-50 h-50 rounded-full object-contain mx-auto" style={{backgroundColor: '#53AF53'}}/>,
+      image: <img src="https://i.ibb.co/nqZtC4gt/auKalana.png" alt="Kalana Jayawardhana" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Ravindu Siyambalagoda",
@@ -46,7 +46,7 @@ const AboutUsPage = () => {
       description:
         "Brings his passion for wildlife and conservation to every safari, ensuring guests have an unforgettable experience.",
       expertise: "Bird watching, Photography tours",
-      image: <img src="https://i.ibb.co/JR2jQQnt/au-Ravindu.png" alt="Ravindu Siyambalagoda" className="w-50 h-50 rounded-full object-contain mx-auto" style={{backgroundColor: '#53AF53'}}/>,
+      image: <img src="https://i.ibb.co/JR2jQQnt/au-Ravindu.png" alt="Ravindu Siyambalagoda" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
     {
       name: "Malinda Sandaruwan",
@@ -54,7 +54,7 @@ const AboutUsPage = () => {
       description:
         "Ensuring every guest has an unforgettable and responsible wildlife experience in Sri Lanka.",
       expertise: "Sustainable tourism, Guest relations",
-      image: <img src="https://i.ibb.co/5gsGHrDR/au-Malinda.png" alt="Malinda Sandaruwan" className="w-50 h-50 rounded-full object-contain mx-auto" style={{backgroundColor: '#53AF53'}}/>,
+      image: <img src="https://i.ibb.co/5gsGHrDR/au-Malinda.png" alt="Malinda Sandaruwan" className="w-70 h-70 rounded-full object-cover mx-auto" style={{backgroundColor: '#53AF53'}}/>,
     },
   ];
 
