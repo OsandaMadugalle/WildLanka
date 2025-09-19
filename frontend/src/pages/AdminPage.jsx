@@ -28,6 +28,15 @@ import AdminGalleryManager from "../components/AdminGalleryManager";
 
 const AdminPage = () => {
   // Utility to convert bookings to CSV and trigger download
+  const [expandedBookings, setExpandedBookings] = useState([]);
+  const [copiedBookingId, setCopiedBookingId] = useState(null);
+  const toggleBookingExpand = (id) => {
+    setExpandedBookings((prev) =>
+      prev.includes(id)
+        ? prev.filter((bid) => bid !== id)
+        : [...prev, id]
+    );
+  };
   const downloadBookingsCSV = (bookings) => {
     if (!Array.isArray(bookings) || bookings.length === 0) {
       alert('No bookings to export.');
@@ -1024,7 +1033,6 @@ The Wildlife Safari Team`);
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
         >
           <svg
-            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -1468,7 +1476,7 @@ The Wildlife Safari Team`);
   );
 
   const renderBookings = () => (
-    <div className="space-y-6">
+  <div className="space-y-6">
       {/* Enhanced Header with Stats */}
       <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
@@ -1749,79 +1757,19 @@ The Wildlife Safari Team`);
         </div>
       ) : (
         <div className="space-y-4">
-          {getSortedBookings(getFilteredBookings()).map((booking) => (
-            <div
-              key={booking._id}
-              className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300"
-            >
-              {/* Booking Header */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 space-y-3 lg:space-y-0">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-abeze font-bold text-white">
-                      Booking #{booking._id.slice(-6).toUpperCase()}
-                    </h4>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      <span className="font-semibold text-white">Booking ID:</span> {booking._id}
-                    </p>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      Created on {new Date(booking.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ${
-                      booking.status === "Payment Confirmed"
-                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : booking.status === "Confirmed"
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                        : booking.status === "In Progress"
-                        ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                        : booking.status === "Completed"
-                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                        : booking.status === "Cancelled"
-                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                        : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ${
-                      booking.payment
-                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
-                  >
-                    {booking.payment ? "Paid" : "Payment Pending"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Booking Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                {/* Customer Information */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+          {getSortedBookings(getFilteredBookings()).map((booking) => {
+            const expanded = expandedBookings.includes(booking._id);
+            return (
+              <div
+                key={booking._id}
+                className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 hover:bg-white/15 transition-all duration-300"
+              >
+                {/* Booking Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 space-y-3 lg:space-y-0">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                       <svg
-                        className="w-4 h-4 text-blue-400"
+                        className="w-6 h-6 text-white"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1830,288 +1778,370 @@ The Wildlife Safari Team`);
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                         />
                       </svg>
                     </div>
-                    <h5 className="font-abeze font-semibold text-white">
-                      Customer
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-white font-abeze font-medium">
-                      {booking.userId?.firstName} {booking.userId?.lastName}
-                    </p>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      {booking.userId?.email}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Package Information */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-green-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
-                    </div>
-                    <h5 className="font-abeze font-semibold text-white">
-                      Package
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-white font-abeze font-medium">
-                      {booking.packageDetails?.title}
-                    </p>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      {booking.packageDetails?.location}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Trip Details */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-yellow-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <h5 className="font-abeze font-semibold text-white">
-                      Trip Details
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-white font-abeze text-sm">
-                      <span className="text-gray-400">Start:</span>{" "}
-                      {new Date(
-                        booking.bookingDetails?.startDate
-                      ).toLocaleDateString()}
-                    </p>
-                    <p className="text-white font-abeze text-sm">
-                      <span className="text-gray-400">End:</span>{" "}
-                      {new Date(
-                        booking.bookingDetails?.endDate
-                      ).toLocaleDateString()}
-                    </p>
-                    <p className="text-white font-abeze text-sm">
-                      <span className="text-gray-400">People:</span>{" "}
-                      {booking.bookingDetails?.numberOfPeople}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Financial Information */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-purple-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2-2h-2a2 2 0 012-2"
-                        />
-                      </svg>
-                    </div>
-                    <h5 className="font-abeze font-semibold text-white">
-                      Payment
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-white font-abeze font-bold text-lg">
-                      LKR {booking.totalPrice?.toLocaleString()}
-                    </p>
-                    <p className="text-gray-400 font-abeze text-sm">
-                      Total Amount
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Staff Assignment Section */}
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 mb-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 text-indigo-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                  </div>
-                  <h5 className="font-abeze font-semibold text-white">
-                    Staff Assignment
-                  </h5>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Driver Assignment */}
-                  <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-400 text-lg">🚗</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white font-abeze font-medium">
-                        Driver
+                    <div>
+                      <h4 className="text-lg font-abeze font-bold text-white">
+                        Booking #{booking._id.slice(-6).toUpperCase()}
+                      </h4>
+                      <p className="text-gray-400 font-abeze text-sm">
+                        <span className="font-semibold text-white">Booking ID:</span> {booking._id}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(booking._id);
+                            setCopiedBookingId(booking._id);
+                            setTimeout(() => setCopiedBookingId(null), 1500);
+                          }}
+                          title="Copy Booking ID"
+                          className="ml-2 px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-abeze border border-gray-500 transition-colors"
+                          style={{ verticalAlign: 'middle' }}
+                        >
+                          Copy
+                        </button>
+                        {copiedBookingId === booking._id && (
+                          <span className="ml-2 text-green-400 text-xs font-abeze">Copied!</span>
+                        )}
                       </p>
-                      {booking.driverId ? (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white font-abeze text-sm">
-                            {booking.driverId?.firstName}{" "}
-                            {booking.driverId?.lastName}
-                          </span>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                              booking.driverAccepted
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-yellow-500/20 text-yellow-400"
-                            }`}
-                          >
-                            {booking.driverAccepted ? "Accepted" : "Pending"}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 font-abeze text-sm">
-                          Not assigned
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Tour Guide Assignment */}
-                  <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg">
-                    <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                      <span className="text-green-400 text-lg">👨‍💼</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white font-abeze font-medium">
-                        Tour Guide
+                      <p className="text-gray-400 font-abeze text-sm">
+                        Created on {new Date(booking.createdAt).toLocaleDateString()}
                       </p>
-                      {booking.guideId ? (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white font-abeze text-sm">
-                            {booking.guideId?.firstName}{" "}
-                            {booking.guideId?.lastName}
-                          </span>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                              booking.guideAccepted
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-yellow-500/20 text-yellow-400"
-                            }`}
-                          >
-                            {booking.guideAccepted ? "Accepted" : "Pending"}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 font-abeze text-sm">
-                          Not assigned
-                        </span>
-                      )}
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Actions Section */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
-                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ${
+                        booking.status === "Payment Confirmed"
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : booking.status === "Confirmed"
+                          ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                          : booking.status === "In Progress"
+                          ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                          : booking.status === "Completed"
+                          ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                          : booking.status === "Cancelled"
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-gray-500/20 text-gray-400 border border-gray-500/30"
+                      }`}
+                    >
+                      {booking.status}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-abeze font-medium ${
+                        booking.payment
+                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : "bg-red-500/20 text-red-400 border border-red-500/30"
+                      }`}
+                    >
+                      {booking.payment ? "Paid" : "Payment Pending"}
+                    </span>
+                  </div>
                   <button
-                    onClick={() => handleAssignStaff(booking)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
-                    disabled={booking.status === "Cancelled"}
-                    style={
-                      booking.status === "Cancelled"
-                        ? { opacity: 0.5, cursor: "not-allowed" }
-                        : {}
-                    }
+                    onClick={() => toggleBookingExpand(booking._id)}
+                    className="ml-4 px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded text-xs font-abeze border border-gray-500 transition-colors"
+                    style={{ alignSelf: 'flex-start' }}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    <span>Assign Staff</span>
+                    {expanded ? 'Hide Details' : 'Show Details'}
                   </button>
-                  {booking.status === "Cancelled" && (
-                    <span className="ml-2 text-red-500 font-abeze text-sm">
-                      Cannot assign staff to a cancelled booking.
-                    </span>
-                  )}
                 </div>
-                <div className="flex items-center space-x-3">
-                  <label className="text-white font-abeze text-sm">
-                    Update Status:
-                  </label>
-                  <select
-                    value={booking.status}
-                    onChange={(e) =>
-                      handleStatusSelectChange(booking._id, e.target.value)
-                    }
-                    className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={booking.status === "Cancelled"}
-                    style={
-                      booking.status === "Cancelled"
-                        ? { opacity: 0.5, cursor: "not-allowed" }
-                        : {}
-                    }
-                  >
-                    <option value="Payment Confirmed">Payment Confirmed</option>
-                    <option value="Payment Pending">Payment Pending</option>
-                    <option value="In Progress">Tour In Progress</option>
-                    <option value="Completed">Completed Tours</option>
-                    <option value="Cancelled">Cancelled Tours</option>
-                  </select>
-                  {booking.status === "Cancelled" && (
-                    <span className="ml-2 text-red-500 font-abeze text-sm">
-                      Cannot update status of a cancelled booking.
-                    </span>
-                  )}
-                </div>
+                {expanded && (
+                  <>
+                  {/* Booking Details Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    {/* Customer Information */}
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-blue-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                        </div>
+                        <h5 className="font-abeze font-semibold text-white">
+                          Customer
+                        </h5>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white font-abeze font-medium">
+                          {booking.userId?.firstName} {booking.userId?.lastName}
+                        </p>
+                        <p className="text-gray-400 font-abeze text-sm">
+                          {booking.userId?.email}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Package Information */}
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-green-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                        </div>
+                        <h5 className="font-abeze font-semibold text-white">
+                          Package
+                        </h5>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white font-abeze font-medium">
+                          {booking.packageDetails?.title}
+                        </p>
+                        <p className="text-gray-400 font-abeze text-sm">
+                          {booking.packageDetails?.location}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Trip Details */}
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-yellow-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <h5 className="font-abeze font-semibold text-white">
+                          Trip Details
+                        </h5>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white font-abeze text-sm">
+                          <span className="text-gray-400">Start:</span>{" "}
+                          {new Date(
+                            booking.bookingDetails?.startDate
+                          ).toLocaleDateString()}
+                        </p>
+                        <p className="text-white font-abeze text-sm">
+                          <span className="text-gray-400">End:</span>{" "}
+                          {new Date(
+                            booking.bookingDetails?.endDate
+                          ).toLocaleDateString()}
+                        </p>
+                        <p className="text-white font-abeze text-sm">
+                          <span className="text-gray-400">People:</span>{" "}
+                          {booking.bookingDetails?.numberOfPeople}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Financial Information */}
+                    <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                          <svg
+                            className="w-4 h-4 text-purple-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2-2h-2a2 2 0 012-2"
+                            />
+                          </svg>
+                        </div>
+                        <h5 className="font-abeze font-semibold text-white">
+                          Payment
+                        </h5>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-white font-abeze font-bold text-lg">
+                          LKR {booking.totalPrice?.toLocaleString()}
+                        </p>
+                        <p className="text-gray-400 font-abeze text-sm">
+                          Total Amount
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Staff Assignment Section */}
+                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 mb-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-indigo-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h5 className="font-abeze font-semibold text-white">
+                        Staff Assignment
+                      </h5>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Driver Assignment */}
+                      <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg">
+                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                          <span className="text-blue-400 text-lg">🚗</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-abeze font-medium">
+                            Driver
+                          </p>
+                          {booking.driverId ? (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-white font-abeze text-sm">
+                                {booking.driverId?.firstName}{" "}
+                                {booking.driverId?.lastName}
+                              </span>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-abeze ${
+                                  booking.driverAccepted
+                                    ? "bg-green-500/20 text-green-400"
+                                    : "bg-yellow-500/20 text-yellow-400"
+                                }`}
+                              >
+                                {booking.driverAccepted ? "Accepted" : "Pending"}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 font-abeze text-sm">
+                              Not assigned
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Tour Guide Assignment */}
+                      <div className="flex items-center space-x-3 p-3 bg-gray-700/50 rounded-lg">
+                        <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                          <span className="text-green-400 text-lg">👨‍💼</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-abeze font-medium">
+                            Tour Guide
+                          </p>
+                          {booking.guideId ? (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-white font-abeze text-sm">
+                                {booking.guideId?.firstName}{" "}
+                                {booking.guideId?.lastName}
+                              </span>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-abeze ${
+                                  booking.guideAccepted
+                                    ? "bg-green-500/20 text-green-400"
+                                    : "bg-yellow-500/20 text-yellow-400"
+                                }`}
+                              >
+                                {booking.guideAccepted ? "Accepted" : "Pending"}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 font-abeze text-sm">
+                              Not assigned
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Actions Section */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => handleAssignStaff(booking)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
+                        disabled={booking.status === "Cancelled"}
+                        style={
+                          booking.status === "Cancelled"
+                            ? { opacity: 0.5, cursor: "not-allowed" }
+                            : {}
+                        }
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                          />
+                        </svg>
+                        <span>Assign Staff</span>
+                      </button>
+                      {booking.status === "Cancelled" && (
+                        <span className="ml-2 text-red-500 font-abeze text-sm">
+                          Cannot assign staff to a cancelled booking.
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <label className="text-white font-abeze text-sm">
+                        Update Status:
+                      </label>
+                      <select
+                        value={booking.status}
+                        onChange={(e) =>
+                          handleStatusSelectChange(booking._id, e.target.value)
+                        }
+                        className="bg-gray-800 border border-gray-600 text-white text-sm rounded-lg px-3 py-2 font-abeze focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        disabled={booking.status === "Cancelled"}
+                        style={
+                          booking.status === "Cancelled"
+                            ? { opacity: 0.5, cursor: "not-allowed" }
+                            : {}
+                        }
+                      >
+                        <option value="Payment Confirmed">Payment Confirmed</option>
+                        <option value="Payment Pending">Payment Pending</option>
+                        <option value="In Progress">Tour In Progress</option>
+                        <option value="Completed">Completed Tours</option>
+                        <option value="Cancelled">Cancelled Tours</option>
+                      </select>
+                      {booking.status === "Cancelled" && (
+                        <span className="ml-2 text-red-500 font-abeze text-sm">
+                          Cannot update status of a cancelled booking.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  </>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -3414,6 +3444,6 @@ The Wildlife Safari Team`);
       )}
     </div>
   );
-};
+}
 
 export default AdminPage;
