@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { packageApi, safariRequestApi } from '../services/api';
@@ -9,7 +9,7 @@ import { packageApi, safariRequestApi } from '../services/api';
 const TravelPackagesPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, setRedirectPath, redirectAfterLogin } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [activeFilter, setActiveFilter] = useState('All');
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);

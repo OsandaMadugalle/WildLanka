@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import image4 from "../assets/4.jpg";
@@ -14,7 +14,7 @@ import image11 from "../assets/11.jpg";
 
 const AboutUsPage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const teamMembers = [
     {
       name: "Osanda Madugalle",

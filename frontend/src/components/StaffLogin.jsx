@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const StaffLogin = ({ onClose, onSwitchToRegularLogin }) => {
   const navigate = useNavigate();
   const { staffLogin } = useAuth();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''

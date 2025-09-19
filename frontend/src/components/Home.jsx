@@ -1,9 +1,9 @@
 import React from 'react';
-import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import BackgroundSlideshow from './BackgroundSlideshow';
 
 const Home = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   
   return (
     <BackgroundSlideshow>
