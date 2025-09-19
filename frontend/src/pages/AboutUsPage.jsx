@@ -21,7 +21,7 @@ const AboutUsPage = () => {
       role: "Founder & Wildlife Expert",
       description:
         "With over 15 years of experience in wildlife hiking, Kumara leads our mission to explore Sri Lanka's natural heritage.",
-      expertise: "Elephant behavior, Hiking trails",
+  expertise: `${t('about.expertise.elephantBehavior')}, ${t('destinations.hikingTrails')}`,
       image: "👨‍🦱",
     },
     {
@@ -36,7 +36,7 @@ const AboutUsPage = () => {
       name: "Kalana Jayawardana",
       role: "Safari Guide & Naturalist",
       description:
-        "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
+  `${t('about.bio.yala')}`,
       expertise: "Bird watching, Photography tours",
       image: "👨‍🦰",
     },
@@ -44,7 +44,7 @@ const AboutUsPage = () => {
       name: "Ravindu Siyambalagoda",
       role: "Safari Guide & Naturalist",
       description:
-        "Born and raised near Yala National Park, Ravi has an intimate knowledge of Sri Lanka's wildlife and ecosystems.",
+  `${t('about.bio.yala')}`,
       expertise: "Bird watching, Photography tours",
       image: "👨‍🦰",
     },
@@ -131,7 +131,19 @@ const AboutUsPage = () => {
           <div className="relative z-10 flex items-center justify-center h-full">
             <div className="text-center px-2">
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-                {t("About")} <span className="text-green-400">Wild Path</span>
+                {(() => {
+                  const title = t("about.title");
+                  // Try to split on 'Wild Lanka' or 'වයිල්ඩ් ලංකා' for both languages
+                  if (title.includes('Wild Lanka')) {
+                    const [before, after] = title.split('Wild Lanka');
+                    return <>{before}<span className="text-green-400">Wild</span> <span className="text-green-400">Lanka</span>{after}</>;
+                  } else if (title.includes('වයිල්ඩ් ලංකා')) {
+                    const [before, after] = title.split('වයිල්ඩ් ලංකා');
+                    return <>{before}<span className="text-green-400">වයිල්ඩ්</span> <span className="text-green-400">ලංකා</span>{after}</>;
+                  } else {
+                    return title;
+                  }
+                })()}
               </h1>
               <p className="text-gray-200 text-base sm:text-lg font-abeze max-w-xl md:max-w-3xl mx-auto px-2">
                 {t("about.subtitle")}
@@ -172,7 +184,7 @@ const AboutUsPage = () => {
           {/* Image Gallery Section */}
           <div className="mb-12 md:mb-20">
             <h3 className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-white text-center mb-6 md:mb-12">
-              Our <span className="text-green-400">Wildlife Gallery</span>
+              {t("about.gallery.title")}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
               {galleryImages.map((image, index) => (
