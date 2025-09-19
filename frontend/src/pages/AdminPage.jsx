@@ -131,9 +131,9 @@ const AdminPage = () => {
     if (statusFilter !== "All") {
       if (statusFilter === "Payment Confirmed") {
         filtered = bookings.filter((b) => b.status === "Payment Confirmed");
-      } else if (statusFilter === "Payment Ongoing") {
-        filtered = bookings.filter((b) => b.status === "Pending" || b.status === "Confirmed");
-      } else if (statusFilter === "In Progress - Tour Still Not Ended") {
+      } else if (statusFilter === "Payment Pending") {
+        filtered = bookings.filter((b) => b.status === "Pending");
+      } else if (statusFilter === "In Progress") {
         filtered = bookings.filter((b) => b.status === "In Progress");
         if (ongoingDateFilter) {
           filtered = filtered.filter((b) => {
@@ -143,9 +143,9 @@ const AdminPage = () => {
             return startDate === ongoingDateFilter;
           });
         }
-      } else if (statusFilter === "Complete") {
+      } else if (statusFilter === "Completed") {
         filtered = bookings.filter((b) => b.status === "Completed");
-      } else if (statusFilter === "Cancelled - Tour Cancelled") {
+      } else if (statusFilter === "Cancelled") {
         filtered = bookings.filter((b) => b.status === "Cancelled");
       }
     }
@@ -1640,10 +1640,10 @@ The Wildlife Safari Team`);
             >
               <option value="All">All</option>
               <option value="Payment Confirmed">Payment Confirmed</option>
-              <option value="Payment Ongoing">Payment Ongoing</option>
-              <option value="In Progress - Tour Still Not Ended">In Progress - Tour Still Not Ended</option>
-              <option value="Complete">Complete</option>
-              <option value="Cancelled - Tour Cancelled">Cancelled - Tour Cancelled</option>
+              <option value="Payment Pending">Payment Pending</option>
+              <option value="In Progress">Tour In Progress</option>
+              <option value="Completed">Completed Tours</option>
+              <option value="Cancelled">Cancelled Tours</option>
             </select>
             {/* Date filter for 'In Progress - Tour Still Not Ended' */}
             {statusFilter === "In Progress - Tour Still Not Ended" && (
