@@ -1,3 +1,17 @@
+// List only approved images for public gallery
+export const listApprovedImagesPublic = async (req, res) => {
+  try {
+    let images;
+    try {
+      images = await Gallery.find({ status: 'approved' }).populate({ path: 'user', select: 'name email', strictPopulate: false });
+    } catch (popErr) {
+      images = await Gallery.find({ status: 'approved' });
+    }
+    res.json({ success: true, images });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 // ...existing code...
 // List images for a specific user (approved/rejected)
 export const listUserImages = async (req, res) => {
@@ -53,13 +67,16 @@ export const uploadImage = async (req, res) => {
         console.error('[Gallery] ImgBB upload failed:', err);
         return res.status(500).json({ success: false, error: 'Image upload failed: ' + err.message });
       }
+      // Calculate commission as 5% of price (if price is set)
+      const numericPrice = parseFloat(price) || 0;
+      const commission = numericPrice > 0 ? (numericPrice * 0.05) : 0;
       const image = new Gallery({
         user: userObjectId,
         title: title || 'Untitled',
-        price: price || 0,
+        price: numericPrice,
         imageUrl: imgbbResult.url,
         status: 'pending',
-        commission: 0,
+        commission,
       });
       await image.save();
       images.push(image);
