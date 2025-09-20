@@ -425,7 +425,7 @@ const UserAccountPage = () => {
                     : "text-slate-300 hover:text-white hover:bg-emerald-600/20"
                 }`}
               >
-                Gallery
+                {t('userAccount.tabs.gallery')}
               </button>
               <button
                 onClick={() => handleTabChange("reviews")}
@@ -569,7 +569,7 @@ const UserAccountPage = () => {
                     }`}
                     onClick={() => setShowCurrentBookings(true)}
                   >
-                    Current Bookings
+                    {t('userAccount.tabs.currentBookings')}
                   </button>
                   <button
                     className={`px-8 py-4 rounded-2xl font-abeze font-medium transition-all duration-300 transform hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
@@ -579,7 +579,7 @@ const UserAccountPage = () => {
                     }`}
                     onClick={() => setShowCurrentBookings(false)}
                   >
-                    Booking History
+                    {t('userAccount.tabs.bookingHistory')}
                   </button>
                 </div>
                 {showCurrentBookings ? (

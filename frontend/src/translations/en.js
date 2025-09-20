@@ -1,4 +1,7 @@
 export default {
+  'userAccount.tabs.gallery': 'Gallery',
+  'userAccount.tabs.currentBookings': 'Current Bookings',
+  'userAccount.tabs.bookingHistory': 'Booking History',
   'userAccount.totalReviews': 'Total Reviews',
   'userAccount.sortBy': 'Sort by',
   'userAccount.sortRecent': 'Most Recent',

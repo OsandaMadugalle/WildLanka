@@ -22,6 +22,7 @@ const AdminGalleryManager = () => {
   const [error, setError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const [modalImage, setModalImage] = useState(null);
+  const [commissionEdits, setCommissionEdits] = useState({});
 
   const token = localStorage.getItem('auth_token');
 
@@ -160,7 +161,9 @@ const AdminGalleryManager = () => {
                 <div className="font-bold text-white">{img.title || 'Untitled'}</div>
                 <div className="text-slate-300">Price: ${img.price}</div>
                 <div className="text-slate-400">Status: {img.status}</div>
-                <div className="text-slate-400">Commission: {img.commission || 0}</div>
+                <div className="text-slate-400">
+                  Commission: {img.commission || 0}%
+                </div>
                 <div className="text-slate-400">User: {img.user?.email || img.user}</div>
               </div>
             </div>
