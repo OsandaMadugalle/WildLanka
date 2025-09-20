@@ -97,6 +97,8 @@ const UserAccountPage = () => {
     }
   }, [toast.message]);
   const [reviews, setReviews] = useState([]);
+  const [sortReviewsBy, setSortReviewsBy] = useState('recent'); // 'recent', 'highest', 'lowest'
+  const reviewsPerPage = 3;
   const [userGallery, setUserGallery] = useState([]);
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [showCurrentBookings, setShowCurrentBookings] = useState(true);
@@ -113,7 +115,7 @@ const UserAccountPage = () => {
     useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const bookingsPerPage = 5;
-  // const reviewsPerPage = 3;
+
 
   // Fetch user data, bookings, reviews, and gallery on mount
   useEffect(() => {
@@ -1120,6 +1122,25 @@ const UserAccountPage = () => {
                 <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                   {t("userAccount.myReviews")}
                 </h3>
+                {/* Sorting and count */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                  <div className="text-slate-300 font-abeze text-sm">
+                    {t("userAccount.totalReviews") || 'Total Reviews'}: {reviews.length}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="sortReviews" className="text-slate-300 font-abeze text-sm">{t("userAccount.sortBy") || 'Sort by'}:</label>
+                    <select
+                      id="sortReviews"
+                      value={sortReviewsBy}
+                      onChange={e => setSortReviewsBy(e.target.value)}
+                      className="bg-gray-700 text-white rounded px-2 py-1 font-abeze"
+                    >
+                      <option value="recent">{t("userAccount.sortRecent") || 'Most Recent'}</option>
+                      <option value="highest">{t("userAccount.sortHighest") || 'Highest Rated'}</option>
+                      <option value="lowest">{t("userAccount.sortLowest") || 'Lowest Rated'}</option>
+                    </select>
+                  </div>
+                </div>
                 {loadingReviews ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
@@ -1135,145 +1156,168 @@ const UserAccountPage = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {reviews.map((review) => (
-                        <div
-                          key={review._id}
-                          className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md flex flex-col justify-between"
-                        >
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
+                    {/* Pagination logic */}
+                    {(() => {
+                      let sortedReviews = [...reviews];
+                      if (sortReviewsBy === 'recent') {
+                        sortedReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                      } else if (sortReviewsBy === 'highest') {
+                        sortedReviews.sort((a, b) => b.rating - a.rating || new Date(b.createdAt) - new Date(a.createdAt));
+                      } else if (sortReviewsBy === 'lowest') {
+                        sortedReviews.sort((a, b) => a.rating - b.rating || new Date(b.createdAt) - new Date(a.createdAt));
+                      }
+                      const totalPages = Math.ceil(sortedReviews.length / reviewsPerPage);
+                      const paginated = sortedReviews.slice((currentReviewsPage - 1) * reviewsPerPage, currentReviewsPage * reviewsPerPage);
+                      return <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                          {paginated.map((review) => (
+                            <div
+                              key={review._id}
+                              className="bg-gray-700/50 p-6 rounded-2xl border border-gray-600/50 shadow-md flex flex-col justify-between"
+                            >
                               <div>
-                                <p className="text-white font-abeze font-semibold text-lg">
-                                  {review.packageId?.title ||
-                                    review.bookingId.packageDetails?.title ||
-                                    "N/A"}
+                                <div className="flex items-center justify-between mb-2">
+                                  <div>
+                                    <p className="text-white font-abeze font-semibold text-lg">
+                                      {review.packageId?.title ||
+                                        review.bookingId.packageDetails?.title ||
+                                        "N/A"}
+                                    </p>
+                                    <p className="text-slate-400 font-abeze text-sm">
+                                      {review.createdAt
+                                        ? new Date(
+                                            review.createdAt
+                                          ).toLocaleDateString()
+                                        : "N/A"}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <svg
+                                        key={i}
+                                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-400'}`}
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
+                                      </svg>
+                                    ))}
+                                    <span className="ml-2 text-xs text-slate-300">{review.rating}/5</span>
+                                  </div>
+                                </div>
+                                <p className="text-slate-300 font-abeze mb-2 line-clamp-3">
+                                  {review.comment ||
+                                    t("userAccount.reviews.noComment")}
                                 </p>
-                                <p className="text-slate-400 font-abeze text-sm">
-                                  {review.createdAt
-                                    ? new Date(
-                                        review.createdAt
-                                      ).toLocaleDateString()
-                                    : "N/A"}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-400'}`}
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                                  </svg>
-                                ))}
-                                <span className="ml-2 text-xs text-slate-300">{review.rating}/5</span>
-                              </div>
-                            </div>
-                            <p className="text-slate-300 font-abeze mb-2 line-clamp-3">
-                              {review.comment ||
-                                t("userAccount.reviews.noComment")}
-                            </p>
-                            {review.images && review.images.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {review.images.slice(0, 3).map((img, idx) => (
-                                  <img
-                                    key={img.id || idx}
-                                    src={img.url}
-                                    alt={`Review image ${idx + 1}`}
-                                    className="w-16 h-16 object-cover rounded border border-gray-600 shadow cursor-pointer"
-                                    onClick={() => setModalReview(review)}
-                                  />
-                                ))}
-                                {review.images.length > 3 && (
-                                  <span className="text-xs text-gray-400 ml-2">
-                                    +{review.images.length - 3} more
-                                  </span>
+                                {review.images && review.images.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {review.images.slice(0, 3).map((img, idx) => (
+                                      <img
+                                        key={img.id || idx}
+                                        src={img.url}
+                                        alt={`Review image ${idx + 1}`}
+                                        className="w-16 h-16 object-cover rounded border border-gray-600 shadow cursor-pointer"
+                                        onClick={() => setModalReview(review)}
+                                      />
+                                    ))}
+                                    {review.images.length > 3 && (
+                                      <span className="text-xs text-gray-400 ml-2">
+                                        +{review.images.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
-                            )}
-                          </div>
-                          <div className="flex gap-2 mt-4">
-                            <button
-                              onClick={() => handleEditReview(review)}
-                              title="Edit your review for this booking"
-                              className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteReview(review._id)}
-                              title="Delete this review"
-                              className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              onClick={() => setModalReview(review)}
-                              title="View Details"
-                              className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
-                            >
-                              View
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Modal for review details */}
-                    {modalReview && (
-                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                        <div className="bg-gray-900 rounded-2xl p-8 max-w-lg w-full relative">
-                          <button
-                            onClick={() => setModalReview(null)}
-                            className="absolute top-4 right-4 text-white text-2xl font-bold"
-                            title="Close"
-                          >
-                            ×
-                          </button>
-                          <h4 className="text-xl font-bold text-white mb-2">
-                            {modalReview.packageId?.title ||
-                              modalReview.bookingId.packageDetails?.title ||
-                              "N/A"}
-                          </h4>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block ${
-                              modalReview.rating === 5
-                                ? "bg-green-500 text-white"
-                                : modalReview.rating >= 3
-                                ? "bg-yellow-400 text-white"
-                                : "bg-red-500 text-white"
-                            }`}
-                          >
-                            {modalReview.rating} stars
-                          </span>
-                          <p className="text-slate-300 font-abeze mb-4">
-                            {modalReview.comment ||
-                              t("userAccount.reviews.noComment")}
-                          </p>
-                          {modalReview.images &&
-                            modalReview.images.length > 0 && (
-                              <div className="flex flex-wrap gap-3 mb-4">
-                                {modalReview.images.map((img, idx) => (
-                                  <img
-                                    key={img.id || idx}
-                                    src={img.url}
-                                    alt={`Review image ${idx + 1}`}
-                                    className="w-32 h-32 object-cover rounded border border-gray-600 shadow"
-                                  />
-                                ))}
+                              <div className="flex gap-2 mt-4">
+                                <button
+                                  onClick={() => handleEditReview(review)}
+                                  title="Edit your review for this booking"
+                                  className="flex-1 bg-emerald-500 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteReview(review._id)}
+                                  title="Delete this review"
+                                  className="flex-1 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  onClick={() => setModalReview(review)}
+                                  title="View Details"
+                                  className="flex-1 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300"
+                                >
+                                  View
+                                </button>
                               </div>
-                            )}
-                          <p className="text-slate-400 text-sm">
-                            {modalReview.createdAt
-                              ? new Date(
-                                  modalReview.createdAt
-                                ).toLocaleDateString()
-                              : "N/A"}
-                          </p>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    )}
+                        {/* Pagination controls */}
+                        {totalPages > 1 && (
+                          <div className="flex justify-center items-center gap-2 mt-8">
+                            <button
+                              className="px-3 py-1 rounded bg-gray-700 text-white font-abeze disabled:opacity-50"
+                              onClick={() => setCurrentReviewsPage(currentReviewsPage - 1)}
+                              disabled={currentReviewsPage === 1}
+                            >
+                              {t("userAccount.prev") || 'Prev'}
+                            </button>
+                            <span className="text-slate-300 font-abeze text-sm">
+                              {t("userAccount.page") || 'Page'} {currentReviewsPage} / {totalPages}
+                            </span>
+                            <button
+                              className="px-3 py-1 rounded bg-gray-700 text-white font-abeze disabled:opacity-50"
+                              onClick={() => setCurrentReviewsPage(currentReviewsPage + 1)}
+                              disabled={currentReviewsPage === totalPages}
+                            >
+                              {t("userAccount.next") || 'Next'}
+                            </button>
+                          </div>
+                        )}
+                        {/* Modal for review details */}
+                        {modalReview && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+                            <div className="relative bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl max-w-lg w-full p-8">
+                              <button
+                                onClick={() => setModalReview(null)}
+                                className="absolute top-4 right-4 z-10 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+                                title="Close"
+                              >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                              <div className="mb-4">
+                                <h4 className="text-2xl font-bold text-white mb-1 font-abeze">
+                                  {modalReview.packageId?.title || modalReview.bookingId.packageDetails?.title || "N/A"}
+                                </h4>
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block ${modalReview.rating === 5 ? "bg-green-500 text-white" : modalReview.rating >= 3 ? "bg-yellow-400 text-white" : "bg-red-500 text-white"}`}>
+                                  {modalReview.rating} stars
+                                </span>
+                              </div>
+                              <p className="text-slate-300 font-abeze mb-4 text-lg">
+                                {modalReview.comment || t("userAccount.reviews.noComment")}
+                              </p>
+                              {modalReview.images && modalReview.images.length > 0 && (
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                  {modalReview.images.map((img, idx) => (
+                                    <img
+                                      key={img.id || idx}
+                                      src={img.url}
+                                      alt={`Review image ${idx + 1}`}
+                                      className="w-32 h-32 object-cover rounded border border-gray-600 shadow"
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              <p className="text-slate-400 text-sm mb-2">
+                                {modalReview.createdAt ? new Date(modalReview.createdAt).toLocaleDateString() : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </>;
+                    })()}
                   </>
                 )}
               </div>
