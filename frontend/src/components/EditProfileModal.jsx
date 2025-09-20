@@ -319,14 +319,11 @@ const EditProfileModal = ({ onClose, user }) => {
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
         phone: fullPhone,
+        country: formData.country,
+        specialization: formData.specialization,
+        experience: formData.experience,
+        licenseNumber: formData.licenseNumber,
       };
-      // Add staff/guide fields if guide
-      if (isGuide) {
-        payload.role = formData.role;
-        payload.specialization = formData.specialization;
-        payload.experience = formData.experience;
-        payload.licenseNumber = formData.licenseNumber;
-      }
       // Add password fields if new password is provided
       if (formData.newPassword) {
         payload.currentPassword = formData.currentPassword;
@@ -339,17 +336,14 @@ const EditProfileModal = ({ onClose, user }) => {
         await authApi.uploadProfilePicture(formDataFile);
       }
       const { user: updatedUser } = await authApi.updateProfile(payload);
-  // Save updated user to context and localStorage
-  login(updatedUser, localStorage.getItem('auth_token'));
-  // Force reload of window to ensure dashboard and modal get fresh user data
-  // (workaround for stale user prop issue)
+      login(updatedUser, localStorage.getItem('auth_token'));
       const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
       setSuccessMessage(message);
       setShowSuccessMessage(true);
       setTimeout(() => {
-        setShowSuccessMessage(false);
-        onClose();
-        window.location.reload(); // Force full reload to get fresh user data everywhere
+  setShowSuccessMessage(false);
+  onClose();
+  window.location.reload(); // Force full reload to get fresh user data everywhere
       }, 3000);
     } catch (err) {
       const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
