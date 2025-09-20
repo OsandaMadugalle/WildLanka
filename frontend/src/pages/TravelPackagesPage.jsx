@@ -232,7 +232,7 @@ const TravelPackagesPage = () => {
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101"
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101 flex flex-col h-full"
                 >
                   <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
                     {/* Carousel for all images */}
@@ -264,113 +264,116 @@ const TravelPackagesPage = () => {
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 flex flex-col flex-1 justify-between">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg sm:text-xl md:text-2xl font-abeze font-bold text-white">
-                        {pkg.title}
-                      </h3>
-                      {pkg.isPopular && (
-                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-abeze font-bold">
-                          {t('packages.popular')}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Rating */}
-                    {(pkg.rating || pkg.reviews) && (
-                      <div className="flex items-center space-x-2 mb-3">
-                        <div className="flex items-center space-x-1">
-                          {[...Array(5)].map((_, i) => (
-                            <svg
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < (pkg.rating || 0) ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'
-                              }`}
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                            </svg>
-                          ))}
-                        </div>
-                        <span className="text-amber-300 font-abeze text-sm font-bold">
-                          {pkg.rating ? `${pkg.rating}/5` : '0/5'}
-                        </span>
-                        {pkg.reviews && (
-                          <span className="text-gray-400 font-abeze text-sm">
-                            ({pkg.reviews} {t('packages.reviews')})
+                  <div className="p-4 sm:p-6 flex flex-col h-full">
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-abeze font-bold text-white">
+                          {pkg.title}
+                        </h3>
+                        {pkg.isPopular && (
+                          <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-abeze font-bold">
+                            {t('packages.popular')}
                           </span>
                         )}
                       </div>
-                    )}
-                    
-                    <p className="text-gray-300 font-abeze text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                      {pkg.description}
-                    </p>
-                    
-                    {/* Package Details */}
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs">
-                      {pkg.location && (
-                        <div className="flex items-center space-x-1">
-                          <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="text-gray-300 font-abeze">{pkg.location}</span>
+                      
+                      {/* Rating */}
+                      {(pkg.rating || pkg.reviews) && (
+                        <div className="flex items-center space-x-2 mb-3">
+                          <div className="flex items-center space-x-1">
+                            {[...Array(5)].map((_, i) => (
+                              <svg
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < (pkg.rating || 0) ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'
+                                }`}
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="text-amber-300 font-abeze text-sm font-bold">
+                            {pkg.rating ? `${pkg.rating}/5` : '0/5'}
+                          </span>
+                          {pkg.reviews && (
+                            <span className="text-gray-400 font-abeze text-sm">
+                              ({pkg.reviews} {t('packages.reviews')})
+                            </span>
+                          )}
                         </div>
                       )}
-                      {pkg.maxGroupSize && (
-                        <div className="flex items-center space-x-1">
-                          <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span className="text-gray-300 font-abeze">{t('packages.maxPeople', { count: pkg.maxGroupSize })}</span>
+                      
+                      <p className="text-gray-300 font-abeze text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                        {pkg.description}
+                      </p>
+                      
+                      {/* Package Details */}
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs">
+                        {pkg.location && (
+                          <div className="flex items-center space-x-1">
+                            <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="text-gray-300 font-abeze">{pkg.location}</span>
+                          </div>
+                        )}
+                        {pkg.maxGroupSize && (
+                          <div className="flex items-center space-x-1">
+                            <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span className="text-gray-300 font-abeze">{t('packages.maxPeople', { count: pkg.maxGroupSize })}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Highlights */}
+                      {pkg.highlights && pkg.highlights.length > 0 && (
+                        <div className="space-y-3 mb-6">
+                          <h4 className="text-green-400 font-abeze font-medium text-xs sm:text-base">{t('packages.highlights')}</h4>
+                          <div className="space-y-2">
+                            {pkg.highlights.slice(0, 4).map((highlight, index) => (
+                              <div key={index} className="flex items-center space-x-3">
+                                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span className="text-gray-300 font-abeze text-sm">{highlight}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Features */}
+                      {pkg.features && pkg.features.length > 0 && (
+                        <div className="space-y-3 mb-6">
+                          <h4 className="text-blue-400 font-abeze font-medium text-xs sm:text-base">{t('packages.features')}</h4>
+                          <div className="space-y-2">
+                            {pkg.features.slice(0, 3).map((feature, index) => (
+                              <div key={index} className="flex items-center space-x-3">
+                                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-gray-300 font-abeze text-sm">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                     
-                    {/* Highlights */}
-                    {pkg.highlights && pkg.highlights.length > 0 && (
-                      <div className="space-y-3 mb-6">
-                        <h4 className="text-green-400 font-abeze font-medium text-xs sm:text-base">{t('packages.highlights')}</h4>
-                        <div className="space-y-2">
-                          {pkg.highlights.slice(0, 4).map((highlight, index) => (
-                            <div key={index} className="flex items-center space-x-3">
-                              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
-                              </svg>
-                              <span className="text-gray-300 font-abeze text-sm">{highlight}</span>
-                            </div>
-                          ))}
+                    {/* Price and Button - Always at bottom */}
+                    <div className="mt-auto pt-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <span className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-green-400">LKR {pkg.price?.toLocaleString()}</span>
+                          <span className="text-gray-400 font-abeze text-sm block">{t('packages.perPerson')}</span>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Features */}
-                    {pkg.features && pkg.features.length > 0 && (
-                      <div className="space-y-3 mb-6">
-                        <h4 className="text-blue-400 font-abeze font-medium text-xs sm:text-base">{t('packages.features')}</h4>
-                        <div className="space-y-2">
-                          {pkg.features.slice(0, 3).map((feature, index) => (
-                            <div key={index} className="flex items-center space-x-3">
-                              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span className="text-gray-300 font-abeze text-sm">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <span className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-green-400">LKR {pkg.price?.toLocaleString()}</span>
-                        <span className="text-gray-400 font-abeze text-sm">{t('packages.perPerson')}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-auto">
+                      
                       <button 
                         onClick={() => handleBookNow(pkg._id)}
                         className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"

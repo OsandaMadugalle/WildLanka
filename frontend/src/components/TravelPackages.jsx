@@ -245,7 +245,7 @@ const TravelPackages = () => {
           {filteredPackages.map((pkg) => (
             <div 
               key={pkg.id}
-              className="relative bg-white/10 backdrop-blur-md rounded-3xl p-7 md:p-8 border border-white/20 shadow-lg hover:shadow-2xl hover:border-green-400/60 transition-all duration-300 hover:scale-[1.03] flex flex-col justify-between min-h-[480px]"
+              className="relative bg-white/10 backdrop-blur-md rounded-3xl p-7 md:p-8 border border-white/20 shadow-lg hover:shadow-2xl hover:border-green-400/60 transition-all duration-300 hover:scale-[1.03] flex flex-col h-full"
             >
               {/* Discount Badge */}
               {pkg.discount && (
@@ -265,64 +265,72 @@ const TravelPackages = () => {
                 </div>
               )}
 
-              {/* Package Icon */}
-              <div className="text-6xl mb-4 text-center">
-                {pkg.image}
-              </div>
+              {/* Content Container */}
+              <div className="flex flex-col h-full">
+                {/* Top Content */}
+                <div className="flex-grow">
+                  {/* Package Icon */}
+                  <div className="text-6xl mb-4 text-center">
+                    {pkg.image}
+                  </div>
 
-              {/* Package Title */}
-              <h3 className="text-xl font-abeze font-bold text-white mb-2 text-center">
-                {pkg.title}
-              </h3>
+                  {/* Package Title */}
+                  <h3 className="text-xl font-abeze font-bold text-white mb-2 text-center">
+                    {pkg.title}
+                  </h3>
 
-              {/* Rating */}
-              <div className="flex items-center justify-center mb-3">
-                <div className="flex items-center">
-                  <span className="text-yellow-400 mr-1">★</span>
-                  <span className="text-white font-abeze font-medium">{pkg.rating}</span>
-                  <span className="text-gray-400 font-abeze text-sm ml-1">({pkg.reviews})</span>
+                  {/* Rating */}
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="flex items-center">
+                      <span className="text-yellow-400 mr-1">★</span>
+                      <span className="text-white font-abeze font-medium">{pkg.rating}</span>
+                      <span className="text-gray-400 font-abeze text-sm ml-1">({pkg.reviews})</span>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="text-center mb-4">
+                    <span className="text-3xl font-abeze font-bold text-white">
+                      {pkg.price}
+                    </span>
+                    {pkg.originalPrice && (
+                      <span className="text-gray-400 font-abeze text-sm line-through ml-2">
+                        {pkg.originalPrice}
+                      </span>
+                    )}
+                    <span className="text-gray-400 font-abeze text-sm block">{t('travelPackages.perPerson')}</span>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-gray-300 font-abeze text-base mb-6 text-center leading-relaxed">
+                    {pkg.description}
+                  </p>
+
+                  {/* Highlights */}
+                  <ul className="space-y-2 mb-6 px-2">
+                    {pkg.highlights.map((highlight, index) => (
+                      <li key={index} className="flex items-center text-gray-300 font-abeze text-sm md:text-base">
+                        <span className="text-green-400 mr-2">✓</span>
+                        {highlight}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
 
-              {/* Price */}
-              <div className="text-center mb-4">
-                <span className="text-3xl font-abeze font-bold text-white">
-                  {pkg.price}
-                </span>
-                {pkg.originalPrice && (
-                  <span className="text-gray-400 font-abeze text-sm line-through ml-2">
-                    {pkg.originalPrice}
-                  </span>
-                )}
-                <span className="text-gray-400 font-abeze text-sm block">{t('travelPackages.perPerson')}</span>
-              </div>
-
-              {/* Description */}
-              <p className="text-gray-300 font-abeze text-base mb-6 text-center leading-relaxed">
-                {pkg.description}
-              </p>
-
-              {/* Highlights */}
-              <ul className="space-y-2 mb-6 px-2">
-                {pkg.highlights.map((highlight, index) => (
-                  <li key={index} className="flex items-center text-gray-300 font-abeze text-sm md:text-base">
-                    <span className="text-green-400 mr-2">✓</span>
-                    {highlight}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Action Buttons */}
-              <div className="space-y-3 mt-auto">
-                <button 
-                  onClick={() => handleBookNow(pkg.id)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-abeze font-bold transition-colors duration-300 shadow-md"
-                >
-                  {t('travelPackages.bookNow')}
-                </button>
-                <button className="w-full bg-transparent border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-white py-2 rounded-xl font-abeze font-bold transition-all duration-300">
-                  {t('travelPackages.viewDetails')}
-                </button>
+                {/* Action Buttons - Always at bottom */}
+                <div className="mt-auto pt-4">
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => handleBookNow(pkg.id)}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-abeze font-bold transition-colors duration-300 shadow-md"
+                    >
+                      {t('travelPackages.bookNow')}
+                    </button>
+                    <button className="w-full bg-transparent border-2 border-green-400 text-green-400 hover:bg-green-400 hover:text-white py-2 rounded-xl font-abeze font-bold transition-all duration-300">
+                      {t('travelPackages.viewDetails')}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
