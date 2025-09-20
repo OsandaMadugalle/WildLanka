@@ -100,24 +100,28 @@ const ReviewsPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {displayedReviews.map((review) => (
-                <div key={review._id} className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-lg p-3 flex flex-col items-center border border-green-400/30 cursor-pointer hover:shadow-lg hover:shadow-green-400/30 transition" onClick={() => openModal(review, 0)}>
+                <div key={review._id} className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-xl p-4 flex flex-col border border-green-400/30 cursor-pointer hover:shadow-xl hover:shadow-green-400/20 hover:scale-105 transition-all duration-300" onClick={() => openModal(review, 0)}>
                   {review.images && review.images.length > 0 ? (
-                    <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="object-cover w-full h-48 rounded mb-2" />
+                    <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="object-cover w-full h-48 rounded-lg mb-3 shadow-md" />
                   ) : (
-                    <div className="w-full h-48 flex items-center justify-center bg-green-800/30 text-green-300 rounded mb-2">
+                    <div className="w-full h-48 flex items-center justify-center bg-green-800/30 text-green-300 rounded-lg mb-3 shadow-md">
                       <span className="text-green-300">No image</span>
                     </div>
                   )}
-                  <div className="font-bold text-white text-center">{review.packageTitle || review.packageId?.title || 'Safari Package'}</div>
-                  <div className="flex items-center space-x-1 mt-1">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
-                    ))}
-                    <span className="text-amber-300 text-sm ml-1 font-bold">{review.rating}/5</span>
+                  <div className="flex-1 flex flex-col">
+                    <div className="font-bold text-white text-center text-lg mb-2 font-abeze">{review.packageTitle || review.packageId?.title || 'Safari Package'}</div>
+                    <div className="flex items-center justify-center mb-3">
+                      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-3 py-1 rounded-full flex items-center space-x-1 shadow-md">
+                        {[...Array(5)].map((_, i) => (
+                          <svg key={i} className={`w-3 h-3 ${i < review.rating ? 'text-white fill-current' : 'text-amber-200/50'}`} fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                        ))}
+                        <span className="text-white text-sm ml-2 font-bold">{review.rating}/5</span>
+                      </div>
+                    </div>
+                    <div className="text-green-200 text-sm text-center font-abeze bg-green-800/20 px-3 py-1 rounded-full">By: {getUserName(review)}</div>
                   </div>
-                  <div className="text-slate-400 text-xs text-center mt-1">By: {getUserName(review)}</div>
                   {review.images && review.images.length > 1 && (
                     <div className="text-slate-400 text-xs text-center mt-1">{review.images.length} photos</div>
                   )}
@@ -136,28 +140,61 @@ const ReviewsPage = () => {
       </div>
       {selectedReview && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-gradient-to-br from-gray-900/95 via-green-950/90 to-gray-900/95 backdrop-blur-md p-4 pt-8 pb-8 overflow-y-auto" onClick={closeModal}>
-          <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-md rounded-xl p-6 relative max-w-4xl w-full flex flex-col items-center border border-green-400/30 shadow-2xl mt-16 mb-16" onClick={e => e.stopPropagation()}>
+          <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-md rounded-2xl p-8 relative max-w-4xl w-full flex flex-col items-center border border-green-400/30 shadow-2xl mt-16 mb-16" onClick={e => e.stopPropagation()}>
             {selectedReview.images && selectedReview.images.length > 0 && (
-              <img src={selectedReview.images[currentIndex].url} alt={`Review by ${getUserName(selectedReview)}`} className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain" />
+              <div className="relative group">
+                <img src={selectedReview.images[currentIndex].url} alt={`Review by ${getUserName(selectedReview)}`} className="max-h-[50vh] w-auto max-w-full rounded-xl shadow-2xl object-contain" />
+                
+                {/* Navigation buttons positioned near the image */}
+                {selectedReview.images.length > 1 && (
+                  <>
+                    {/* Previous button - left side */}
+                    <button 
+                      onClick={prevImage} 
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 shadow-lg opacity-70 hover:opacity-100"
+                      aria-label="Previous image"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    
+                    {/* Next button - right side */}
+                    <button 
+                      onClick={nextImage} 
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 shadow-lg opacity-70 hover:opacity-100"
+                      aria-label="Next image"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                    
+                    {/* Image counter - bottom center */}
+                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-abeze">
+                      {currentIndex + 1} of {selectedReview.images.length}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
-            <div className="text-white mt-4 font-abeze font-bold text-center text-lg">{selectedReview.packageTitle || selectedReview.packageId?.title || 'Safari Package'}</div>
-            <div className="flex items-center justify-center space-x-1 mt-3 bg-white/10 px-4 py-2 rounded-full">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className={`w-6 h-6 ${i < selectedReview.rating ? 'text-amber-400 fill-current drop-shadow-md' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              ))}
-              <span className="text-amber-300 font-abeze ml-3 text-xl font-bold">{selectedReview.rating}/5</span>
+            <div className="text-white mt-6 font-abeze font-bold text-center text-2xl">{selectedReview.packageTitle || selectedReview.packageId?.title || 'Safari Package'}</div>
+            <div className="flex items-center justify-center mt-4">
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-3 rounded-xl flex items-center space-x-2 shadow-lg">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className={`w-5 h-5 ${i < selectedReview.rating ? 'text-white fill-current' : 'text-amber-200/50'}`} fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+                <span className="text-white font-abeze ml-3 text-lg font-bold">{selectedReview.rating}/5 Rating</span>
+              </div>
             </div>
-            <div className="text-green-300 text-sm text-center mt-3 font-abeze">By: {getUserName(selectedReview)}</div>
+            <div className="mt-4 bg-green-800/30 px-4 py-2 rounded-lg">
+              <div className="text-green-200 text-base text-center font-abeze">Reviewed by: <span className="font-bold text-green-100">{getUserName(selectedReview)}</span></div>
+            </div>
             {selectedReview.comment && (
-              <div className="text-gray-300 text-base text-center mt-3 italic max-w-2xl font-abeze leading-relaxed">"{selectedReview.comment}"</div>
-            )}
-            {selectedReview.images && selectedReview.images.length > 1 && (
-              <div className="flex items-center space-x-4 mt-6">
-                <button onClick={prevImage} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-abeze font-medium transition-colors duration-300">Previous</button>
-                <span className="text-green-300 text-sm font-abeze">{currentIndex + 1} / {selectedReview.images.length}</span>
-                <button onClick={nextImage} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-abeze font-medium transition-colors duration-300">Next</button>
+              <div className="mt-6 bg-white/5 p-4 rounded-xl border border-green-400/20">
+                <div className="text-gray-200 text-lg text-center italic max-w-2xl font-abeze leading-relaxed">"{selectedReview.comment}"</div>
               </div>
             )}
             <button 
