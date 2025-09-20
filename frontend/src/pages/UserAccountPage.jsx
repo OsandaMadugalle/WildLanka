@@ -101,7 +101,7 @@ const UserAccountPage = () => {
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [showCurrentBookings, setShowCurrentBookings] = useState(true);
   const [currentBookingsPage, setCurrentBookingsPage] = useState(1);
-  // const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
+  const [currentReviewsPage, setCurrentReviewsPage] = useState(1);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(null);
