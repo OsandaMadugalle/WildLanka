@@ -1,4 +1,7 @@
   export default {
+  'userAccount.tabs.gallery': 'ගැලරිය',
+  'userAccount.tabs.currentBookings': 'වත්මන් වෙන්කිරීම්',
+  'userAccount.tabs.bookingHistory': 'වෙන්කිරීම් ඉතිහාසය',
   'faq.title': 'බොහෝ විට අසන ප්‍රශ්න',
   'faq.description': 'අපගේ සෆාරි, වෙන් කිරීම් සහ සේවාවන් පිළිබඳ බොහෝ විට අසන ප්‍රශ්නවලට පිළිතුරු සොයන්න.',
   // FAQ page translations

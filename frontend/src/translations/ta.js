@@ -1,4 +1,7 @@
 export default {
+  'userAccount.tabs.gallery': 'கேலரி',
+  'userAccount.tabs.currentBookings': 'தற்போதைய முன்பதிவுகள்',
+  'userAccount.tabs.bookingHistory': 'முன்பதிவு வரலாறு',
   // Navigation
   'nav.home': 'முகப்பு',
   'nav.awareness': 'வனவிலங்கு விழிப்புணர்வு',
