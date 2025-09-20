@@ -114,6 +114,12 @@ const AdminPage = () => {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [viewReview, setViewReview] = useState(null); // For modal
+  // Enhancement: search/filter/sort for reviews
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [reviewRatingFilter, setReviewRatingFilter] = useState("All");
+  const [reviewSortBy, setReviewSortBy] = useState("createdAt");
+  const [reviewSortOrder, setReviewSortOrder] = useState("desc");
   const [donations, setDonations] = useState([]);
   const [donationsLoading, setDonationsLoading] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -2325,19 +2331,52 @@ The Wildlife Safari Team`);
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "reviews" && (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-abeze font-bold text-white">
-                      Reviews
-                    </h3>
-                    <div className="text-sm text-gray-300 font-abeze">
-                      Total: {reviews.length}
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <h3 className="text-xl font-abeze font-bold text-white">Reviews</h3>
+                      <div className="text-sm text-gray-300 font-abeze">Total: {reviews.length}</div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="Search by user, package, comment..."
+                        value={reviewSearch}
+                        onChange={e => setReviewSearch(e.target.value)}
+                        className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none"
+                        style={{ minWidth: 180 }}
+                      />
+                      <select
+                        value={reviewRatingFilter}
+                        onChange={e => setReviewRatingFilter(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+                        style={{ minWidth: 120 }}
+                      >
+                        <option value="All">All Ratings</option>
+                        {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Stars</option>)}
+                      </select>
+                      <select
+                        value={reviewSortBy}
+                        onChange={e => setReviewSortBy(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+                        style={{ minWidth: 120 }}
+                      >
+                        <option value="createdAt">Sort by Date</option>
+                        <option value="rating">Sort by Rating</option>
+                      </select>
+                      <select
+                        value={reviewSortOrder}
+                        onChange={e => setReviewSortOrder(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
+                        style={{ minWidth: 100 }}
+                      >
+                        <option value="desc">Desc</option>
+                        <option value="asc">Asc</option>
+                      </select>
                     </div>
                   </div>
                   {reviewsLoading ? (
                     <div className="text-center py-8">
-                      <div className="text-gray-300 font-abeze">
-                        Loading reviews...
-                      </div>
+                      <div className="text-gray-300 font-abeze">Loading reviews...</div>
                     </div>
                   ) : (
                     <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
@@ -2345,73 +2384,94 @@ The Wildlife Safari Team`);
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-white/20">
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Package
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                User
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Rating
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Comment
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Images
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Actions
-                              </th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Package</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">User</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Rating</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Comment</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Images</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {reviews.map((rev) => (
-                              <tr
-                                key={rev._id}
-                                className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                              >
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.packageId?.title}
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.userId?.firstName} {rev.userId?.lastName}
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.rating} / 5
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze text-sm max-w-md truncate">
-                                  {rev.comment}
-                                </td>
-                                <td className="py-4 px-6">
-                                  <div className="flex gap-2">
-                                    {(rev.images || [])
-                                      .slice(0, 3)
-                                      .map((img) => (
-                                        <img
-                                          key={img.id || img.url}
-                                          src={img.url}
-                                          className="w-10 h-10 object-cover rounded"
-                                          alt="review"
-                                        />
+                            {reviews
+                              .filter(rev => {
+                                if (reviewRatingFilter !== "All" && String(rev.rating) !== String(reviewRatingFilter)) return false;
+                                if (!reviewSearch.trim()) return true;
+                                const search = reviewSearch.trim().toLowerCase();
+                                const user = `${rev.userId?.firstName || ''} ${rev.userId?.lastName || ''}`.toLowerCase();
+                                const pkg = (rev.packageId?.title || '').toLowerCase();
+                                const comment = (rev.comment || '').toLowerCase();
+                                return user.includes(search) || pkg.includes(search) || comment.includes(search);
+                              })
+                              .sort((a, b) => {
+                                let valA, valB;
+                                if (reviewSortBy === "createdAt") {
+                                  valA = new Date(a.createdAt);
+                                  valB = new Date(b.createdAt);
+                                } else if (reviewSortBy === "rating") {
+                                  valA = a.rating;
+                                  valB = b.rating;
+                                }
+                                if (reviewSortOrder === "asc") return valA > valB ? 1 : -1;
+                                else return valA < valB ? 1 : -1;
+                              })
+                              .map((rev) => (
+                                <tr key={rev._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
+                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.packageId?.title}</td>
+                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.userId?.firstName} {rev.userId?.lastName}</td>
+                                  <td className="py-4 px-6 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-300 font-bold">{rev.rating} / 5</span></td>
+                                  <td className="py-4 px-6 text-green-50 font-abeze text-sm max-w-md truncate">{rev.comment}</td>
+                                  <td className="py-4 px-6">
+                                    <div className="flex gap-2">
+                                      {(rev.images || []).slice(0, 3).map((img) => (
+                                        <img key={img.id || img.url} src={img.url} className="w-10 h-10 object-cover rounded border border-green-800" alt="review" />
                                       ))}
-                                  </div>
-                                </td>
-                                <td className="py-4 px-6">
-                                  <button
-                                    onClick={() => handleDeleteReview(rev._id)}
-                                    className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-6 flex gap-2">
+                                    <button onClick={() => setViewReview(rev)} className="px-3 py-1 bg-blue-700/80 text-blue-100 hover:bg-blue-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400">View</button>
+                                    <button onClick={() => handleDeleteReview(rev._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">Delete</button>
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+              {/* Review Details Modal */}
+              {viewReview && (
+                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+                  <div className="bg-green-950/95 backdrop-blur-md rounded-2xl border-2 border-green-700 max-w-lg w-full relative shadow-2xl">
+                    <button
+                      onClick={() => setViewReview(null)}
+                      className="absolute top-2 right-2 bg-green-900/80 hover:bg-green-800/90 text-green-200 hover:text-white p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                      aria-label="Close"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <div className="p-6">
+                      <h2 className="text-2xl font-bold text-green-100 mb-2 font-abeze">{viewReview.packageId?.title || 'Unknown Package'}</h2>
+                      <div className="mb-2 text-green-300 font-abeze">By: <span className="font-bold">{viewReview.userId?.firstName} {viewReview.userId?.lastName}</span></div>
+                      <div className="mb-2 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-200 font-bold">Rating: {viewReview.rating} / 5</span></div>
+                      {viewReview.comment && <div className="mb-2 text-green-100 font-abeze italic">"{viewReview.comment}"</div>}
+                      <div className="mb-2 text-green-400 font-abeze text-xs">{new Date(viewReview.createdAt).toLocaleString()}</div>
+                      {viewReview.images && viewReview.images.length > 0 && (
+                        <div className="flex gap-2 mt-4 flex-wrap">
+                          {viewReview.images.map((img, idx) => (
+                            <img
+                              key={img.id || img.url || idx}
+                              src={img.url}
+                              alt={`Review image ${idx + 1}`}
+                              className="w-20 h-20 object-cover rounded border-2 border-green-800 shadow"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               {activeTab === "donations" && (
