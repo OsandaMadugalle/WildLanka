@@ -230,21 +230,27 @@ export const staffLogin = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, country, currentPassword, newPassword } = req.body;
+    const { firstName, lastName, email, phone, country, currentPassword, newPassword, specialization, experience, licenseNumber } = req.body;
     const userId = req.user._id;
 
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check if email is already taken by another user
+    // Check if email is already taken by another user (User collection)
     const existingUser = await User.findOne({ email, _id: { $ne: userId } });
     if (existingUser) {
       return res.status(409).json({ message: "Email already in use" });
     }
 
-    // Get current user to check password
-    const currentUser = await User.findById(userId);
+    // Try to find user in User collection first
+    let currentUser = await User.findById(userId);
+    let isStaff = false;
+    if (!currentUser) {
+      // If not found, try Staff collection
+      currentUser = await Staff.findById(userId);
+      isStaff = true;
+    }
     if (!currentUser) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -256,7 +262,9 @@ export const updateProfile = async (req, res, next) => {
       }
 
       // Verify current password
-      const isValidCurrentPassword = await bcrypt.compare(currentPassword, currentUser.passwordHash);
+      const isValidCurrentPassword = isStaff
+        ? await currentUser.comparePassword(currentPassword)
+        : await bcrypt.compare(currentPassword, currentUser.passwordHash);
       if (!isValidCurrentPassword) {
         return res.status(401).json({ message: "Current password is incorrect" });
       }
@@ -269,62 +277,127 @@ export const updateProfile = async (req, res, next) => {
       // Hash new password
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
-      // Update user profile with new password
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        {
-          firstName,
-          lastName,
-          email,
-          phone,
-          country,
-          passwordHash: newPasswordHash,
-        },
-        { new: true, runValidators: true }
-      );
-
-      return res.json({
-        user: {
-          id: updatedUser._id,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          email: updatedUser.email,
-          phone: updatedUser.phone,
-          country: updatedUser.country,
-          profilePicture: updatedUser.profilePicture,
-          createdAt: updatedUser.createdAt,
-          updatedAt: updatedUser.updatedAt,
-        },
-        message: "Profile and password updated successfully"
-      });
+      // Update profile with new password
+      if (isStaff) {
+        const updatedStaff = await Staff.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            specialization,
+            experience,
+            licenseNumber,
+            passwordHash: newPasswordHash,
+          },
+          { new: true, runValidators: true }
+        );
+        return res.json({
+          user: {
+            id: updatedStaff._id,
+            firstName: updatedStaff.firstName,
+            lastName: updatedStaff.lastName,
+            email: updatedStaff.email,
+            phone: updatedStaff.phone,
+            specialization: updatedStaff.specialization,
+            experience: updatedStaff.experience,
+            licenseNumber: updatedStaff.licenseNumber,
+            role: updatedStaff.role,
+            profilePicture: updatedStaff.profilePicture,
+            createdAt: updatedStaff.createdAt,
+            updatedAt: updatedStaff.updatedAt,
+          },
+          message: "Profile and password updated successfully"
+        });
+      } else {
+        const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            country,
+            passwordHash: newPasswordHash,
+          },
+          { new: true, runValidators: true }
+        );
+        return res.json({
+          user: {
+            id: updatedUser._id,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            country: updatedUser.country,
+            profilePicture: updatedUser.profilePicture,
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt,
+          },
+          message: "Profile and password updated successfully"
+        });
+      }
     } else {
-      // Update user profile without password change
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        {
-          firstName,
-          lastName,
-          email,
-          phone,
-          country,
-        },
-        { new: true, runValidators: true }
-      );
-
-      return res.json({
-        user: {
-          id: updatedUser._id,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          email: updatedUser.email,
-          phone: updatedUser.phone,
-          country: updatedUser.country,
-          profilePicture: updatedUser.profilePicture,
-          createdAt: updatedUser.createdAt,
-          updatedAt: updatedUser.updatedAt,
-        },
-        message: "Profile updated successfully"
-      });
+      // Update profile without password change
+      if (isStaff) {
+        const updatedStaff = await Staff.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            specialization,
+            experience,
+            licenseNumber,
+          },
+          { new: true, runValidators: true }
+        );
+        return res.json({
+          user: {
+            id: updatedStaff._id,
+            firstName: updatedStaff.firstName,
+            lastName: updatedStaff.lastName,
+            email: updatedStaff.email,
+            phone: updatedStaff.phone,
+            specialization: updatedStaff.specialization,
+            experience: updatedStaff.experience,
+            licenseNumber: updatedStaff.licenseNumber,
+            role: updatedStaff.role,
+            profilePicture: updatedStaff.profilePicture,
+            createdAt: updatedStaff.createdAt,
+            updatedAt: updatedStaff.updatedAt,
+          },
+          message: "Profile updated successfully"
+        });
+      } else {
+        const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            country,
+          },
+          { new: true, runValidators: true }
+        );
+        return res.json({
+          user: {
+            id: updatedUser._id,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            country: updatedUser.country,
+            profilePicture: updatedUser.profilePicture,
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt,
+          },
+          message: "Profile updated successfully"
+        });
+      }
     }
   } catch (err) {
     next(err);

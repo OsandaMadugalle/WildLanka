@@ -286,50 +286,31 @@ const EditProfileModal = ({ onClose, user }) => {
         ? countryPhoneCodes[formData.country].code + formData.phone.trim()
         : formData.phone.trim();
 
-      // If staff/tour_guide, use staff self-profile update
-      if (user?.role === 'staff' || user?.role === 'tour_guide') {
-        const payload = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          phone: fullPhoneNumber,
-          specialization: formData.specialization,
-          experience: formData.experience,
-          licenseNumber: formData.licenseNumber,
-        };
-        const updatedStaff = await staffApi.updateStaff('profile', payload); // calls /api/staff/profile
-        login(updatedStaff, localStorage.getItem('auth_token'));
-        setSuccessMessage(t('editProfile.success.profileUpdated'));
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          onClose();
-          navigate('/account');
-        }, 3000);
-      } else {
-        // Regular user
-        const payload = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          phone: fullPhoneNumber,
-          country: formData.country,
-        };
-        if (formData.newPassword) {
-          payload.currentPassword = formData.currentPassword;
-          payload.newPassword = formData.newPassword;
-        }
-        const { user: updatedUser } = await authApi.updateProfile(payload);
-        login(updatedUser, localStorage.getItem('auth_token'));
-        const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
-        setSuccessMessage(message);
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          onClose();
-          navigate('/account');
-        }, 3000);
+      // For driver, tour_guide, and regular user, use authApi.updateProfile
+      const payload = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: fullPhoneNumber,
+        country: formData.country,
+        specialization: formData.specialization,
+        experience: formData.experience,
+        licenseNumber: formData.licenseNumber,
+      };
+      if (formData.newPassword) {
+        payload.currentPassword = formData.currentPassword;
+        payload.newPassword = formData.newPassword;
       }
+      const { user: updatedUser } = await authApi.updateProfile(payload);
+      login(updatedUser, localStorage.getItem('auth_token'));
+      const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
+      setSuccessMessage(message);
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        onClose();
+        navigate('/driver-dashboard');
+      }, 3000);
     } catch (err) {
       const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
       alert(msg);
