@@ -497,13 +497,37 @@ const DriverDashboard = () => {
   // Fetch latest user data after profile update
   const fetchUserData = async () => {
     try {
+      const userId = user?._id || user?.id;
       // You may need to adjust the endpoint depending on your backend
-      const response = await fetch(`/api/staff/${user._id}`);
+      const response = await fetch(`/api/staff/${userId}`);
       if (!response.ok) throw new Error('Failed to fetch user');
       const updatedUser = await response.json();
       login(updatedUser, localStorage.getItem('auth_token'));
     } catch (err) {
       console.error('Failed to refresh user data:', err);
+    }
+  };
+
+  // Fetch detailed staff data for profile display
+  const fetchStaffData = async () => {
+    const userId = user?._id || user?.id;
+    if (!userId) return;
+    
+    try {
+      const response = await fetch(`/api/staff/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const staffData = await response.json();
+        setProfileData(staffData);
+      }
+    } catch (error) {
+      // Silently fail - user data will be used as fallback
+      console.log('Staff data not available, using user data');
     }
   };
   const navigate = useNavigate();
@@ -517,6 +541,7 @@ const DriverDashboard = () => {
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editVehicle, setEditVehicle] = useState(null);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profileData, setProfileData] = useState(null);
   // AddVehicleModal rendering
   // Show modal for add or edit
   // onVehicleAdded and onVehicleUpdated update the vehicles list
@@ -533,6 +558,7 @@ const DriverDashboard = () => {
   useEffect(() => {
     if (user) {
       loadDashboardData();
+      fetchStaffData();
     }
   }, [user]);
 
@@ -1112,6 +1138,153 @@ const DriverDashboard = () => {
     </div>
   );
 
+  const renderProfile = () => {
+    return (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+        <h2 className="text-2xl font-abeze font-bold text-white mb-6 flex items-center">
+          <svg className="w-6 h-6 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          My Profile
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Personal Information */}
+          <div className="bg-white/5 rounded-lg p-4">
+            <h3 className="text-lg font-abeze font-semibold text-blue-400 mb-4">Personal Information</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Full Name</label>
+                <p className="text-white font-abeze">{(profileData?.firstName || user?.firstName || 'No first name')} {(profileData?.lastName || user?.lastName || 'No last name')}</p>
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Email</label>
+                <p className="text-white font-abeze">{profileData?.email || user?.email || 'No email'}</p>
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Phone</label>
+                <p className="text-white font-abeze">{profileData?.phone || user?.phone || 'Not provided'}</p>
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Role</label>
+                <p className="text-white font-abeze capitalize">{(profileData?.role || user?.role || 'No role').replace('_', ' ')}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Information */}
+          <div className="bg-white/5 rounded-lg p-4">
+            <h3 className="text-lg font-abeze font-semibold text-green-400 mb-4">Professional Information</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">License Number</label>
+                <p className="text-white font-abeze">{profileData?.licenseNumber || user?.licenseNumber || 'Not provided'}</p>
+                {!profileData?.licenseNumber && !user?.licenseNumber && (
+                  <p className="text-yellow-400 font-abeze text-xs mt-1">Add your license number in Edit Profile</p>
+                )}
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Experience</label>
+                <p className="text-white font-abeze">{(profileData?.experience || user?.experience) ? `${profileData?.experience || user?.experience} years` : 'Not specified'}</p>
+                {!profileData?.experience && !user?.experience && (
+                  <p className="text-yellow-400 font-abeze text-xs mt-1">Add your experience in Edit Profile</p>
+                )}
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Specialization</label>
+                <p className="text-white font-abeze">{profileData?.specialization || user?.specialization || 'Not specified'}</p>
+                {!profileData?.specialization && !user?.specialization && (
+                  <p className="text-yellow-400 font-abeze text-xs mt-1">Add your specialization in Edit Profile</p>
+                )}
+              </div>
+              <div>
+                <label className="text-gray-400 font-abeze text-sm">Status</label>
+                <span className="px-2 py-1 rounded-full text-xs font-abeze bg-green-700/20 text-green-200">
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Picture Section */}
+        <div className="mt-6 bg-white/5 rounded-lg p-4">
+          <h3 className="text-lg font-abeze font-semibold text-purple-400 mb-4">Profile Picture</h3>
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
+              {(profileData?.profilePicture?.url || user?.profilePicture?.url || user?.profilePicture) ? (
+                <img 
+                  src={profileData?.profilePicture?.url || user?.profilePicture?.url || user?.profilePicture} 
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextElementSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <svg 
+                className={`w-8 h-8 text-gray-400 ${(profileData?.profilePicture?.url || user?.profilePicture?.url || user?.profilePicture) ? 'hidden' : 'flex'}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-300 font-abeze text-sm">
+                {(profileData?.profilePicture?.url || user?.profilePicture?.url || user?.profilePicture) ? 'Profile picture uploaded' : 'No profile picture uploaded'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Information */}
+        <div className="mt-6 bg-white/5 rounded-lg p-4">
+          <h3 className="text-lg font-abeze font-semibold text-yellow-400 mb-4">Account Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-gray-400 font-abeze text-sm">Member Since</label>
+              <p className="text-white font-abeze">
+                {(profileData?.createdAt || user?.createdAt) ? new Date(profileData?.createdAt || user?.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) : 'Unknown'}
+              </p>
+            </div>
+            <div>
+              <label className="text-gray-400 font-abeze text-sm">Last Updated</label>
+              <p className="text-white font-abeze">
+                {(profileData?.updatedAt || user?.updatedAt) ? new Date(profileData?.updatedAt || user?.updatedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) : 'Unknown'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => setShowEditProfile(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6 6M3 21h6l11.293-11.293a1 1 0 000-1.414l-3.586-3.586a1 1 0 00-1.414 0L3 15v6z" />
+            </svg>
+            <span>Edit Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <AddVehicleModal
@@ -1124,7 +1297,11 @@ const DriverDashboard = () => {
       {showEditProfile && (
         <EditProfileModal
           user={user}
-          onClose={() => setShowEditProfile(false)}
+          onClose={() => {
+            setShowEditProfile(false);
+            // Refresh profile data after edit
+            fetchStaffData();
+          }}
         />
       )}
       {/* Check if user is authenticated and is a driver */}
@@ -1192,6 +1369,7 @@ const DriverDashboard = () => {
                 { id: 'bookings', label: 'Bookings', icon: '📚' },
                 { id: 'vehicle', label: 'Vehicle', icon: '🚗' },
                 { id: 'reports', label: 'Reports', icon: '📈' },
+                { id: 'profile', label: 'Profile', icon: '👤' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1214,6 +1392,7 @@ const DriverDashboard = () => {
               {activeTab === 'bookings' && renderBookings()}
               {activeTab === 'vehicle' && renderVehicle()}
               {activeTab === 'reports' && renderReportsSimple && renderReportsSimple()}
+              {activeTab === 'profile' && renderProfile()}
             </div>
           </div>
         </div>
