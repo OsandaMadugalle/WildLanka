@@ -2537,6 +2537,55 @@ The Wildlife Safari Team`);
                   </div>
 
                   {/* Donations List */}
+                    {/* Download CSV Button */}
+                    <div className="flex justify-end mb-4">
+                      <button
+                        onClick={() => {
+                          if (!donations.length) return;
+                          // Prepare CSV header
+                          const header = [
+                            'Donation ID',
+                            'First Name',
+                            'Last Name',
+                            'Email',
+                            'Amount',
+                            'Currency',
+                            'Payment Status',
+                            'Anonymous',
+                            'Date',
+                          ];
+                          // Prepare CSV rows
+                          const rows = donations.map(d => [
+                            d._id,
+                            d.firstName || '',
+                            d.lastName || '',
+                            d.email || '',
+                            d.amount || '',
+                            d.currency || '',
+                            d.paymentStatus || '',
+                            d.isAnonymous ? 'Yes' : 'No',
+                            d.createdAt ? new Date(d.createdAt).toLocaleString() : '',
+                          ]);
+                          // Convert to CSV string
+                          const csvContent = [header, ...rows]
+                            .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+                            .join('\r\n');
+                          // Trigger download
+                          const blob = new Blob([csvContent], { type: 'text/csv' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `donations_${new Date().toISOString().slice(0,10)}.csv`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 shadow"
+                      >
+                        Download CSV
+                      </button>
+                    </div>
                   {donationsLoading ? (
                     <div className="text-center py-12">
                       <div className="inline-flex items-center space-x-2 text-gray-300 font-abeze">
