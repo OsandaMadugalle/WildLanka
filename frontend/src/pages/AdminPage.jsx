@@ -1353,15 +1353,25 @@ The Wildlife Safari Team`);
     <div className="space-y-6">
       {/* Header with Add Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-abeze font-bold text-white tracking-tight">
+        <h3 className="text-xl font-abeze font-bold text-white">
           Package Management
         </h3>
         <button
           onClick={() => setShowAddPackage(true)}
-          className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-5 py-2 rounded-xl font-abeze font-semibold shadow-lg transition-all duration-300 flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
           </svg>
           <span>Add Package</span>
         </button>
@@ -1379,48 +1389,77 @@ The Wildlife Safari Team`);
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid gap-6">
           {packages.map((pkg) => (
             <div
               key={pkg._id}
-              className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-2xl transition-shadow duration-300 group flex flex-col h-full cursor-pointer hover:ring-4 hover:ring-green-400/40 hover:bg-green-900/30 hover:border-green-400/60"
-              style={{ transition: 'box-shadow 0.3s, background 0.3s, border 0.3s' }}
+              className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20"
             >
-              <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gray-800 mb-4">
-                <Carousel
-                  images={[
-                    ...(pkg.image?.url ? [pkg.image.url] : []),
-                    ...(pkg.gallery && Array.isArray(pkg.gallery)
-                      ? pkg.gallery.map((img) => img.url)
-                      : [])
-                  ]}
-                  alt={pkg.title}
-                  className="w-full h-full object-cover"
-                />
-                {pkg.isPopular && (
-                  <span className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-abeze shadow-md" title="Popular">
-                    Popular
-                  </span>
-                )}
-                <span
-                  className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-abeze shadow-md ${pkg.isActive ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}
-                  title={pkg.isActive ? 'Active' : 'Inactive'}
-                >
-                  {pkg.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className="flex-1 flex flex-col">
-                <h4 className="text-lg font-abeze font-bold text-white mb-1 truncate" title={pkg.title}>
-                  {pkg.title}
-                </h4>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-300 font-abeze mb-2">
-                  <div><span className="text-gray-400">Category:</span> {pkg.category}</div>
-                  <div><span className="text-gray-400">Duration:</span> {pkg.duration}</div>
-                  <div><span className="text-gray-400">Price:</span> LKR {pkg.price?.toLocaleString()}</div>
-                  <div><span className="text-gray-400">Location:</span> {pkg.location}</div>
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-4">
+                  {/* Package Images Carousel */}
+                  <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-700 flex-shrink-0">
+                    <Carousel
+                      images={[
+                        ...(pkg.image?.url ? [pkg.image.url] : []),
+                        ...(pkg.gallery && Array.isArray(pkg.gallery)
+                          ? pkg.gallery.map((img) => img.url)
+                          : [])
+                      ]}
+                      alt={pkg.title}
+                      className="w-full h-full"
+                    />
+                  </div>
+
+                  {/* Package Details */}
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h4 className="text-lg font-abeze font-bold text-white">
+                        {pkg.title}
+                      </h4>
+                      {pkg.isPopular && (
+                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-abeze">
+                          Popular
+                        </span>
+                      )}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-abeze ${
+                          pkg.isActive
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-red-500/20 text-red-400"
+                        }`}
+                      >
+                        {pkg.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-300 font-abeze">
+                      <div>
+                        <span className="text-gray-400">Category:</span>{" "}
+                        {pkg.category}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Duration:</span>{" "}
+                        {pkg.duration}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Price:</span> LKR{" "}
+                        {pkg.price?.toLocaleString()}
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Location:</span>{" "}
+                        {pkg.location}
+                      </div>
+                    </div>
+
+                    <p className="text-gray-300 font-abeze text-sm mt-2 line-clamp-2">
+                      {pkg.description}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-gray-300 font-abeze text-xs mb-3 line-clamp-2 min-h-[2.5em]">{pkg.description}</p>
-                <div className="flex items-center justify-between mt-auto">
+
+                {/* Popular Toggle Button */}
+                <div className="flex flex-col items-end space-y-2">
                   <button
                     onClick={async () => {
                       try {
@@ -1430,30 +1469,28 @@ The Wildlife Safari Team`);
                         });
                         loadPackages();
                       } catch (err) {
-                        alert('Failed to update popular status');
+                        alert("Failed to update popular status");
                       }
                     }}
-                    className={`px-3 py-1 rounded text-xs font-abeze transition-colors duration-200 shadow-sm ${pkg.isPopular ? 'bg-yellow-500/20 text-yellow-600 hover:bg-yellow-500/30' : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'}`}
-                    title={pkg.isPopular ? 'Unmark as Popular' : 'Mark as Popular'}
+                    className={`px-3 py-1 rounded text-xs font-abeze transition-colors ${pkg.isPopular ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30' : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'}`}
                   >
-                    {pkg.isPopular ? 'Unmark Popular' : 'Mark Popular'}
+                    {pkg.isPopular ? 'Unmark Popular' : 'Mark as Popular'}
                   </button>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEditPackage(pkg)}
-                      className="px-3 py-1 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded text-xs font-abeze transition-colors duration-200 shadow-sm"
-                      title="Edit Package"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeletePackage(pkg._id)}
-                      className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors duration-200 shadow-sm"
-                      title="Delete Package"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                </div>
+                {/* Actions */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleEditPackage(pkg)}
+                    className="px-3 py-1 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded text-xs font-abeze transition-colors"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeletePackage(pkg._id)}
+                    className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
