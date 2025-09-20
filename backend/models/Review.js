@@ -23,6 +23,11 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    packageTitle: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
