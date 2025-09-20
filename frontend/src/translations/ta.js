@@ -224,6 +224,7 @@ export default {
   'vehicle.lastMaintenance': 'கடைசி பராமரிப்பு',
 
   // Reviews
+  'reviews.subtitle': 'எங்கள் விருந்தினர்கள் தங்கள் மறக்க முடியாத வனவிலங்கு அனுபவங்களைப் பற்றி என்ன சொல்கிறார்கள் என்பதைப் பார்க்கவும்',
   'review.rating': 'மதிப்பீடு',
   'review.comment': 'கருத்து',
   'review.submitReview': 'மதிப்பாய்வைச் சமர்ப்பிக்கவும்',

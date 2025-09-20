@@ -381,6 +381,7 @@ export default {
   'vehicle.lastMaintenance': 'Last Maintenance',
 
   // Reviews
+  'reviews.subtitle': 'See what our guests say about their unforgettable wildlife experiences',
   'review.rating': 'Rating',
   'review.comment': 'Comment',
   'review.submitReview': 'Submit Review',

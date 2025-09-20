@@ -372,6 +372,7 @@
   'vehicle.lastMaintenance': 'අවසන් නඩත්තුව',
 
   // Reviews
+  'reviews.subtitle': 'අපේ අමුත්තන්ගේ අමිහිරි වනජීවී අත්දැකීම් ගැන කියන දේ බලන්න',
   'review.rating': 'ඇගයීම',
   'review.comment': 'අදහස්',
   'review.submitReview': 'සමාලෝචනය ඉදිරිපත් කරන්න',
