@@ -90,9 +90,9 @@ const ContactUs = ({ loginTrigger }) => {
     {
       title: "Email & Social",
       details: [
-        "info@mufasawildlife.lk",
-        "bookings@mufasawildlife.lk",
-        "@mufasawildlife"
+        "info@wildlanka.lk",
+        "bookings@wildlanka.lk",
+        "@wildlanka"
       ],
       icon: "📧"
     }

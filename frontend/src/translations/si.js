@@ -603,7 +603,7 @@
   'contact.faq.custom.answer': 'ඇත්තෙන්ම! අපි ඔබේ උනන්දුවන්, කණ්ඩායම් ප්‍රමාණය සහ සංචාර දින ට ගැලපෙන අභිරුචි සෆාරි අත්දැකීම් නිර්මාණය කිරීමේ විශේෂඥයින්.',
 
   // Signup translations
-  'signup.title': 'මුෆාසා වනජීවී සමඟ එක් වන්න',
+  'signup.title': 'වයිල්ඩ්ලංකා වනජීවී සමඟ එක් වන්න',
   'signup.subtitle': 'ඔබගේ වනජීවී සාහසිකාව ආරම්භ කිරීමට ඔබගේ ගිණුම සාදන්න',
   'signup.form.firstName': 'මුල් නම',
   'signup.form.firstNamePlaceholder': 'ඔබගේ මුල් නම',
@@ -925,7 +925,7 @@
   'contactUs.info.phone.title': 'අපට ඇමතන්න',
   'contactUs.info.phone.content': '+94 11  234 5678',
   'contactUs.info.email.title': 'විද්‍යුත් තැපෑල',
-  'contactUs.info.email.content': 'info@mufasawildlife.com',
+  'contactUs.info.email.content': 'info@wildlanka.com',
   'contactUs.hours.title': 'ව්‍යාපාරික පැය',
   'contactUs.hours.content': 'සඳුදා - සිකුරාදා: පෙ.ව 8:00 - ප.ව   6:00\nසෙනසුරාදා: පෙ.ව 9:00 - ප.ව 4:00\nඉරිදා: වසා ඇත',
   'contactUs.social.title': 'අප අනුගමනය කරන්න',
