@@ -16,8 +16,8 @@ const Header = ({ triggerLogin = null }) => {
     logout(); // Use AuthContext logout to clear state
     setTimeout(() => {
       setLoggingOut(false);
-      window.location.href = '/';
-    }, 300); // 300ms for quick spinner
+      navigate('/'); // Use React Router navigation for smooth transition
+    }, 500); // 500ms for a slightly more noticeable spinner
   };
   const navigate = useNavigate();
   const location = useLocation();
