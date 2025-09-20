@@ -230,7 +230,7 @@ export const staffLogin = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, country, currentPassword, newPassword } = req.body;
+    const { firstName, lastName, email, phone, country, currentPassword, newPassword, specialization, experience, licenseNumber } = req.body;
     const userId = req.user._id;
 
     console.log('updateProfile called. userId:', userId);
@@ -238,15 +238,24 @@ export const updateProfile = async (req, res, next) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Get current user to check password
-    const currentUser = await User.findById(userId);
+    // Get current user to check password - check both User and Staff collections
+    let currentUser = await User.findById(userId);
+    let isStaff = false;
+    
+    if (!currentUser) {
+      currentUser = await Staff.findById(userId);
+      isStaff = true;
+    }
+    
     if (!currentUser) {
       console.log('User/Staff not found for id:', userId);
       return res.status(404).json({ message: "User not found" });
     }
-    // Check if email is already taken by another user
+    // Check if email is already taken by another user in both User and Staff collections
     const existingUser = await User.findOne({ email, _id: { $ne: userId } });
-    if (existingUser) {
+    const existingStaff = await Staff.findOne({ email, _id: { $ne: userId } });
+    
+    if (existingUser || existingStaff) {
       console.log('Email already in use:', email);
       return res.status(409).json({ message: "Email already in use" });
     }
@@ -270,19 +279,37 @@ export const updateProfile = async (req, res, next) => {
       // Hash new password
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
-      // Update user profile with new password
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        {
+      // Update user profile with new password - handle both User and Staff
+      let updatedUser;
+      if (isStaff) {
+        const updateData = {
           firstName,
           lastName,
           email,
           phone,
-          country,
           passwordHash: newPasswordHash,
-        },
-        { new: true, runValidators: true }
-      );
+        };
+        
+        // Add staff-specific fields if provided
+        if (specialization !== undefined) updateData.specialization = specialization;
+        if (experience !== undefined) updateData.experience = experience;
+        if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
+        
+        updatedUser = await Staff.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
+      } else {
+        updatedUser = await User.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            country,
+            passwordHash: newPasswordHash,
+          },
+          { new: true, runValidators: true }
+        );
+      }
 
       return res.json({
         user: {
@@ -291,7 +318,11 @@ export const updateProfile = async (req, res, next) => {
           lastName: updatedUser.lastName,
           email: updatedUser.email,
           phone: updatedUser.phone,
-          country: updatedUser.country,
+          country: updatedUser.country || '',
+          role: updatedUser.role || 'user',
+          specialization: updatedUser.specialization || '',
+          experience: updatedUser.experience || '',
+          licenseNumber: updatedUser.licenseNumber || '',
           profilePicture: updatedUser.profilePicture,
           createdAt: updatedUser.createdAt,
           updatedAt: updatedUser.updatedAt,
@@ -299,18 +330,35 @@ export const updateProfile = async (req, res, next) => {
         message: "Profile and password updated successfully"
       });
     } else {
-      // Update user profile without password change
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        {
+      // Update user profile without password change - handle both User and Staff
+      let updatedUser;
+      if (isStaff) {
+        const updateData = {
           firstName,
           lastName,
           email,
           phone,
-          country,
-        },
-        { new: true, runValidators: true }
-      );
+        };
+        
+        // Add staff-specific fields if provided
+        if (specialization !== undefined) updateData.specialization = specialization;
+        if (experience !== undefined) updateData.experience = experience;
+        if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
+        
+        updatedUser = await Staff.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
+      } else {
+        updatedUser = await User.findByIdAndUpdate(
+          userId,
+          {
+            firstName,
+            lastName,
+            email,
+            phone,
+            country,
+          },
+          { new: true, runValidators: true }
+        );
+      }
 
       return res.json({
         user: {
@@ -319,7 +367,11 @@ export const updateProfile = async (req, res, next) => {
           lastName: updatedUser.lastName,
           email: updatedUser.email,
           phone: updatedUser.phone,
-          country: updatedUser.country,
+          country: updatedUser.country || '',
+          role: updatedUser.role || 'user',
+          specialization: updatedUser.specialization || '',
+          experience: updatedUser.experience || '',
+          licenseNumber: updatedUser.licenseNumber || '',
           profilePicture: updatedUser.profilePicture,
           createdAt: updatedUser.createdAt,
           updatedAt: updatedUser.updatedAt,
