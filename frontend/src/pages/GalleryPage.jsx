@@ -50,15 +50,15 @@ const GalleryPage = () => {
           {error && <div className="text-red-400 text-center mb-4">{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {images.map((img) => (
-              <div key={img._id} className="bg-gray-800 rounded-lg p-3 flex flex-col items-center border border-gray-700/40 cursor-pointer hover:shadow-lg transition" onClick={() => setModalImage(img)}>
+              <div key={img._id} className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-lg p-3 flex flex-col items-center border border-green-400/30 cursor-pointer hover:shadow-lg hover:shadow-green-400/30 transition" onClick={() => setModalImage(img)}>
                 {img.imageUrl ? (
                   <img src={img.imageUrl} alt={img.title || 'Gallery Image'} className="object-cover w-full h-48 rounded mb-2" />
                 ) : (
-                  <span className="text-slate-400">No image</span>
+                  <div className="w-full h-48 flex items-center justify-center bg-green-800/30 text-green-300 rounded mb-2">
+                    <span className="text-green-300">No image</span>
+                  </div>
                 )}
-                <div className="font-bold text-white text-center">{img.title || 'Untitled'}</div>
-                {img.price && <div className="text-slate-300 text-sm">Price: ${img.price}</div>}
-                {img.user && <div className="text-slate-400 text-xs">By: {img.user?.email || img.user}</div>}
+                {img.price && <div className="text-red-500 font-bold text-lg bg-white/10 px-3 py-1 rounded-full">Price: ${img.price}</div>}
               </div>
             ))}
           </div>
@@ -69,11 +69,24 @@ const GalleryPage = () => {
       </div>
       {/* Modal for image preview */}
       {modalImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" onClick={() => setModalImage(null)}>
-          <div className="bg-gray-900 rounded-lg p-4 relative max-w-lg w-full flex flex-col items-center" onClick={e => e.stopPropagation()}>
-            <img src={modalImage.imageUrl} alt={modalImage.title || 'Gallery Image'} className="max-h-[70vh] max-w-full rounded" />
-            <div className="text-white mt-2 font-bold">{modalImage.title || 'Gallery Image'}</div>
-            <button onClick={() => setModalImage(null)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">Close</button>
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-gradient-to-br from-gray-900/95 via-green-950/90 to-gray-900/95 backdrop-blur-md p-4 pt-8 pb-8 overflow-y-auto" onClick={() => setModalImage(null)}>
+          <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-md rounded-xl p-6 relative max-w-4xl w-full flex flex-col items-center border border-green-400/30 shadow-2xl mt-16 mb-16" onClick={e => e.stopPropagation()}>
+            <img src={modalImage.imageUrl} alt={modalImage.title || 'Gallery Image'} className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain" />
+            <div className="text-white mt-4 font-abeze font-bold text-center text-lg max-w-2xl leading-relaxed">{modalImage.title || 'Gallery Image'}</div>
+            {modalImage.price && (
+              <div className="text-red-500 font-bold text-xl bg-white/20 px-4 py-2 rounded-full mt-4 shadow-md">
+                Price: ${modalImage.price}
+              </div>
+            )}
+            <button 
+              onClick={() => setModalImage(null)} 
+              className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors duration-300 shadow-lg"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}

@@ -67,10 +67,14 @@ const ReviewsPage = () => {
         <div className="container mx-auto px-2 sm:px-4 md:px-6">
           <div className="text-center mb-10 md:mb-16 px-2">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-abeze font-bold text-white mb-2 md:mb-4 break-words">
-              <span className="text-green-400">{(t('nav.reviews') || 'Reviews').replace(/\b([A-Z]{2,})\b/g, w => w.charAt(0) + w.slice(1).toLowerCase())}</span>
+              {(() => {
+                const title = t('nav.reviews') || 'Customer Reviews';
+                const [first, ...rest] = title.split(' ');
+                return <>{first} <span className="text-green-400">{rest.join(' ')}</span></>;
+              })()}
             </h1>
             <p className="text-green-200 font-abeze text-base sm:text-lg max-w-2xl md:max-w-3xl mx-auto">
-              {t('gallery.subtitle') || 'See what our guests say about their experiences.'}
+              {t('reviews.subtitle') || 'See what our guests say about their experiences with WildLanka'}
             </p>
           </div>
           <div className="flex justify-center mb-6 md:mb-8">
@@ -94,42 +98,29 @@ const ReviewsPage = () => {
               <p className="text-gray-300 font-abeze">{t('gallery.beFirst') || 'Be the first to leave a review!'}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {displayedReviews.map((review) => (
-                <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 shadow-md hover:shadow-green-400/30 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
-                  <div className="aspect-square overflow-hidden relative">
-                    {review.images && review.images.length > 0 ? (
-                      <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-400 text-2xl font-abeze">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  {/* Location below image */}
-                  <div className="px-3 pt-2 pb-1">
-                    <span className="text-xs font-bold text-green-600 font-abeze truncate block">
-                      {review.packageId?.title || 'Unknown package'}
-                    </span>
-                  </div>
-                  {/* Hover overlay for details */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-white font-abeze font-bold text-sm truncate">{review.packageId?.title || t('gallery.safariPackage') || 'Safari Package'}</h4>
-                        <div className="flex items-center space-x-1">
-                          {[...Array(5)].map((_, i) => (
-                            <svg key={i} className={`w-3 h-3 ${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                          ))}
-                          <span className="text-white font-abeze ml-2 text-xs">{review.rating}/5</span>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 font-abeze text-xs flex items-center justify-between">
-                        <span>{t('gallery.by') || 'By'} {getUserName(review)}</span>
-                        <span>{review.images.length} {review.images.length === 1 ? (t('gallery.photos') || 'photo') : (t('gallery.photosPlural') || 'photos')}</span>
-                      </p>
+                <div key={review._id} className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-sm rounded-lg p-3 flex flex-col items-center border border-green-400/30 cursor-pointer hover:shadow-lg hover:shadow-green-400/30 transition" onClick={() => openModal(review, 0)}>
+                  {review.images && review.images.length > 0 ? (
+                    <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="object-cover w-full h-48 rounded mb-2" />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-green-800/30 text-green-300 rounded mb-2">
+                      <span className="text-green-300">No image</span>
                     </div>
+                  )}
+                  <div className="font-bold text-white text-center">{review.packageId?.title || 'Safari Package'}</div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                    <span className="text-amber-300 text-sm ml-1 font-bold">{review.rating}/5</span>
                   </div>
+                  <div className="text-slate-400 text-xs text-center mt-1">By: {getUserName(review)}</div>
+                  {review.images && review.images.length > 1 && (
+                    <div className="text-slate-400 text-xs text-center mt-1">{review.images.length} photos</div>
+                  )}
                 </div>
               ))}
             </div>
@@ -144,40 +135,40 @@ const ReviewsPage = () => {
         </div>
       </div>
       {selectedReview && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex justify-center items-start z-50 p-2 sm:p-4 overflow-y-auto">
-          <div className="relative max-w-2xl sm:max-w-3xl md:max-w-5xl w-full mt-4 sm:mt-8">
-            <button onClick={closeModal} className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden border border-white/20">
-              <div className="relative">
-                <img src={selectedReview.images[currentIndex].url} alt={`Image ${currentIndex + 1} of ${selectedReview.images.length}`} className="w-full max-h-[50vh] sm:max-h-[70vh] object-contain bg-black" />
-                {/* Image counter below image */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs sm:text-sm font-abeze px-3 py-1 rounded-full shadow-lg pointer-events-none select-none">
-                  {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}
-                </div>
-                <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full" aria-label={t('gallery.previousImage') || 'Previous'}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                </button>
-                <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full" aria-label={t('gallery.nextImage') || 'Next'}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                </button>
-              </div>
-              <div className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
-                  <h3 className="text-base sm:text-xl font-abeze font-bold text-white truncate mr-3">{selectedReview.packageId?.title || t('gallery.safariPackage') || 'Safari Package'}</h3>
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-4 sm:w-5 h-4 sm:h-5 ${i < selectedReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                    ))}
-                    <span className="text-white font-abeze ml-2">{selectedReview.rating}/5</span>
-                  </div>
-                </div>
-                <p className="text-gray-300 font-abeze mb-2 sm:mb-3"><span className="text-green-400">{t('gallery.by') || 'By'}:</span> {getUserName(selectedReview)}</p>
-                {selectedReview.comment && (<p className="text-gray-300 font-abeze mb-2 sm:mb-3 italic">"{selectedReview.comment}"</p>)}
-                <p className="text-gray-400 font-abeze text-xs sm:text-sm">{new Date(selectedReview.createdAt).toLocaleDateString()} • {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-gradient-to-br from-gray-900/95 via-green-950/90 to-gray-900/95 backdrop-blur-md p-4 pt-8 pb-8 overflow-y-auto" onClick={closeModal}>
+          <div className="bg-gradient-to-br from-green-600/20 to-green-400/20 backdrop-blur-md rounded-xl p-6 relative max-w-4xl w-full flex flex-col items-center border border-green-400/30 shadow-2xl mt-16 mb-16" onClick={e => e.stopPropagation()}>
+            {selectedReview.images && selectedReview.images.length > 0 && (
+              <img src={selectedReview.images[currentIndex].url} alt={`Review by ${getUserName(selectedReview)}`} className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain" />
+            )}
+            <div className="text-white mt-4 font-abeze font-bold text-center text-lg">{selectedReview.packageId?.title || 'Safari Package'}</div>
+            <div className="flex items-center justify-center space-x-1 mt-3 bg-white/10 px-4 py-2 rounded-full">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className={`w-6 h-6 ${i < selectedReview.rating ? 'text-amber-400 fill-current drop-shadow-md' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+              <span className="text-amber-300 font-abeze ml-3 text-xl font-bold">{selectedReview.rating}/5</span>
             </div>
+            <div className="text-green-300 text-sm text-center mt-3 font-abeze">By: {getUserName(selectedReview)}</div>
+            {selectedReview.comment && (
+              <div className="text-gray-300 text-base text-center mt-3 italic max-w-2xl font-abeze leading-relaxed">"{selectedReview.comment}"</div>
+            )}
+            {selectedReview.images && selectedReview.images.length > 1 && (
+              <div className="flex items-center space-x-4 mt-6">
+                <button onClick={prevImage} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-abeze font-medium transition-colors duration-300">Previous</button>
+                <span className="text-green-300 text-sm font-abeze">{currentIndex + 1} / {selectedReview.images.length}</span>
+                <button onClick={nextImage} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-abeze font-medium transition-colors duration-300">Next</button>
+              </div>
+            )}
+            <button 
+              onClick={closeModal} 
+              className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors duration-300 shadow-lg"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
