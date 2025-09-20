@@ -296,7 +296,7 @@ export default {
   'packages.noPackagesFound': 'தேர்ந்தெடுக்கப்பட்ட வகைக்கு பேக்கேஜ்கள் எதுவும் கிடைக்கவில்லை.',
   'packages.popular': 'பிரபலமானது',
   'packages.reviews': 'விமர்சனங்கள்',
-  'packages.maxPeople': 'அதிகபட்சம் {count} பேர்',
+  'packages.maxPeople': 'அதிகபட்சம் {{count}} பேர்',
   'packages.highlights': 'முக்கிய அம்சங்கள்:',
   'packages.features': 'அம்சங்கள்:',
   'packages.perPerson': '/நபர்',
