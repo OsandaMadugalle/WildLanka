@@ -176,7 +176,6 @@ export const updateStaff = async (req, res, next) => {
       },
       { new: true, runValidators: true }
     ).select('-passwordHash');
-
     return res.json(updatedStaff);
   } catch (err) {
     next(err);

@@ -6,7 +6,7 @@ import AddVehicleModal from '../components/AddVehicleModal';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-// ...existing code...
+import { EditProfileModal } from '../components/EditProfileModal';
 
 const DriverDashboard = () => {
   // Simple reports tab for driver
@@ -212,7 +212,7 @@ const DriverDashboard = () => {
 
   // Render Bookings section with Assigned Tasks, Schedule, Completed
   const renderBookings = () => (
-    <>
+  <>
       {/* Bookings Tabs */}
       <div>
         <div className="flex gap-2 mb-6">
@@ -493,7 +493,19 @@ const DriverDashboard = () => {
       </div>
     </>
   );
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
+  // Fetch latest user data after profile update
+  const fetchUserData = async () => {
+    try {
+      // You may need to adjust the endpoint depending on your backend
+      const response = await fetch(`/api/staff/${user._id}`);
+      if (!response.ok) throw new Error('Failed to fetch user');
+      const updatedUser = await response.json();
+      login(updatedUser, localStorage.getItem('auth_token'));
+    } catch (err) {
+      console.error('Failed to refresh user data:', err);
+    }
+  };
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [pendingBookings, setPendingBookings] = useState([]);
@@ -504,6 +516,7 @@ const DriverDashboard = () => {
   const [completingBooking, setCompletingBooking] = useState(null);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editVehicle, setEditVehicle] = useState(null);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   // AddVehicleModal rendering
   // Show modal for add or edit
   // onVehicleAdded and onVehicleUpdated update the vehicles list
@@ -1108,6 +1121,12 @@ const DriverDashboard = () => {
         onVehicleUpdated={handleVehicleUpdated}
         vehicle={editVehicle}
       />
+      {showEditProfile && (
+        <EditProfileModal
+          user={user}
+          onClose={() => setShowEditProfile(false)}
+        />
+      )}
       {/* Check if user is authenticated and is a driver */}
       {!user ? (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -1135,15 +1154,26 @@ const DriverDashboard = () => {
           <div className="text-center mb-12">
             <div className="flex justify-between items-center mb-4">
               <div></div> {/* Empty div for spacing */}
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Logout</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowEditProfile(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Edit Profile</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-abeze font-bold text-white mb-4">
               Driver Dashboard
