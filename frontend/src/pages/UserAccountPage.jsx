@@ -97,7 +97,7 @@ const UserAccountPage = () => {
     }
   }, [toast.message]);
   const [reviews, setReviews] = useState([]);
-  const [sortReviewsBy, setSortReviewsBy] = useState('recent'); // 'recent', 'highest', 'lowest'
+  // Removed sortReviewsBy state
   const reviewsPerPage = 3;
   const [userGallery, setUserGallery] = useState([]);
   const [loadingGallery, setLoadingGallery] = useState(false);
@@ -1122,25 +1122,8 @@ const UserAccountPage = () => {
                 <h3 className="text-2xl font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400 mb-8">
                   {t("userAccount.myReviews")}
                 </h3>
-                {/* Sorting and count */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                  <div className="text-slate-300 font-abeze text-sm">
-                    {t("userAccount.totalReviews") || 'Total Reviews'}: {reviews.length}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="sortReviews" className="text-slate-300 font-abeze text-sm">{t("userAccount.sortBy") || 'Sort by'}:</label>
-                    <select
-                      id="sortReviews"
-                      value={sortReviewsBy}
-                      onChange={e => setSortReviewsBy(e.target.value)}
-                      className="bg-gray-700 text-white rounded px-2 py-1 font-abeze"
-                    >
-                      <option value="recent">{t("userAccount.sortRecent") || 'Most Recent'}</option>
-                      <option value="highest">{t("userAccount.sortHighest") || 'Highest Rated'}</option>
-                      <option value="lowest">{t("userAccount.sortLowest") || 'Lowest Rated'}</option>
-                    </select>
-                  </div>
-                </div>
+                {/* Review count only */}
+                <div className="mb-6 text-slate-300 font-abeze text-sm">{t("userAccount.totalReviews") || 'Total Reviews'}: {reviews.length}</div>
                 {loadingReviews ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
@@ -1158,16 +1141,9 @@ const UserAccountPage = () => {
                   <>
                     {/* Pagination logic */}
                     {(() => {
-                      let sortedReviews = [...reviews];
-                      if (sortReviewsBy === 'recent') {
-                        sortedReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                      } else if (sortReviewsBy === 'highest') {
-                        sortedReviews.sort((a, b) => b.rating - a.rating || new Date(b.createdAt) - new Date(a.createdAt));
-                      } else if (sortReviewsBy === 'lowest') {
-                        sortedReviews.sort((a, b) => a.rating - b.rating || new Date(b.createdAt) - new Date(a.createdAt));
-                      }
-                      const totalPages = Math.ceil(sortedReviews.length / reviewsPerPage);
-                      const paginated = sortedReviews.slice((currentReviewsPage - 1) * reviewsPerPage, currentReviewsPage * reviewsPerPage);
+                      // Just show reviews in original order (most recent from backend)
+                      const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+                      const paginated = reviews.slice((currentReviewsPage - 1) * reviewsPerPage, currentReviewsPage * reviewsPerPage);
                       return <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                           {paginated.map((review) => (
