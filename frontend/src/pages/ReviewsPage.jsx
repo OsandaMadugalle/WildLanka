@@ -97,11 +97,18 @@ const ReviewsPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {displayedReviews.map((review) => (
-                <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
-                  <div className="aspect-square overflow-hidden">
+                <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 shadow-md hover:shadow-green-400/30 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
+                  <div className="aspect-square overflow-hidden relative">
                     <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* Location below image */}
+                  <div className="px-3 pt-2 pb-1">
+                    <span className="text-xs font-bold text-green-600 font-abeze truncate block">
+                      {review.packageId?.title || 'Unknown package'}
+                    </span>
+                  </div>
+                  {/* Hover overlay for details */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="text-white font-abeze font-bold text-sm truncate">{review.packageId?.title || t('gallery.safariPackage') || 'Safari Package'}</h4>
@@ -125,7 +132,7 @@ const ReviewsPage = () => {
           {displayedReviews.length > 0 && (
             <div className="text-center mt-8">
               <p className="text-gray-300 font-abeze">
-                {displayedReviews.length === 1 ? (t('gallery.showingReviews', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} review`) : (t('gallery.showingReviewsPlural', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} reviews`)}
+                {`Showing ${displayedReviews.length} reviews with photos`}
               </p>
             </div>
           )}
