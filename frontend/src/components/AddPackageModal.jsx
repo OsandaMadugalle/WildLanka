@@ -367,12 +367,12 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
             </label>
             <div
               onClick={handleGalleryImageClick}
-              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors overflow-x-auto scrollbar-none"
             >
               {galleryPreviews.length > 0 ? (
-                <div className="flex gap-2 w-full h-full">
+                <div className="flex gap-2 w-full h-full flex-nowrap overflow-x-auto scrollbar-none">
                   {galleryPreviews.map((preview, idx) => (
-                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="h-28 w-auto object-cover rounded-lg flex-shrink-0 border border-white/10" />
                   ))}
                 </div>
               ) : (
