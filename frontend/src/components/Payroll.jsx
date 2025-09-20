@@ -4,6 +4,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Payroll = () => {
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [payroll, setPayroll] = useState([]);
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -272,7 +276,7 @@ const Payroll = () => {
 
       // Create new PDF document
       const doc = new jsPDF();
-      
+
       // Set document properties
       doc.setProperties({
         title: `Payroll Report - ${getMonthName(selectedMonth)} ${selectedYear}`,
@@ -280,99 +284,73 @@ const Payroll = () => {
         author: 'Wildlife Safari Management System',
         creator: 'Payroll System'
       });
-      
-      // Add professional header with background
-      doc.setFillColor(31, 41, 55); // Dark gray background
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      // Add company logo/name area
-      doc.setFillColor(59, 130, 246); // Blue accent
-      doc.rect(20, 10, 4, 20, 'F');
-      
-      // Add title with professional styling
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(24);
+
+      // --- Modern Header ---
+      doc.setFillColor(34, 197, 94); // Green accent
+      doc.rect(0, 0, 210, 36, 'F');
+      doc.setFillColor(31, 41, 55); // Dark gray
+      doc.rect(0, 36, 210, 12, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
-      doc.text('PAYROLL REPORT', 105, 25, { align: 'center' });
-      
-      // Add subtitle
-      doc.setFontSize(16);
+      doc.text('PAYROLL REPORT', 12, 24);
+      doc.setFontSize(13);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${getMonthName(selectedMonth)} ${selectedYear}`, 105, 35, { align: 'center' });
-      
-      // Add generation info section
-      doc.setFillColor(243, 244, 246); // Light gray background
-      doc.rect(20, 50, 170, 30, 'F');
-      
-      doc.setTextColor(75, 85, 99); // Dark gray text
+      doc.text(`${getMonthName(selectedMonth)} ${selectedYear}`, 12, 32);
       doc.setFontSize(10);
+      doc.text('Wildlife Safari Management System', 198, 24, { align: 'right' });
+      doc.setTextColor(180, 255, 210);
+      doc.text('Automated Payroll Summary', 198, 32, { align: 'right' });
+
+      // --- Info Section ---
+      doc.setFillColor(243, 244, 246); // Light gray
+      doc.rect(10, 50, 190, 18, 'F');
+      doc.setTextColor(55, 65, 81);
       doc.setFont('helvetica', 'bold');
-      doc.text('Report Information:', 25, 60);
-      
+      doc.setFontSize(10);
+      doc.text('Generated:', 14, 58);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Generated on: ${new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}`, 25, 68);
-      
-      doc.text(`Report Period: ${getMonthName(selectedMonth)} 1 - ${getMonthName(selectedMonth)} ${new Date(selectedYear, selectedMonth, 0).getDate()}, ${selectedYear}`, 25, 76);
-      
-      // Add summary statistics with professional styling
-      doc.setFillColor(59, 130, 246); // Blue background
-      doc.rect(20, 90, 170, 25, 'F');
-      
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(12);
+      doc.text(`${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 38, 58);
       doc.setFont('helvetica', 'bold');
-      doc.text('SUMMARY STATISTICS', 105, 100, { align: 'center' });
-      
-      // Calculate summary values
+      doc.text('Period:', 14, 66);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${getMonthName(selectedMonth)} 1 - ${getMonthName(selectedMonth)} ${new Date(selectedYear, selectedMonth, 0).getDate()}, ${selectedYear}`, 32, 66);
+
+      // --- Modern Summary Cards ---
       const totalStaff = payroll.length;
       const totalWorkingHours = payroll.reduce((sum, record) => sum + (record.totalWorkingHours || 0), 0);
       const totalNetPay = payroll.reduce((sum, record) => sum + (record.netPay || 0), 0);
       const totalOvertimeHours = payroll.reduce((sum, record) => sum + Math.max(0, record.totalWorkingHours - (record.totalWorkingDays * 8)), 0);
-      
-      // Add summary boxes with better spacing
       const summaryBoxes = [
-        { label: 'Total Staff', value: totalStaff.toString(), color: [59, 130, 246] },
-        { label: 'Working Hours', value: `${totalWorkingHours.toFixed(1)} hrs`, color: [34, 197, 94] },
+        { label: 'Total Staff', value: totalStaff.toString(), color: [34, 197, 94] },
+        { label: 'Working Hours', value: `${totalWorkingHours.toFixed(1)} hrs`, color: [59, 130, 246] },
         { label: 'Overtime Hours', value: `${totalOvertimeHours.toFixed(1)} hrs`, color: [245, 158, 11] },
         { label: 'Total Net Pay', value: `LKR ${totalNetPay.toLocaleString()}`, color: [168, 85, 247] }
       ];
-      
-      let boxX = 25;
-      summaryBoxes.forEach((box, index) => {
+      let boxX = 15;
+      summaryBoxes.forEach((box, idx) => {
         doc.setFillColor(...box.color);
-        doc.rect(boxX, 105, 38, 18, 'F'); // Increased height from 15 to 18
-        
+        doc.roundedRect(boxX, 75, 45, 18, 4, 4, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.text(box.label, boxX + 19, 115, { align: 'center' }); // Adjusted Y position
-        
-        doc.setFontSize(7);
+        doc.setFontSize(9);
+        doc.text(box.label, boxX + 22.5, 83, { align: 'center' });
         doc.setFont('helvetica', 'normal');
-        doc.text(box.value, boxX + 19, 122, { align: 'center' }); // Adjusted Y position
-        
-        boxX += 42; // Increased spacing between boxes from 40 to 42
+        doc.setFontSize(10);
+        doc.text(box.value, boxX + 22.5, 92, { align: 'center' });
+        boxX += 48;
       });
       
-      // Define table columns and rows
+      // --- Modern Table ---
       const tableColumn = [
-        "Staff", "Working Days", "Total Hours", "Overtime Hours", 
-        "Basic Salary", "Overtime Pay", "Bonuses", "Allowances", 
+        "Staff", "Working Days", "Total Hours", "Overtime Hours",
+        "Basic Salary", "Overtime Pay", "Bonuses", "Allowances",
         "Deductions", "Gross Pay", "Net Pay"
       ];
-      
-      // Table rows
       const tableRows = payroll.map(record => {
         const overtimeHours = Math.max(0, record.totalWorkingHours - (record.totalWorkingDays * 8));
         const overtimePay = overtimeHours * 1000;
         const grossPay = (record.regularPay || 0) + overtimePay + (record.bonuses || 0) + (record.allowances || 0);
-        
         return [
           `${record.staffId.firstName} ${record.staffId.lastName}`,
           record.totalWorkingDays,
@@ -387,135 +365,135 @@ const Payroll = () => {
           `LKR ${(record.netPay || 0).toLocaleString()}`
         ];
       });
-      
-      // Add table with enhanced styling
+
       try {
         if (typeof autoTable === 'function') {
           autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
-            startY: 135, // Increased from 130 to give more space
+            startY: 100,
             styles: {
               fontSize: 9,
-              cellPadding: 3, // Reduced from 4 to save space
+              cellPadding: 3,
               lineColor: [209, 213, 219],
-              lineWidth: 0.1
+              lineWidth: 0.1,
+              valign: 'middle',
             },
             headStyles: {
               fillColor: [31, 41, 55],
               textColor: 255,
-              fontSize: 9, // Reduced from 10 to save space
+              fontSize: 10,
               fontStyle: 'bold',
-              halign: 'center'
+              halign: 'center',
+              lineWidth: 0.2,
+              lineColor: [34, 197, 94],
             },
             bodyStyles: {
-              textColor: 75,
-              fontSize: 7 // Reduced from 8 to save space
+              textColor: 55,
+              fontSize: 8,
+              halign: 'center',
             },
             alternateRowStyles: {
-              fillColor: [249, 250, 251]
+              fillColor: [243, 244, 246],
             },
             columnStyles: {
-              // A4 width is 210mm, so we need to fit within ~190mm (with margins)
-              // Total width: 25+14+14+14+18+18+14+14+14+18+18 = 175mm
-              0: { cellWidth: 25, fontStyle: 'bold' }, // Staff name
-              1: { cellWidth: 14, halign: 'center' }, // Working Days
-              2: { cellWidth: 14, halign: 'center' }, // Total Hours
-              3: { cellWidth: 14, halign: 'center' }, // Overtime Hours
-              4: { cellWidth: 18, halign: 'right' }, // Basic Salary
-              5: { cellWidth: 18, halign: 'right' }, // Overtime Pay
-              6: { cellWidth: 14, halign: 'right' }, // Bonuses
-              7: { cellWidth: 14, halign: 'right' }, // Allowances
-              8: { cellWidth: 14, halign: 'right' }, // Deductions
-              9: { cellWidth: 18, halign: 'right' }, // Gross Pay
-              10: { cellWidth: 18, halign: 'right' }  // Net Pay
+              0: { cellWidth: 28, fontStyle: 'bold', halign: 'left' },
+              1: { cellWidth: 14 },
+              2: { cellWidth: 16 },
+              3: { cellWidth: 16 },
+              4: { cellWidth: 18, halign: 'right' },
+              5: { cellWidth: 18, halign: 'right' },
+              6: { cellWidth: 14, halign: 'right' },
+              7: { cellWidth: 14, halign: 'right' },
+              8: { cellWidth: 14, halign: 'right' },
+              9: { cellWidth: 18, halign: 'right' },
+              10: { cellWidth: 18, halign: 'right' },
             },
-            margin: { top: 10, right: 10, bottom: 20, left: 10 }, // Reduced margins
+            margin: { top: 10, right: 10, bottom: 20, left: 10 },
             didDrawPage: function (data) {
-              // Add page numbers
+              // --- Enhanced Professional Footer ---
+              const pageHeight = doc.internal.pageSize.height;
+              // Divider line
+              doc.setDrawColor(34, 197, 94);
+              doc.setLineWidth(0.7);
+              doc.line(10, pageHeight - 16, 200, pageHeight - 16);
+              // Footer background
+              doc.setFillColor(31, 41, 55);
+              doc.rect(0, pageHeight - 15, 210, 15, 'F');
+              // --- Simple & Professional Footer ---
+              doc.setFillColor(31, 41, 55);
+              doc.rect(0, pageHeight - 15, 210, 15, 'F');
+              doc.setTextColor(255, 255, 255);
               doc.setFontSize(8);
-              doc.setTextColor(128);
-              doc.text(
-                `Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
-                data.settings.margin.left,
-                doc.internal.pageSize.height - 10
-              );
-            }
+              doc.setFont('helvetica', 'bold');
+              doc.text('WildLanka', 14, pageHeight - 7.5);
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(8);
+              doc.setTextColor(180, 255, 210);
+              doc.text('Payroll Report', 14, pageHeight - 3.5);
+              doc.setTextColor(200, 200, 200);
+              doc.setFontSize(7);
+              doc.text('Contact: hr@wildlanka.com | +94 77 123 4567', 105, pageHeight - 4, { align: 'center' });
+              doc.setTextColor(180, 255, 210);
+              doc.setFontSize(8);
+              doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber, 198, pageHeight - 4, { align: 'right' });
+            },
           });
         } else {
-          // Enhanced fallback table styling
-          let yPosition = 135; // Increased from 130
-          let xPosition = 10; // Start from left margin
-          
-          // Add table header with professional styling
+          // Fallback: simple table
+          let yPosition = 100;
+          let xPosition = 10;
           doc.setFillColor(31, 41, 55);
-          doc.rect(xPosition, yPosition, 175, 10, 'F'); // Width: 175mm (reduced from 190)
-          
+          doc.rect(xPosition, yPosition, 190, 10, 'F');
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(9);
           doc.setFont('helvetica', 'bold');
-          
-          // Updated column widths to fit A4 page (total: 175mm)
-          const columnWidths = [25, 14, 14, 14, 18, 18, 14, 14, 14, 18, 18];
-          
+          const columnWidths = [28, 14, 16, 16, 18, 18, 14, 14, 14, 18, 18];
           tableColumn.forEach((header, index) => {
             const cellWidth = columnWidths[index];
             doc.text(header, xPosition + cellWidth/2, yPosition + 7, { align: 'center' });
             xPosition += cellWidth;
           });
-          
-          // Add data rows with alternating colors
           yPosition += 12;
           tableRows.forEach((row, rowIndex) => {
-            xPosition = 10; // Reset to left margin
-            
-            // Alternate row colors
+            xPosition = 10;
+            // Zebra striping
             if (rowIndex % 2 === 0) {
-              doc.setFillColor(249, 250, 251);
+              doc.setFillColor(243, 244, 246);
             } else {
               doc.setFillColor(255, 255, 255);
             }
-            doc.rect(10, yPosition - 2, 175, 10, 'F'); // Width: 175mm (reduced from 190)
-            
+            doc.rect(10, yPosition - 2, 190, 10, 'F');
             row.forEach((cell, index) => {
               const cellWidth = columnWidths[index];
               doc.setDrawColor(209, 213, 219);
               doc.rect(xPosition, yPosition - 2, cellWidth, 10, 'S');
-              
-              doc.setTextColor(75, 85, 99);
-              doc.setFontSize(7); // Reduced font size
+              doc.setTextColor(55, 65, 81);
+              doc.setFontSize(8);
               doc.setFont('helvetica', 'normal');
-              
-              // Align text based on column type
-              if (index === 0) { // Staff name
+              if (index === 0) {
                 doc.text(cell, xPosition + 2, yPosition + 4);
-              } else if (index >= 4) { // Currency columns
+              } else {
                 doc.text(cell, xPosition + cellWidth - 2, yPosition + 4, { align: 'right' });
-              } else { // Number columns
-                doc.text(cell, xPosition + cellWidth/2, yPosition + 4, { align: 'center' });
               }
-              
               xPosition += cellWidth;
             });
             yPosition += 12;
           });
+          // Footer
+          const pageHeight = doc.internal.pageSize.height;
+          doc.setFillColor(31, 41, 55);
+          doc.rect(0, pageHeight - 18, 210, 18, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.text('Wildlife Safari Management System - Payroll Report', 12, pageHeight - 8);
+          doc.text('For questions, contact HR | Page ' + 1, 198, pageHeight - 8, { align: 'right' });
         }
       } catch (tableError) {
         console.warn('AutoTable plugin not available, using fallback table:', tableError);
-        // Continue with fallback table creation
       }
-      
-      // Add footer with professional styling
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFillColor(31, 41, 55);
-      doc.rect(0, pageHeight - 20, 210, 20, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Wildlife Safari Management System - Payroll Report', 105, pageHeight - 12, { align: 'center' });
-      doc.text('This is an automatically generated report. For questions, contact the HR department.', 105, pageHeight - 6, { align: 'center' });
-      
+
       // Save PDF
       doc.save(`payroll_${getMonthName(selectedMonth)}_${selectedYear}.pdf`);
       alert('PDF downloaded successfully!');

@@ -230,29 +230,25 @@ export const staffLogin = async (req, res, next) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, country, currentPassword, newPassword, specialization, experience, licenseNumber } = req.body;
+    const { firstName, lastName, email, phone, country, currentPassword, newPassword } = req.body;
     const userId = req.user._id;
 
+    console.log('updateProfile called. userId:', userId);
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check if email is already taken by another user (User collection)
+    // Get current user to check password
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      console.log('User/Staff not found for id:', userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Check if email is already taken by another user
     const existingUser = await User.findOne({ email, _id: { $ne: userId } });
     if (existingUser) {
+      console.log('Email already in use:', email);
       return res.status(409).json({ message: "Email already in use" });
-    }
-
-    // Try to find user in User collection first
-    let currentUser = await User.findById(userId);
-    let isStaff = false;
-    if (!currentUser) {
-      // If not found, try Staff collection
-      currentUser = await Staff.findById(userId);
-      isStaff = true;
-    }
-    if (!currentUser) {
-      return res.status(404).json({ message: "User not found" });
     }
 
     // If password change is requested
@@ -260,7 +256,6 @@ export const updateProfile = async (req, res, next) => {
       if (!currentPassword) {
         return res.status(400).json({ message: "Current password is required to change password" });
       }
-
       // Verify current password
       const isValidCurrentPassword = isStaff
         ? await currentUser.comparePassword(currentPassword)
@@ -268,138 +263,72 @@ export const updateProfile = async (req, res, next) => {
       if (!isValidCurrentPassword) {
         return res.status(401).json({ message: "Current password is incorrect" });
       }
-
       // Validate new password
       if (newPassword.length < 8) {
         return res.status(400).json({ message: "New password must be at least 8 characters long" });
       }
-
       // Hash new password
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
-      // Update profile with new password
-      if (isStaff) {
-        const updatedStaff = await Staff.findByIdAndUpdate(
-          userId,
-          {
-            firstName,
-            lastName,
-            email,
-            phone,
-            specialization,
-            experience,
-            licenseNumber,
-            passwordHash: newPasswordHash,
-          },
-          { new: true, runValidators: true }
-        );
-        return res.json({
-          user: {
-            id: updatedStaff._id,
-            firstName: updatedStaff.firstName,
-            lastName: updatedStaff.lastName,
-            email: updatedStaff.email,
-            phone: updatedStaff.phone,
-            specialization: updatedStaff.specialization,
-            experience: updatedStaff.experience,
-            licenseNumber: updatedStaff.licenseNumber,
-            role: updatedStaff.role,
-            profilePicture: updatedStaff.profilePicture,
-            createdAt: updatedStaff.createdAt,
-            updatedAt: updatedStaff.updatedAt,
-          },
-          message: "Profile and password updated successfully"
-        });
-      } else {
-        const updatedUser = await User.findByIdAndUpdate(
-          userId,
-          {
-            firstName,
-            lastName,
-            email,
-            phone,
-            country,
-            passwordHash: newPasswordHash,
-          },
-          { new: true, runValidators: true }
-        );
-        return res.json({
-          user: {
-            id: updatedUser._id,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            email: updatedUser.email,
-            phone: updatedUser.phone,
-            country: updatedUser.country,
-            profilePicture: updatedUser.profilePicture,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt,
-          },
-          message: "Profile and password updated successfully"
-        });
-      }
+      // Update user profile with new password
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          firstName,
+          lastName,
+          email,
+          phone,
+          country,
+          passwordHash: newPasswordHash,
+        },
+        { new: true, runValidators: true }
+      );
+
+      return res.json({
+        user: {
+          id: updatedUser._id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          country: updatedUser.country,
+          profilePicture: updatedUser.profilePicture,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
+        },
+        message: "Profile and password updated successfully"
+      });
     } else {
-      // Update profile without password change
-      if (isStaff) {
-        const updatedStaff = await Staff.findByIdAndUpdate(
-          userId,
-          {
-            firstName,
-            lastName,
-            email,
-            phone,
-            specialization,
-            experience,
-            licenseNumber,
-          },
-          { new: true, runValidators: true }
-        );
-        return res.json({
-          user: {
-            id: updatedStaff._id,
-            firstName: updatedStaff.firstName,
-            lastName: updatedStaff.lastName,
-            email: updatedStaff.email,
-            phone: updatedStaff.phone,
-            specialization: updatedStaff.specialization,
-            experience: updatedStaff.experience,
-            licenseNumber: updatedStaff.licenseNumber,
-            role: updatedStaff.role,
-            profilePicture: updatedStaff.profilePicture,
-            createdAt: updatedStaff.createdAt,
-            updatedAt: updatedStaff.updatedAt,
-          },
-          message: "Profile updated successfully"
-        });
-      } else {
-        const updatedUser = await User.findByIdAndUpdate(
-          userId,
-          {
-            firstName,
-            lastName,
-            email,
-            phone,
-            country,
-          },
-          { new: true, runValidators: true }
-        );
-        return res.json({
-          user: {
-            id: updatedUser._id,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            email: updatedUser.email,
-            phone: updatedUser.phone,
-            country: updatedUser.country,
-            profilePicture: updatedUser.profilePicture,
-            createdAt: updatedUser.createdAt,
-            updatedAt: updatedUser.updatedAt,
-          },
-          message: "Profile updated successfully"
-        });
-      }
+      // Update user profile without password change
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          firstName,
+          lastName,
+          email,
+          phone,
+          country,
+        },
+        { new: true, runValidators: true }
+      );
+
+      return res.json({
+        user: {
+          id: updatedUser._id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          country: updatedUser.country,
+          profilePicture: updatedUser.profilePicture,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
+        },
+        message: "Profile updated successfully"
+      });
     }
   } catch (err) {
+    console.error('updateProfile error:', err);
     next(err);
   }
 };
