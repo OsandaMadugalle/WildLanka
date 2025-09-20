@@ -125,7 +125,7 @@ const ReviewsPage = () => {
           {displayedReviews.length > 0 && (
             <div className="text-center mt-8">
               <p className="text-gray-300 font-abeze">
-                {displayedReviews.length === 1 ? (t('gallery.showingReviews', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} review`) : (t('gallery.showingReviewsPlural', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} reviews`)}
+                {`Showing ${displayedReviews.length} reviews with photos`}
               </p>
             </div>
           )}
