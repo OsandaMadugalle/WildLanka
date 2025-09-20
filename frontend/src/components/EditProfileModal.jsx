@@ -341,10 +341,9 @@ const EditProfileModal = ({ onClose, user }) => {
       setSuccessMessage(message);
       setShowSuccessMessage(true);
       setTimeout(() => {
-  setShowSuccessMessage(false);
-  onClose();
-  window.location.reload(); // Force full reload to get fresh user data everywhere
-      }, 3000);
+        setShowSuccessMessage(false);
+        onClose();
+      }, 2000);
     } catch (err) {
       const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
       alert(msg);
