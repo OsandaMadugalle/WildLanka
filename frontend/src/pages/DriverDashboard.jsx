@@ -9,6 +9,203 @@ import autoTable from 'jspdf-autotable';
 // ...existing code...
 
 const DriverDashboard = () => {
+  // Simple reports tab for driver
+  // --- TourGuideDashboard style reports for drivers ---
+  const renderReportsSimple = () => {
+    const now = new Date();
+    const monthIdx = now.getMonth();
+    const year = now.getFullYear();
+    const isSameMonth = (dateStr) => {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d.getMonth() === monthIdx && d.getFullYear() === year;
+    };
+    const monthlyCompleted = acceptedBookings.filter(b => b.status === 'Completed' && isSameMonth(b.updatedAt));
+
+    // PDF for completed bookings
+    const downloadMonthlyCompletedReport = () => {
+      const doc = new jsPDF();
+      const fileMonth = String(monthIdx + 1).padStart(2, '0');
+      doc.setFontSize(14);
+      doc.text(`Monthly Completed Trips - ${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, 14, 18);
+      const rows = monthlyCompleted.map(b => [
+        `${b.userId?.firstName || ''} ${b.userId?.lastName || ''}`.trim(),
+        b.packageId?.title || b.packageDetails?.title || '',
+        b.packageId?.location || b.packageDetails?.location || '',
+        b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toLocaleDateString() : '-',
+        b.bookingDetails?.numberOfPeople ?? '-',
+        b.updatedAt ? new Date(b.updatedAt).toLocaleDateString() : '-'
+      ]);
+      autoTable(doc, {
+        startY: 24,
+        head: [['Customer', 'Package', 'Location', 'Trip Start', 'Guests', 'Completed']],
+        body: rows,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [16, 185, 129] }
+      });
+      doc.save(`driver-monthly-completed-trips-${year}-${fileMonth}.pdf`);
+    };
+
+    // Payroll report
+    const downloadPayrollReport = () => {
+      if (!payroll) return;
+      const doc = new jsPDF();
+      const fileMonth = String(monthIdx + 1).padStart(2, '0');
+      doc.setFontSize(14);
+      doc.text(`Payroll - ${payroll.monthYear || `${fileMonth}/${year}`}`, 14, 18);
+      const rows = [
+        ['Basic Salary (Rs.)', Number(payroll.basicSalary || 0).toLocaleString()],
+        ['Regular Pay (Rs.)', Number(payroll.regularPay || 0).toLocaleString()],
+        ['Overtime Pay (Rs.)', Number(payroll.overtimePay || 0).toLocaleString()],
+        ['Allowances (Rs.)', Number(payroll.allowances || 0).toLocaleString()],
+        ['Bonuses (Rs.)', Number(payroll.bonuses || 0).toLocaleString()],
+        ['Deductions (Rs.)', Number(payroll.deductions || 0).toLocaleString()],
+        ['Gross Pay (Rs.)', Number(payroll.grossPay || 0).toLocaleString()],
+        ['Net Pay (Rs.)', Number(payroll.netPay || 0).toLocaleString()],
+        ['Working Days', Number(payroll.totalWorkingDays || 0)],
+        ['Working Hours', Number(payroll.totalWorkingHours || 0)],
+        ['Status', payroll.statusFormatted || payroll.status || '']
+      ];
+      autoTable(doc, {
+        startY: 24,
+        head: [['Field', 'Value']],
+        body: rows,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [59, 130, 246] }
+      });
+      doc.save(`driver-payroll-${year}-${fileMonth}.pdf`);
+    };
+
+    // Chart data for last 12 months
+    const chartData = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(year, monthIdx - (11 - i), 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const count = acceptedBookings.filter(b => {
+        const doneAt = b.updatedAt ? new Date(b.updatedAt) : null;
+        return b.status === 'Completed' && doneAt && doneAt.getMonth() === m && doneAt.getFullYear() === y;
+      }).length;
+      return { month: d.toLocaleDateString('en-US', { month: 'short' }), count };
+    });
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-abeze font-bold text-white">Monthly Completed Trips - {now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
+            <button
+              onClick={downloadMonthlyCompletedReport}
+              disabled={monthlyCompleted.length === 0}
+              className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${
+                monthlyCompleted.length === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
+            >
+              Download Report
+            </button>
+          </div>
+          <div className="bg-white/5 rounded-lg p-4 border border-white/10 mb-6">
+            <h4 className="text-white font-abeze font-medium mb-3">Completed Trips - Last 12 Months</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" tick={{ fill: '#9CA3AF' }} stroke="#9CA3AF" />
+                  <YAxis allowDecimals={false} tick={{ fill: '#9CA3AF' }} stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8, color: '#F9FAFB' }} labelStyle={{ color: '#F9FAFB' }} />
+                  <Bar dataKey="count" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto"></div>
+              <p className="text-gray-300 mt-4">Loading available bookings...</p>
+            </div>
+          ) : monthlyCompleted.length === 0 ? (
+            <p className="text-gray-300 text-center py-8">No trips completed this month yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Customer</th>
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Package</th>
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Location</th>
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Trip Start</th>
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Guests</th>
+                    <th className="text-left py-3 px-4 text-green-200 font-abeze">Completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyCompleted.map((b) => (
+                    <tr key={b._id} className="border-b border-white/10">
+                      <td className="py-3 px-4 text-white font-abeze">{b.userId?.firstName} {b.userId?.lastName}</td>
+                      <td className="py-3 px-4 text-white font-abeze">{b.packageId?.title || b.packageDetails?.title}</td>
+                      <td className="py-3 px-4 text-white font-abeze">{b.packageId?.location || b.packageDetails?.location}</td>
+                      <td className="py-3 px-4 text-white font-abeze">{b.bookingDetails?.startDate ? new Date(b.bookingDetails.startDate).toLocaleDateString() : '-'}</td>
+                      <td className="py-3 px-4 text-white font-abeze">{b.bookingDetails?.numberOfPeople}</td>
+                      <td className="py-3 px-4 text-white font-abeze">{b.updatedAt ? new Date(b.updatedAt).toLocaleDateString() : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-abeze font-bold text-white">Payroll </h3>
+            <button
+              onClick={downloadPayrollReport}
+              disabled={!payroll}
+              className={`px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${
+                !payroll ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              Download Payroll
+            </button>
+          </div>
+          {!payroll ? (
+            <div className="text-gray-300 font-abeze">No payroll record found for this month yet.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Basic Salary</h4>
+                <p className="text-2xl font-abeze font-bold text-white">Rs. {Number(payroll.basicSalary || 0).toLocaleString()}</p>
+                <p className="text-gray-400 font-abeze text-xs">{payroll.monthYear || ''}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Regular + Overtime</h4>
+                <p className="text-white font-abeze">Regular: Rs. {Number(payroll.regularPay || 0).toLocaleString()}</p>
+                <p className="text-white font-abeze">Overtime: Rs. {Number(payroll.overtimePay || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Net Pay</h4>
+                <p className="text-2xl font-abeze font-bold text-white">Rs. {Number(payroll.netPay || 0).toLocaleString()}</p>
+                <p className="text-gray-400 font-abeze text-xs">Status: {payroll.statusFormatted || payroll.status}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Allowances & Bonuses</h4>
+                <p className="text-white font-abeze">Allowances: Rs. {Number(payroll.allowances || 0).toLocaleString()}</p>
+                <p className="text-white font-abeze">Bonuses: Rs. {Number(payroll.bonuses || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Deductions</h4>
+                <p className="text-white font-abeze">Rs. {Number(payroll.deductions || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h4 className="text-gray-300 font-abeze text-sm mb-2">Hours</h4>
+                <p className="text-white font-abeze">Working Days: {Number(payroll.totalWorkingDays || 0)}</p>
+                <p className="text-white font-abeze">Working Hours: {Number(payroll.totalWorkingHours || 0)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
   // Tab state for Bookings section
   const [bookingsTab, setBookingsTab] = useState('assigned');
   // Returns bookings assigned to the driver that are pending acceptance
@@ -307,6 +504,17 @@ const DriverDashboard = () => {
   const [completingBooking, setCompletingBooking] = useState(null);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
   const [editVehicle, setEditVehicle] = useState(null);
+  // AddVehicleModal rendering
+  // Show modal for add or edit
+  // onVehicleAdded and onVehicleUpdated update the vehicles list
+  // onClose closes the modal and clears editVehicle
+  // Pass vehicle prop for editing
+
+  // Place this just before the return statement
+  const handleCloseVehicleModal = () => {
+    setShowAddVehicle(false);
+    setEditVehicle(null);
+  };
   const [payroll, setPayroll] = useState(null);
 
   useEffect(() => {
@@ -853,7 +1061,37 @@ const DriverDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle) => (
             <div key={vehicle._id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 relative flex flex-col justify-between h-full">
-              {/* Vehicle details rendering here */}
+              <div className="flex items-center mb-4">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-lg flex items-center justify-center mr-4">
+                  <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13l2-2m0 0l7-7 7 7M13 5v6h6" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-lg font-abeze font-bold text-white mb-1">{vehicle.make} {vehicle.model}</h4>
+                  <p className="text-gray-300 font-abeze text-sm">{vehicle.plateNumber}</p>
+                  <p className="text-gray-400 font-abeze text-xs">{vehicle.type} • {vehicle.year}</p>
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-gray-200 font-abeze text-sm mb-2">Color: <span className="font-medium">{vehicle.color || 'N/A'}</span></p>
+                <p className="text-gray-200 font-abeze text-sm mb-2">Seats: <span className="font-medium">{vehicle.seats || 'N/A'}</span></p>
+                <p className="text-gray-200 font-abeze text-sm mb-2">Status: <span className="font-medium">{vehicle.status || 'Active'}</span></p>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => { setEditVehicle(vehicle); setShowAddVehicle(true); }}
+                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300 mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteVehicle(vehicle._id)}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-abeze font-medium transition-colors duration-300"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -863,6 +1101,13 @@ const DriverDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <AddVehicleModal
+        isOpen={showAddVehicle}
+        onClose={handleCloseVehicleModal}
+        onVehicleAdded={handleVehicleAdded}
+        onVehicleUpdated={handleVehicleUpdated}
+        vehicle={editVehicle}
+      />
       {/* Check if user is authenticated and is a driver */}
       {!user ? (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
