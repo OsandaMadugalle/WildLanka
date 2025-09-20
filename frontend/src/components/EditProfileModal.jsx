@@ -10,8 +10,8 @@ const EditProfileModal = ({ onClose, user }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  // Staff fields for guide profile
-  const isGuide = user?.role === 'tour_guide';
+  // Staff fields for guide and driver profiles
+  const isStaff = user?.role === 'tour_guide' || user?.role === 'driver';
   // Country to phone code mapping with max digits
   const countryPhoneCodes = {
     'Sri Lanka': { code: '+94', maxDigits: 9 },
@@ -260,7 +260,7 @@ const EditProfileModal = ({ onClose, user }) => {
       newErrors.phone = t('editProfile.validation.phoneNumbersOnly');
     }
     // Staff/guide fields validation
-    if (isGuide) {
+    if (isStaff) {
       if (!formData.specialization.trim()) {
         newErrors.specialization = 'Specialization is required';
       }
@@ -300,6 +300,11 @@ const EditProfileModal = ({ onClose, user }) => {
       return;
     }
     setIsSubmitting(true);
+    
+    // Debug: Check if profile picture is set
+    console.log('Submit - profilePicture state:', profilePicture);
+    console.log('Submit - profilePicture type:', typeof profilePicture);
+    
     try {
       // Combine country code and phone for backend
       let fullPhone = formData.phone.trim();
@@ -330,12 +335,70 @@ const EditProfileModal = ({ onClose, user }) => {
         payload.newPassword = formData.newPassword;
       }
       // Profile picture upload (if changed)
-      if (profilePicture) {
-        const formDataFile = new FormData();
-        formDataFile.append('profilePicture', profilePicture);
-        await authApi.uploadProfilePicture(formDataFile);
+      if (profilePicture && profilePicture instanceof File) {
+        try {
+          console.log('Uploading profile picture:', profilePicture.name);
+          const formDataFile = new FormData();
+          
+          // Use staff-specific upload for drivers and tour guides
+          if (user?.role === 'driver' || user?.role === 'tour_guide') {
+            try {
+              // Staff endpoint expects field name 'image'
+              formDataFile.append('image', profilePicture);
+              const userId = user?._id || user?.id;
+              await api.uploadStaffProfilePicture(userId, formDataFile);
+              console.log('Staff profile picture uploaded successfully');
+            } catch (staffUploadError) {
+              console.log('Staff picture upload failed, trying auth upload as fallback:', staffUploadError);
+              // Fallback to regular auth upload if staff upload fails
+              const fallbackFormData = new FormData();
+              fallbackFormData.append('profilePicture', profilePicture);
+              await authApi.uploadProfilePicture(fallbackFormData);
+              console.log('Profile picture uploaded via auth endpoint');
+            }
+          } else {
+            // Regular user endpoint expects field name 'profilePicture'
+            formDataFile.append('profilePicture', profilePicture);
+            await authApi.uploadProfilePicture(formDataFile);
+          }
+          console.log('Profile picture uploaded successfully');
+        } catch (uploadError) {
+          console.error('Profile picture upload failed:', uploadError);
+          throw new Error(`Profile picture upload failed: ${uploadError.message}`);
+        }
+      } else if (profilePicture) {
+        console.log('Skipping profile picture upload - not a valid file:', profilePicture);
+      } else {
+        console.log('No profile picture to upload');
       }
-      const { user: updatedUser } = await authApi.updateProfile(payload);
+      
+      // Update profile based on user role
+      let updatedUser;
+      try {
+        if (user?.role === 'driver' || user?.role === 'tour_guide') {
+          // Try staff-specific update first for drivers and tour guides
+          try {
+            const userId = user?._id || user?.id;
+            const updatedStaff = await api.updateStaff(userId, payload);
+            updatedUser = updatedStaff;
+            console.log('Staff profile updated successfully');
+          } catch (staffError) {
+            console.log('Staff update failed, trying auth update as fallback:', staffError);
+            // Fallback to regular auth update if staff update fails
+            const response = await authApi.updateProfile(payload);
+            updatedUser = response.user;
+            console.log('Profile updated via auth endpoint');
+          }
+        } else {
+          // Use regular auth update for regular users
+          const response = await authApi.updateProfile(payload);
+          updatedUser = response.user;
+        }
+      } catch (profileError) {
+        console.error('Profile update failed:', profileError);
+        throw new Error(`Profile update failed: ${profileError.message}`);
+      }
+      
       login(updatedUser, localStorage.getItem('auth_token'));
       const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
       setSuccessMessage(message);
@@ -378,9 +441,9 @@ const EditProfileModal = ({ onClose, user }) => {
         </button>
 
                  {/* Edit Profile Form */}
-         <form onSubmit={handleSubmit} className="space-y-6">
+         <form onSubmit={handleSubmit} className="space-y-8">
                        {/* Profile Picture Section */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-8">
               {/* Profile Picture Success Message */}
               {showPictureSuccessMessage && (
                 <div className="mb-4 p-3 bg-green-600/20 border border-green-400/30 rounded-lg">
@@ -440,58 +503,142 @@ const EditProfileModal = ({ onClose, user }) => {
              </p>
            </div>
 
-          {/* Name Fields */}
-          <div className="grid md:grid-cols-2 gap-4">
+          {/* Personal Information Section */}
+          <div className="space-y-6">
+            <div className="border-b border-white/10 pb-2">
+              <h3 className="text-lg font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400">
+                Personal Information
+              </h3>
+            </div>
+            
+            {/* Name Fields */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                  {t('editProfile.form.firstName')}
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                    errors.firstName ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
+                  }`}
+                  placeholder={t('editProfile.form.firstNamePlaceholder')}
+                />
+                {errors.firstName && (
+                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.firstName}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                  {t('editProfile.form.lastName')}
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                    errors.lastName ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
+                  }`}
+                  placeholder={t('editProfile.form.lastNamePlaceholder')}
+                />
+                {errors.lastName && (
+                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.lastName}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Email */}
             <div>
               <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                {t('editProfile.form.firstName')}
+                {t('editProfile.form.email')}
               </label>
               <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleInputChange}
                 className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                  errors.firstName ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
+                  errors.email ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
                 }`}
-                placeholder={t('editProfile.form.firstNamePlaceholder')}
+                placeholder={t('editProfile.form.emailPlaceholder')}
               />
-              {errors.firstName && (
-                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.firstName}</p>
+              {errors.email && (
+                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.email}</p>
               )}
             </div>
-            <div>
-              <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                {t('editProfile.form.lastName')}
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                  errors.lastName ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
-                }`}
-                placeholder={t('editProfile.form.lastNamePlaceholder')}
-              />
-              {errors.lastName && (
-                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.lastName}</p>
-              )}
+
+            {/* Country and Phone Number */}
+            <div className="grid grid-cols-3 gap-4 items-end">
+              <div className="col-span-1">
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                  {t('editProfile.form.country') || 'Country'}
+                </label>
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-4 py-4 text-white font-abeze focus:outline-none transition-all duration-300 ${errors.country ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
+                >
+                  <option value="">Select</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+                {errors.country && (
+                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.country}</p>
+                )}
+              </div>
+              <div className="col-span-2">
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                  {t('editProfile.form.phone')}
+                </label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-2xl bg-white/10 border border-r-0 border-white/10 text-white font-abeze">
+                    {formData.country && countryPhoneCodes[formData.country] ? countryPhoneCodes[formData.country].code : '+'}
+                  </span>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-r-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                      errors.phone ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
+                    }`}
+                    placeholder={t('editProfile.form.phonePlaceholder')}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.phone}</p>
+                )}
+              </div>
             </div>
           </div>
-          {/* Guide/Staff Fields */}
-          {isGuide && (
-            <>
+
+          {/* Professional Information Section */}
+          {isStaff && (
+            <div className="space-y-6">
+              <div className="border-b border-white/10 pb-2">
+                <h3 className="text-lg font-abeze font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400">
+                  Professional Information
+                </h3>
+              </div>
+              
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">Specialization</label>
+                  <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                    Specialization
+                  </label>
                   <input
                     type="text"
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleInputChange}
                     className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${errors.specialization ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
-                    placeholder="e.g. Wildlife, Birdwatching"
+                    placeholder={user?.role === 'driver' ? 'e.g. Safari Tours, Airport Transfers, City Tours' : 'e.g. Wildlife, Birdwatching, Cultural Tours'}
                   />
                   {errors.specialization && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.specialization}</p>}
                 </div>
@@ -508,86 +655,23 @@ const EditProfileModal = ({ onClose, user }) => {
                   {errors.experience && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.experience}</p>}
                 </div>
               </div>
+              
               <div>
-                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">License Number</label>
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                  {user?.role === 'driver' ? 'Driving License Number' : 'License Number'}
+                </label>
                 <input
                   type="text"
                   name="licenseNumber"
                   value={formData.licenseNumber}
                   onChange={handleInputChange}
                   className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${errors.licenseNumber ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
-                  placeholder="e.g. TG-12345"
+                  placeholder={user?.role === 'driver' ? 'e.g. D-123456' : 'e.g. TG-12345'}
                 />
                 {errors.licenseNumber && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.licenseNumber}</p>}
               </div>
-            </>
+            </div>
           )}
-
-          {/* Email */}
-          <div>
-            <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-              {t('editProfile.form.email')}
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                errors.email ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
-              }`}
-              placeholder={t('editProfile.form.emailPlaceholder')}
-            />
-            {errors.email && (
-              <p className="text-red-400 text-sm mt-1 font-abeze">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Country and Phone Number */}
-          <div className="grid grid-cols-3 gap-4 items-end">
-            <div className="col-span-1">
-              <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                {t('editProfile.form.country') || 'Country'}
-              </label>
-              <select
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-4 py-4 text-white font-abeze focus:outline-none transition-all duration-300 ${errors.country ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
-              >
-                <option value="">Select</option>
-                {countries.map((country) => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-              {errors.country && (
-                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.country}</p>
-              )}
-            </div>
-            <div className="col-span-2">
-              <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                {t('editProfile.form.phone')}
-              </label>
-              <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l-2xl bg-white/10 border border-r-0 border-white/10 text-white font-abeze">
-                  {formData.country && countryPhoneCodes[formData.country] ? countryPhoneCodes[formData.country].code : '+'}
-                </span>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-r-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                    errors.phone ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
-                  }`}
-                  placeholder={t('editProfile.form.phonePlaceholder')}
-                />
-              </div>
-              {errors.phone && (
-                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.phone}</p>
-              )}
-            </div>
-          </div>
 
            {/* Password Change Section */}
            <div className="border-t border-white/10 pt-8">
