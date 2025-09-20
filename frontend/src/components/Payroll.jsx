@@ -745,7 +745,7 @@ const Payroll = () => {
       )}
 
       {/* Payroll Table */}
-      <div className="bg-gray-800 rounded-lg overflow-hidden">
+      <div className="bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-700">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-abeze font-semibold text-white">
@@ -756,7 +756,6 @@ const Payroll = () => {
             </div>
           </div>
         </div>
-        
         {loading ? (
           <div className="p-6 text-center">
             <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-white">
@@ -780,27 +779,27 @@ const Payroll = () => {
             <table className="w-full">
               <thead className="bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Staff</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Working Days</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Overtime Hours</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Basic Salary</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Overtime Pay</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Bonuses</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Allowances</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Deductions</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Gross Pay</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Net Pay</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Staff</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Working Days</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total Hours</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Overtime Hours</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Basic Salary</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Overtime Pay</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Bonuses</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Allowances</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Deductions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Gross Pay</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Net Pay</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-gray-800 divide-y divide-gray-700">
                 {payroll.map((record) => (
-                  <tr key={record._id} className="hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={record._id} className="hover:bg-green-900/30 hover:ring-2 hover:ring-green-400/40 transition-all duration-200 group cursor-pointer">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center shadow-md">
                             <span className="text-sm font-medium text-white">
                               {record.staffId.firstName.charAt(0)}{record.staffId.lastName.charAt(0)}
                             </span>
@@ -814,31 +813,31 @@ const Payroll = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {record.totalWorkingDays}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {record.totalWorkingHours.toFixed(1)} hrs
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {Math.max(0, record.totalWorkingHours - (record.totalWorkingDays * 8)).toFixed(1)} hrs
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       LKR {record.basicSalary?.toLocaleString() || '0'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {formatCurrency(Math.max(0, record.totalWorkingHours - (record.totalWorkingDays * 8)) * 1000)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {formatCurrency(record.bonuses || 0)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {formatCurrency(record.allowances || 0)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {formatCurrency(record.deductions || 0)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white">
                       {formatCurrency(
                         (record.regularPay || 0) + 
                         (Math.max(0, record.totalWorkingHours - (record.totalWorkingDays * 8)) * 1000) + 
@@ -846,15 +845,15 @@ const Payroll = () => {
                         (record.allowances || 0)
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-white font-medium">
                       {formatCurrency(record.netPay)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(record)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                          title="Edit"
+                          className="text-blue-400 hover:text-blue-300 transition-colors rounded-lg p-1"
+                          title="Edit Payroll Record"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -862,8 +861,8 @@ const Payroll = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(record._id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                          title="Delete"
+                          className="text-red-400 hover:text-red-300 transition-colors rounded-lg p-1"
+                          title="Delete Payroll Record"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
