@@ -331,7 +331,7 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
           {/* Image Upload */}
           <div>
             <label className="block text-green-200 font-abeze font-medium mb-2">
-              Package Image
+              Package Cover Image
             </label>
             <div
               onClick={handleImageClick}
@@ -367,18 +367,18 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
             </label>
             <div
               onClick={handleGalleryImageClick}
-              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors overflow-x-auto scrollbar-none"
             >
               {galleryPreviews.length > 0 ? (
-                <div className="flex gap-2 w-full h-full">
+                <div className="flex gap-2 w-full h-full flex-nowrap overflow-x-auto scrollbar-none">
                   {galleryPreviews.map((preview, idx) => (
-                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="h-28 w-auto object-cover rounded-lg flex-shrink-0 border border-white/10" />
                   ))}
                 </div>
               ) : (
                 <div className="text-center">
-                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-gray-400 font-abeze text-sm">Click to upload images</p>
                 </div>

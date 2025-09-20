@@ -1,14 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi, staffApi } from '../services/api';
+import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+
+import { api } from '../services/api';
 
 const EditProfileModal = ({ onClose, user }) => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  
+  // Staff fields for guide profile
+  const isGuide = user?.role === 'tour_guide';
   // Country to phone code mapping with max digits
   const countryPhoneCodes = {
     'Sri Lanka': { code: '+94', maxDigits: 9 },
@@ -35,24 +38,26 @@ const EditProfileModal = ({ onClose, user }) => {
   
   // Extract phone number without country code for display
   const extractPhoneNumber = (fullPhone, country) => {
-    if (!fullPhone || !country || country === 'Other') return fullPhone || '';
-    
-    const phoneData = countryPhoneCodes[country];
-    if (!phoneData) return fullPhone || '';
-    
-    const countryCode = phoneData.code;
-    if (fullPhone.startsWith(countryCode)) {
-      return fullPhone.substring(countryCode.length);
+    if (!fullPhone) return '';
+    if (!country || !countryPhoneCodes[country]) return fullPhone;
+    const code = countryPhoneCodes[country].code;
+    if (fullPhone.startsWith(code)) {
+      return fullPhone.slice(code.length);
     }
+    // fallback: if starts with + and >8 digits, try to remove first 3-4 digits
+    if (/^\+\d{10,}$/.test(fullPhone)) return fullPhone.slice(3);
     return fullPhone;
   };
 
+  // Store the original phone from backend for reliable extraction
+  const [originalPhone, setOriginalPhone] = useState(user?.phone || '');
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     email: user?.email || '',
-    phone: extractPhoneNumber(user?.phone, user?.country),
-    country: user?.country || '',
+    country: '',
+    phone: '',
+    role: user?.role || 'tour_guide',
     specialization: user?.specialization || '',
     experience: user?.experience || '',
     licenseNumber: user?.licenseNumber || '',
@@ -60,6 +65,92 @@ const EditProfileModal = ({ onClose, user }) => {
     newPassword: '',
     confirmNewPassword: '',
   });
+
+  // Fetch latest guide data from backend and prefill form
+  // Helper to guess country from phone number
+  const guessCountryFromPhone = (phone) => {
+    if (!phone) return '';
+    for (const [country, { code }] of Object.entries(countryPhoneCodes)) {
+      if (phone.startsWith(code)) return country;
+    }
+    return 'Other';
+  };
+
+  useEffect(() => {
+    const fetchGuide = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const { data } = await api.get(`/api/staff/${user.id || user._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const country = guessCountryFromPhone(data.phone);
+        setOriginalPhone(data.phone || '');
+        setFormData({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          email: data.email || '',
+          country,
+          phone: extractPhoneNumber(data.phone, country),
+          role: data.role || 'tour_guide',
+          specialization: data.specialization || '',
+          experience: data.experience !== undefined && data.experience !== null ? String(data.experience) : '',
+          licenseNumber: data.licenseNumber || '',
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
+      } catch (err) {
+        const country = guessCountryFromPhone(user?.phone);
+        setOriginalPhone(user?.phone || '');
+        setFormData({
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
+          email: user?.email || '',
+          country,
+          phone: extractPhoneNumber(user?.phone, country),
+          role: user?.role || 'tour_guide',
+          specialization: user?.specialization || '',
+          experience: user?.experience !== undefined && user?.experience !== null ? String(user?.experience) : '',
+          licenseNumber: user?.licenseNumber || '',
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
+      }
+    };
+    fetchGuide();
+  }, [user]);
+
+  // When country changes, re-extract phone number from original user.phone
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'country') {
+      // When country changes, re-extract phone from original backend value
+      setFormData(prev => ({
+        ...prev,
+        country: value,
+        phone: extractPhoneNumber(originalPhone, value)
+      }));
+      if (errors['country']) {
+        setErrors(prev => ({ ...prev, country: null }));
+      }
+      return;
+    }
+    // Handle phone number input - only allow numbers
+    if (name === 'phone') {
+      const numericValue = value.replace(/\D/g, '');
+      const phoneData = formData.country && countryPhoneCodes[formData.country];
+      if (phoneData && numericValue.length > phoneData.maxDigits) {
+        return;
+      }
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +161,7 @@ const EditProfileModal = ({ onClose, user }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showPictureSuccessMessage, setShowPictureSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
   const fileInputRef = useRef(null);
 
   const countries = [
@@ -123,77 +215,37 @@ const EditProfileModal = ({ onClose, user }) => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    console.log('File selected:', file);
-
     // Validate file type
     if (!file.type.startsWith('image/')) {
       alert(t('editProfile.fileValidation.imageOnly'));
       return;
     }
-
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert(t('editProfile.fileValidation.sizeLimit'));
       return;
     }
-
-    setIsUploadingPicture(true);
-    try {
-      const formData = new FormData();
-      formData.append('profilePicture', file);
-
-      console.log('FormData created, uploading...');
-      console.log('Auth token:', localStorage.getItem('auth_token'));
-
-      const { user: updatedUser } = await authApi.uploadProfilePicture(formData);
-      
-      console.log('Upload successful:', updatedUser);
-      
-      // Update the auth context with new user data
-      login(updatedUser, localStorage.getItem('auth_token'));
-      
-      // Show success message for picture upload
-      setShowPictureSuccessMessage(true);
-      
-      // Auto-hide success message after 2 seconds
-      setTimeout(() => {
-        setShowPictureSuccessMessage(false);
-      }, 2000);
-      
-      // Clear the file input
-      e.target.value = '';
-    } catch (err) {
-      console.error('Upload error:', err);
-      console.error('Error response:', err.response);
-      const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
-      alert(msg);
-    } finally {
-      setIsUploadingPicture(false);
-    }
+    setProfilePicture(file);
   };
 
   // Form validation
   const validateForm = () => {
     const newErrors = {};
-
     // First Name validation
     if (!formData.firstName.trim()) {
       newErrors.firstName = t('editProfile.validation.firstNameRequired');
     } else if (formData.firstName.trim().length < 2) {
       newErrors.firstName = t('editProfile.validation.firstNameMinLength');
     }
-
     // Last Name validation
     if (!formData.lastName.trim()) {
       newErrors.lastName = t('editProfile.validation.lastNameRequired');
     } else if (formData.lastName.trim().length < 2) {
       newErrors.lastName = t('editProfile.validation.lastNameMinLength');
     }
-
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
@@ -201,78 +253,46 @@ const EditProfileModal = ({ onClose, user }) => {
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = t('editProfile.validation.emailInvalid');
     }
-
-    // Country validation
-    if (!formData.country) {
-      newErrors.country = t('editProfile.validation.countryRequired');
+    // Phone validation (basic, since country is removed)
+    if (!formData.phone.trim()) {
+      newErrors.phone = t('editProfile.validation.phoneRequired');
+    } else if (!/^\d+$/.test(formData.phone.trim())) {
+      newErrors.phone = t('editProfile.validation.phoneNumbersOnly');
     }
-
-    // Phone validation (only if country is selected)
-    if (formData.country && formData.country !== 'Other') {
-      const phoneData = countryPhoneCodes[formData.country];
-      if (!formData.phone.trim()) {
-        newErrors.phone = t('editProfile.validation.phoneRequired');
-      } else if (!/^\d+$/.test(formData.phone.trim())) {
-        newErrors.phone = t('editProfile.validation.phoneNumbersOnly');
-      } else if (formData.phone.trim().length !== phoneData.maxDigits) {
-        newErrors.phone = t('editProfile.validation.phoneExactDigits', { digits: phoneData.maxDigits });
+    // Staff/guide fields validation
+    if (isGuide) {
+      if (!formData.specialization.trim()) {
+        newErrors.specialization = 'Specialization is required';
+      }
+      if (!formData.experience.trim()) {
+        newErrors.experience = 'Experience is required';
+      } else if (isNaN(formData.experience) || Number(formData.experience) < 0) {
+        newErrors.experience = 'Experience must be a positive number';
+      }
+      if (!formData.licenseNumber.trim()) {
+        newErrors.licenseNumber = 'License number is required';
       }
     }
-
     // Password validation (only if new password is provided)
     if (formData.newPassword) {
       if (!formData.currentPassword) {
         newErrors.currentPassword = t('editProfile.validation.currentPasswordRequired');
       }
-      
       const passwordValidation = validatePassword(formData.newPassword);
       if (!passwordValidation.isValid) {
         newErrors.newPassword = passwordValidation.errors;
       }
-      
       if (!formData.confirmNewPassword) {
         newErrors.confirmNewPassword = t('editProfile.validation.confirmPasswordRequired');
       } else if (formData.newPassword !== formData.confirmNewPassword) {
         newErrors.confirmNewPassword = t('editProfile.validation.passwordsDoNotMatch');
       }
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Handle phone number input - only allow numbers
-    if (name === 'phone') {
-      const numericValue = value.replace(/\D/g, ''); // Remove non-digits
-      const phoneData = formData.country && countryPhoneCodes[formData.country];
-      
-      // Limit to max digits for the selected country
-      if (phoneData && numericValue.length > phoneData.maxDigits) {
-        return; // Don't update if exceeding max digits
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        [name]: numericValue
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
-  };
+  // (removed duplicate handleInputChange, now defined above)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -281,55 +301,56 @@ const EditProfileModal = ({ onClose, user }) => {
     }
     setIsSubmitting(true);
     try {
-      // Combine country code with phone number
-      const fullPhoneNumber = formData.country && formData.country !== 'Other'
-        ? countryPhoneCodes[formData.country].code + formData.phone.trim()
-        : formData.phone.trim();
-
-      // If staff/tour_guide, use staff self-profile update
-      if (user?.role === 'staff' || user?.role === 'tour_guide') {
-        const payload = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          phone: fullPhoneNumber,
-          specialization: formData.specialization,
-          experience: formData.experience,
-          licenseNumber: formData.licenseNumber,
-        };
-        const updatedStaff = await staffApi.updateStaff('profile', payload); // calls /api/staff/profile
-        login(updatedStaff, localStorage.getItem('auth_token'));
-        setSuccessMessage(t('editProfile.success.profileUpdated'));
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          onClose();
-          navigate('/account');
-        }, 3000);
-      } else {
-        // Regular user
-        const payload = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          phone: fullPhoneNumber,
-          country: formData.country,
-        };
-        if (formData.newPassword) {
-          payload.currentPassword = formData.currentPassword;
-          payload.newPassword = formData.newPassword;
+      // Combine country code and phone for backend
+      let fullPhone = formData.phone.trim();
+      if (formData.country && countryPhoneCodes[formData.country]) {
+        const code = countryPhoneCodes[formData.country].code;
+        // Avoid double code if user types it in phone
+        if (!fullPhone.startsWith(code.replace('+', ''))) {
+          fullPhone = code + fullPhone;
+        } else {
+          fullPhone = '+' + fullPhone;
         }
-        const { user: updatedUser } = await authApi.updateProfile(payload);
-        login(updatedUser, localStorage.getItem('auth_token'));
-        const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
-        setSuccessMessage(message);
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          onClose();
-          navigate('/account');
-        }, 3000);
+      } else if (!fullPhone.startsWith('+')) {
+        fullPhone = '+' + fullPhone;
       }
+      const payload = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: fullPhone,
+      };
+      // Add staff/guide fields if guide
+      if (isGuide) {
+        payload.role = formData.role;
+        payload.specialization = formData.specialization;
+        payload.experience = formData.experience;
+        payload.licenseNumber = formData.licenseNumber;
+      }
+      // Add password fields if new password is provided
+      if (formData.newPassword) {
+        payload.currentPassword = formData.currentPassword;
+        payload.newPassword = formData.newPassword;
+      }
+      // Profile picture upload (if changed)
+      if (profilePicture) {
+        const formDataFile = new FormData();
+        formDataFile.append('profilePicture', profilePicture);
+        await authApi.uploadProfilePicture(formDataFile);
+      }
+      const { user: updatedUser } = await authApi.updateProfile(payload);
+  // Save updated user to context and localStorage
+  login(updatedUser, localStorage.getItem('auth_token'));
+  // Force reload of window to ensure dashboard and modal get fresh user data
+  // (workaround for stale user prop issue)
+      const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
+      setSuccessMessage(message);
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        onClose();
+        window.location.reload(); // Force full reload to get fresh user data everywhere
+      }, 3000);
     } catch (err) {
       const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
       alert(msg);
@@ -426,7 +447,7 @@ const EditProfileModal = ({ onClose, user }) => {
              </p>
            </div>
 
-           {/* Name Fields */}
+          {/* Name Fields */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
@@ -465,6 +486,49 @@ const EditProfileModal = ({ onClose, user }) => {
               )}
             </div>
           </div>
+          {/* Guide/Staff Fields */}
+          {isGuide && (
+            <>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">Specialization</label>
+                  <input
+                    type="text"
+                    name="specialization"
+                    value={formData.specialization}
+                    onChange={handleInputChange}
+                    className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${errors.specialization ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
+                    placeholder="e.g. Wildlife, Birdwatching"
+                  />
+                  {errors.specialization && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.specialization}</p>}
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">Experience (years)</label>
+                  <input
+                    type="number"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleInputChange}
+                    className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${errors.experience ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
+                    placeholder="e.g. 5"
+                  />
+                  {errors.experience && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.experience}</p>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">License Number</label>
+                <input
+                  type="text"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleInputChange}
+                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${errors.licenseNumber ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
+                  placeholder="e.g. TG-12345"
+                />
+                {errors.licenseNumber && <p className="text-red-400 text-sm mt-1 font-abeze">{errors.licenseNumber}</p>}
+              </div>
+            </>
+          )}
 
           {/* Email */}
           <div>
@@ -486,70 +550,51 @@ const EditProfileModal = ({ onClose, user }) => {
             )}
           </div>
 
-          {/* Country */}
-          <div>
-            <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-              {t('editProfile.form.country')}
-            </label>
-            <select
-              name="country"
-              value={formData.country}
-              onChange={handleInputChange}
-              className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-6 py-4 text-white font-abeze focus:outline-none transition-all duration-300 ${
-                errors.country ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
-              }`}
-            >
-              <option value="" className="bg-slate-800 text-white">{t('editProfile.form.countryPlaceholder')}</option>
-              {countries.map((country, index) => (
-                <option key={index} value={country} className="bg-slate-800 text-white">{country}</option>
-              ))}
-            </select>
-            {errors.country && (
-              <p className="text-red-400 text-sm mt-1 font-abeze">{errors.country}</p>
-            )}
-          </div>
-
-          {/* Phone Number */}
-          {formData.country && (
-            <div>
+          {/* Country and Phone Number */}
+          <div className="grid grid-cols-3 gap-4 items-end">
+            <div className="col-span-1">
               <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
-                {formData.country !== 'Other' ? t('editProfile.form.phoneRequired') : t('editProfile.form.phone')}
+                {t('editProfile.form.country') || 'Country'}
+              </label>
+              <select
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-2xl px-4 py-4 text-white font-abeze focus:outline-none transition-all duration-300 ${errors.country ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'}`}
+              >
+                <option value="">Select</option>
+                {countries.map((country) => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+              {errors.country && (
+                <p className="text-red-400 text-sm mt-1 font-abeze">{errors.country}</p>
+              )}
+            </div>
+            <div className="col-span-2">
+              <label className="block text-slate-300 font-abeze font-medium mb-3 text-sm uppercase tracking-wider">
+                {t('editProfile.form.phone')}
               </label>
               <div className="flex">
-                {/* Country Code Display */}
-                {formData.country !== 'Other' && (
-                  <div className="bg-gradient-to-r from-white/10 to-white/15 border border-white/10 rounded-l-2xl px-6 py-4 text-white font-abeze font-medium min-w-[90px] flex items-center justify-center">
-                    {countryPhoneCodes[formData.country].code}
-                  </div>
-                )}
-                {/* Phone Number Input */}
+                <span className="inline-flex items-center px-3 rounded-l-2xl bg-white/10 border border-r-0 border-white/10 text-white font-abeze">
+                  {formData.country && countryPhoneCodes[formData.country] ? countryPhoneCodes[formData.country].code : '+'}
+                </span>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  maxLength={formData.country !== 'Other' ? countryPhoneCodes[formData.country].maxDigits : 15}
-                  className={`flex-1 bg-gradient-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
-                    formData.country === 'Other' ? 'rounded-2xl' : 'rounded-r-2xl rounded-l-none'
-                  } ${
-                    errors.phone ? 'border-red-400 focus:border-red-500' : 'focus:border-emerald-400 hover:border-emerald-400/50'
+                  className={`w-full bg-gradient-to-r from-white/5 to-white/10 border rounded-r-2xl px-6 py-4 text-white font-abeze placeholder-slate-400 focus:outline-none transition-all duration-300 ${
+                    errors.phone ? 'border-red-400 focus:border-red-500' : 'border-white/10 focus:border-emerald-400 hover:border-emerald-400/50'
                   }`}
-                  placeholder={formData.country !== 'Other' 
-                    ? t('editProfile.form.phonePlaceholder', { digits: countryPhoneCodes[formData.country].maxDigits })
-                    : t('editProfile.form.phonePlaceholderOther')
-                  }
+                  placeholder={t('editProfile.form.phonePlaceholder')}
                 />
               </div>
               {errors.phone && (
                 <p className="text-red-400 text-sm mt-1 font-abeze">{errors.phone}</p>
               )}
-              {formData.country !== 'Other' && formData.phone && (
-                <p className="text-slate-400 text-sm mt-2 font-abeze">
-                  {t('editProfile.form.phoneDigits', { current: formData.phone.length, max: countryPhoneCodes[formData.country].maxDigits })}
-                </p>
-              )}
             </div>
-                     )}
+          </div>
 
            {/* Password Change Section */}
            <div className="border-t border-white/10 pt-8">
