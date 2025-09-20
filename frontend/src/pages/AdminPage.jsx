@@ -684,6 +684,7 @@ The Wildlife Safari Team`);
       ? bookings.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0)
       : 0,
     activeStaff: staff.filter((s) => s.isActive).length,
+    totalPackages: packages.length,
   };
 
   // Get color classes for navigation items
@@ -729,7 +730,7 @@ The Wildlife Safari Team`);
   const renderDashboard = () => (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
           <div className="flex items-center justify-between">
             <div>
@@ -830,6 +831,32 @@ The Wildlife Safari Team`);
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-emerald-200 font-abeze text-sm">Total Packages</p>
+              <p className="text-3xl font-abeze font-bold text-white">
+                {dashboardStats.totalPackages}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-emerald-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
                 />
               </svg>
             </div>
@@ -1353,9 +1380,14 @@ The Wildlife Safari Team`);
     <div className="space-y-6">
       {/* Header with Add Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-abeze font-bold text-white tracking-tight">
-          Package Management
-        </h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-2xl font-abeze font-bold text-white tracking-tight">
+            Package Management
+          </h3>
+          <div className="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full text-sm font-abeze font-semibold border border-emerald-500/30">
+            {packages.length} {packages.length === 1 ? 'Package' : 'Packages'}
+          </div>
+        </div>
         <button
           onClick={() => setShowAddPackage(true)}
           className="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white px-5 py-2 rounded-xl font-abeze font-semibold shadow-lg transition-all duration-300 flex items-center gap-2"
