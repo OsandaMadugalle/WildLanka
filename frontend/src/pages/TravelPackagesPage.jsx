@@ -228,13 +228,16 @@ const TravelPackagesPage = () => {
               <div className="text-gray-300 font-abeze">{t('packages.noPackagesFound')}</div>
             </div>
           ) : (
-            <div id="packages-section" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-10 md:mb-16">
+            <div id="packages-section" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-16">
               {filteredPackages.map((pkg) => (
                 <div
                   key={pkg._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:transform hover:scale-101 flex flex-col h-full"
+                  className="group bg-white/8 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-500 hover:transform hover:scale-102 hover:shadow-xl hover:shadow-green-400/15 flex flex-col h-full"
                 >
-                  <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-green-600/20 to-green-400/20">
+                  <div className="relative h-56 sm:h-64 md:h-72 bg-gradient-to-br from-green-600/15 to-green-400/10 overflow-hidden">
+                    {/* Enhanced gradient overlay for better readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
+                    
                     {/* Carousel for all images */}
                     {pkg.image?.url || (pkg.gallery && pkg.gallery.length > 0) ? (
                       <Carousel
@@ -252,40 +255,57 @@ const TravelPackagesPage = () => {
                         </svg>
                       </div>
                     )}
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-abeze font-bold">
-                        {pkg.duration}
-                      </span>
+                    
+                    {/* Enhanced Duration Badge */}
+                    <div className="absolute top-4 right-4 z-20">
+                      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-2 rounded-full text-sm font-abeze font-bold shadow-lg backdrop-blur-sm border border-green-300/30">
+                        <div className="flex items-center space-x-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>{pkg.duration}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="absolute bottom-4 left-4">
-                      <span className="bg-black/50 text-white px-3 py-1 rounded-full text-xs font-abeze">
+                    
+                    {/* Enhanced Category Badge */}
+                    <div className="absolute bottom-4 left-4 z-20">
+                      <div className="bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-full text-sm font-abeze font-medium border border-white/20 shadow-lg">
                         {pkg.category}
-                      </span>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="p-4 sm:p-6 flex flex-col h-full">
+                  <div className="p-6 flex flex-col h-full bg-gradient-to-b from-transparent to-white/5">
                     <div className="flex-grow">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-abeze font-bold text-white">
+                      {/* Enhanced Title and Popular Badge */}
+                      <div className="flex items-start justify-between mb-4">
+                        <h3 className="text-xl sm:text-2xl md:text-2xl font-abeze font-bold text-white leading-tight group-hover:text-green-300 transition-colors duration-300">
                           {pkg.title}
                         </h3>
                         {pkg.isPopular && (
-                          <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-abeze font-bold">
-                            {t('packages.popular')}
-                          </span>
+                          <div className="ml-2">
+                            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-abeze font-bold shadow-md">
+                              <div className="flex items-center space-x-1">
+                                <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                                <span>{t('packages.popular')}</span>
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
                       
-                      {/* Rating */}
+                      {/* Enhanced Rating */}
                       {(pkg.rating || pkg.reviews) && (
-                        <div className="flex items-center space-x-2 mb-3">
-                          <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="flex items-center space-x-1 bg-amber-500/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
                             {[...Array(5)].map((_, i) => (
                               <svg
                                 key={i}
                                 className={`w-4 h-4 ${
-                                  i < (pkg.rating || 0) ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'
+                                  i < (pkg.rating || 0) ? 'text-amber-400 fill-current' : 'text-gray-500'
                                 }`}
                                 fill="currentColor"
                                 viewBox="0 0 24 24"
@@ -293,10 +313,10 @@ const TravelPackagesPage = () => {
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                               </svg>
                             ))}
+                            <span className="text-amber-300 font-abeze text-sm font-bold ml-2">
+                              {pkg.rating ? `${pkg.rating}` : '0'}
+                            </span>
                           </div>
-                          <span className="text-amber-300 font-abeze text-sm font-bold">
-                            {pkg.rating ? `${pkg.rating}/5` : '0/5'}
-                          </span>
                           {pkg.reviews && (
                             <span className="text-gray-400 font-abeze text-sm">
                               ({pkg.reviews} {t('packages.reviews')})
@@ -365,20 +385,31 @@ const TravelPackagesPage = () => {
                       )}
                     </div>
                     
-                    {/* Price and Button - Always at bottom */}
-                    <div className="mt-auto pt-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <span className="text-xl sm:text-2xl md:text-3xl font-abeze font-bold text-green-400">LKR {pkg.price?.toLocaleString()}</span>
-                          <span className="text-gray-400 font-abeze text-sm block">{t('packages.perPerson')}</span>
+                    {/* Enhanced Price and Button Section */}
+                    <div className="mt-auto pt-6 border-t border-white/10">
+                      <div className="mb-5">
+                        <div className="bg-gradient-to-r from-green-400/15 to-emerald-400/15 p-4 rounded-2xl border border-green-400/20 backdrop-blur-sm">
+                          <div className="flex items-baseline">
+                            <div>
+                              <span className="text-2xl sm:text-3xl font-abeze font-bold text-green-400">
+                                LKR {pkg.price?.toLocaleString()}
+                              </span>
+                              <p className="text-gray-400 font-abeze text-sm">{t('packages.perPerson')}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
                       <button 
                         onClick={() => handleBookNow(pkg._id)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full font-abeze font-bold transition-colors duration-300"
+                        className="group/btn w-full bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 hover:from-green-500 hover:via-emerald-500 hover:to-green-500 text-white py-4 px-6 rounded-2xl font-abeze font-bold transition-all duration-300 transform hover:scale-102 hover:shadow-lg hover:shadow-green-400/15 border border-green-400/30"
                       >
-                        {t('packages.bookNow')}
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="text-base">{t('packages.bookNow')}</span>
+                          <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </div>
                       </button>
                     </div>
                   </div>
