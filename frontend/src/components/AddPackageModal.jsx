@@ -315,18 +315,9 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
             </div>
 
             <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                name="isPopular"
-                checked={formData.isPopular}
-                onChange={handleInputChange}
-                className="w-4 h-4 text-green-600 bg-white/5 border-white/20 rounded focus:ring-green-500 focus:ring-2"
-              />
-              <label className="text-green-200 font-abeze font-medium">
-                Mark as Popular Package
-              </label>
-            </div>
-          </div>
+            {/* Removed 'Mark as Popular Package' checkbox as requested */}
+          </div> {/* End of flex items-center space-x-3 */}
+        </div> {/* End of grid grid-cols-1 md:grid-cols-2 gap-6 */}
 
           {/* Image Upload */}
           <div>
