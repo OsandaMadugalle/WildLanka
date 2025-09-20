@@ -4,6 +4,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Payroll = () => {
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [payroll, setPayroll] = useState([]);
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(false);
