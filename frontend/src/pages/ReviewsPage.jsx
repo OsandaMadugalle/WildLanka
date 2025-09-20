@@ -152,6 +152,10 @@ const ReviewsPage = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden border border-white/20">
               <div className="relative">
                 <img src={selectedReview.images[currentIndex].url} alt={`Image ${currentIndex + 1} of ${selectedReview.images.length}`} className="w-full max-h-[50vh] sm:max-h-[70vh] object-contain bg-black" />
+                {/* Image counter below image */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs sm:text-sm font-abeze px-3 py-1 rounded-full shadow-lg pointer-events-none select-none">
+                  {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}
+                </div>
                 <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full" aria-label={t('gallery.previousImage') || 'Previous'}>
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
@@ -171,7 +175,7 @@ const ReviewsPage = () => {
                 </div>
                 <p className="text-gray-300 font-abeze mb-2 sm:mb-3"><span className="text-green-400">{t('gallery.by') || 'By'}:</span> {getUserName(selectedReview)}</p>
                 {selectedReview.comment && (<p className="text-gray-300 font-abeze mb-2 sm:mb-3 italic">"{selectedReview.comment}"</p>)}
-                <p className="text-gray-400 font-abeze text-xs sm:text-sm">{new Date(selectedReview.createdAt).toLocaleDateString()} • {t('gallery.imageOf', { current: currentIndex + 1, total: selectedReview.images.length }) || `Image ${currentIndex + 1} of ${selectedReview.images.length}`}</p>
+                <p className="text-gray-400 font-abeze text-xs sm:text-sm">{new Date(selectedReview.createdAt).toLocaleDateString()} • {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}</p>
               </div>
             </div>
           </div>
