@@ -22,9 +22,14 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
+  // For single package image
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
+  // For gallery images
+  const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const galleryInputRef = useRef(null);
 
   const categories = ['Safari', 'Hiking', 'Photography', 'Birding', 'Adventure', 'Marine'];
   const difficulties = ['Easy', 'Moderate', 'Challenging'];
@@ -45,20 +50,36 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
     }
   };
 
+  // Single image (Package Image)
   const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreview(ev.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Multiple images (Gallery)
+  const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedImages(files);
+    setSelectedGalleryImages(files);
     Promise.all(files.map(file => {
       return new Promise(resolve => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
         reader.readAsDataURL(file);
       });
-    })).then(previews => setImagePreviews(previews));
+    })).then(previews => setGalleryPreviews(previews));
   };
 
-  const handleImageClick = () => {
-  fileInputRef.current?.click();
+  const handleGalleryImageClick = () => {
+    galleryInputRef.current?.click();
   };
 
   const validateForm = () => {
@@ -89,11 +110,23 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
     try {
       // Create package first
       const newPackage = await packageApi.createPackage(formData);
+      // Upload package image if selected
+      if (selectedImage) {
+        setIsUploadingImage(true);
+        const imageFormData = new FormData();
+        imageFormData.append('image', selectedImage);
+        try {
+          await packageApi.uploadPackageImage(newPackage._id, imageFormData);
+        } catch (imgErr) {
+          console.error('Image upload error:', imgErr);
+          alert(imgErr?.response?.data?.message || 'Package image upload failed');
+        }
+      }
       // Upload gallery images if selected
-      if (selectedImages.length > 0) {
+      if (selectedGalleryImages.length > 0) {
         setIsUploadingImage(true);
         const galleryFormData = new FormData();
-        selectedImages.forEach((img) => {
+        selectedGalleryImages.forEach((img) => {
           galleryFormData.append('images', img);
         });
         try {
@@ -119,335 +152,339 @@ const AddPackageModal = ({ onClose, onPackageAdded }) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-gray-900/95 backdrop-blur-md rounded-2xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/20">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-abeze font-bold text-white mb-2">
-            Add New Package
-          </h2>
-          <p className="text-gray-300 font-abeze">
-            Create a new wildlife safari package for your customers
-          </p>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-abeze font-bold text-white">Add New Package</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-abeze font-bold text-white mb-4">Basic Information</h3>
-              
-              {/* Title */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Package Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.title ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                  }`}
-                  placeholder="Enter package title"
-                />
-                {errors.title && (
-                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.title}</p>
-                )}
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Category *
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
-                  style={{
-                    color: 'white',
-                    backgroundColor: '#1f2937'
-                  }}
-                >
-                  {categories.map(category => (
-                    <option 
-                      key={category} 
-                      value={category}
-                      style={{
-                        backgroundColor: '#1f2937',
-                        color: 'white'
-                      }}
-                    >
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Duration *
-                </label>
-                <input
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleInputChange}
-                  className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.duration ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                  }`}
-                  placeholder="e.g., 2 days, 1 week"
-                />
-                {errors.duration && (
-                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.duration}</p>
-                )}
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.price ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                  }`}
-                  placeholder="45000"
-                />
-                {errors.price && (
-                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.price}</p>
-                )}
-              </div>
-
-              {/* Location */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Location *
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                    errors.location ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-                  }`}
-                  placeholder="e.g., Yala National Park, Sri Lanka"
-                />
-                {errors.location && (
-                  <p className="text-red-400 text-sm mt-1 font-abeze">{errors.location}</p>
-                )}
-              </div>
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Package Title *
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                  errors.title ? 'border-red-500' : 'border-white/20'
+                } focus:border-green-400 focus:outline-none transition-colors`}
+                placeholder="Enter package title"
+              />
+              {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
             </div>
 
-            {/* Additional Details */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-abeze font-bold text-white mb-4">Additional Details</h3>
-              
-              {/* Max Group Size */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Max Group Size
-                </label>
-                <input
-                  type="number"
-                  name="maxGroupSize"
-                  value={formData.maxGroupSize}
-                  onChange={handleInputChange}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-                  placeholder="10"
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Category *
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                style={{
+                  color: 'white',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                {categories.map(category => (
+                  <option 
+                    key={category} 
+                    value={category}
+                    style={{
+                      backgroundColor: '#1f2937',
+                      color: 'white'
+                    }}
+                  >
+                    {category}
+                  </option>
+                ))}
+              </select>
+              {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
+            </div>
+
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Duration *
+              </label>
+              <input
+                type="text"
+                name="duration"
+                value={formData.duration}
+                onChange={handleInputChange}
+                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                  errors.duration ? 'border-red-500' : 'border-white/20'
+                } focus:border-green-400 focus:outline-none transition-colors`}
+                placeholder="e.g., 3 Days, 2 Nights"
+              />
+              {errors.duration && <p className="text-red-400 text-sm mt-1">{errors.duration}</p>}
+            </div>
+
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Price (LKR) *
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                  errors.price ? 'border-red-500' : 'border-white/20'
+                } focus:border-green-400 focus:outline-none transition-colors`}
+                placeholder="Enter price"
+                min="0"
+              />
+              {errors.price && <p className="text-red-400 text-sm mt-1">{errors.price}</p>}
+            </div>
+
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Location *
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                  errors.location ? 'border-red-500' : 'border-white/20'
+                } focus:border-green-400 focus:outline-none transition-colors`}
+                placeholder="e.g., Yala National Park"
+              />
+              {errors.location && <p className="text-red-400 text-sm mt-1">{errors.location}</p>}
+            </div>
+
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Max Group Size *
+              </label>
+              <input
+                type="number"
+                name="maxGroupSize"
+                value={formData.maxGroupSize}
+                onChange={handleInputChange}
+                className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                  errors.maxGroupSize ? 'border-red-500' : 'border-white/20'
+                } focus:border-green-400 focus:outline-none transition-colors`}
+                placeholder="Enter max group size"
+                min="1"
+              />
+              {errors.maxGroupSize && <p className="text-red-400 text-sm mt-1">{errors.maxGroupSize}</p>}
+            </div>
+
+            <div>
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                Difficulty Level *
+              </label>
+              <select
+                name="difficulty"
+                value={formData.difficulty}
+                onChange={handleInputChange}
+                className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
+                style={{
+                  color: 'white',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                {difficulties.map(difficulty => (
+                  <option 
+                    key={difficulty} 
+                    value={difficulty}
+                    style={{
+                      backgroundColor: '#1f2937',
+                      color: 'white'
+                    }}
+                  >
+                    {difficulty}
+                  </option>
+                ))}
+              </select>
+              {errors.difficulty && <p className="text-red-400 text-sm mt-1">{errors.difficulty}</p>}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                name="isPopular"
+                checked={formData.isPopular}
+                onChange={handleInputChange}
+                className="w-4 h-4 text-green-600 bg-white/5 border-white/20 rounded focus:ring-green-500 focus:ring-2"
+              />
+              <label className="text-green-200 font-abeze font-medium">
+                Mark as Popular Package
+              </label>
+            </div>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Package Image
+            </label>
+            <div
+              onClick={handleImageClick}
+              className="w-full h-48 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Package preview"
+                  className="w-full h-full object-cover rounded-lg"
                 />
-              </div>
-
-              {/* Difficulty */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Difficulty Level
-                </label>
-                <select
-                  name="difficulty"
-                  value={formData.difficulty}
-                  onChange={handleInputChange}
-                  className="w-full bg-gray-800 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:outline-none focus:border-green-400 transition-colors"
-                  style={{
-                    color: 'white',
-                    backgroundColor: '#1f2937'
-                  }}
-                >
-                  {difficulties.map(difficulty => (
-                    <option 
-                      key={difficulty} 
-                      value={difficulty}
-                      style={{
-                        backgroundColor: '#1f2937',
-                        color: 'white'
-                      }}
-                    >
-                      {difficulty}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Popular Package */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="isPopular"
-                  checked={formData.isPopular}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-green-600 bg-white/10 border-white/20 rounded focus:ring-green-500 focus:ring-2"
-                />
-                <label className="ml-2 text-white font-abeze">
-                  Mark as Popular Package
-                </label>
-              </div>
-
-              {/* Package Gallery Images */}
-              <div>
-                <label className="block text-white font-abeze font-medium mb-2">
-                  Package Gallery Images
-                </label>
-                <div
-                  onClick={handleImageClick}
-                  className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
-                >
-                  {imagePreviews.length > 0 ? (
-                    <div className="flex gap-2 w-full h-full">
-                      {imagePreviews.map((preview, idx) => (
-                        <img key={idx} src={preview} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                      <p className="text-gray-400 font-abeze text-sm">Click to upload images</p>
-                    </div>
-                  )}
+              ) : (
+                <div className="text-center">
+                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="text-gray-400 font-abeze">Click to upload image</p>
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </div>
+              )}
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </div>
+          {/* Gallery Images Upload */}
+          <div>
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Package Gallery Images
+            </label>
+            <div
+              onClick={handleGalleryImageClick}
+              className="w-full h-32 border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+            >
+              {galleryPreviews.length > 0 ? (
+                <div className="flex gap-2 w-full h-full">
+                  {galleryPreviews.map((preview, idx) => (
+                    <img key={idx} src={preview} alt={`Gallery Preview ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center">
+                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <p className="text-gray-400 font-abeze text-sm">Click to upload images</p>
+                </div>
+              )}
+            </div>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryImageChange}
+              className="hidden"
+            />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-white font-abeze font-medium mb-2">
+            <label className="block text-green-200 font-abeze font-medium mb-2">
               Description *
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              rows="4"
-              className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none transition-colors ${
-                errors.description ? 'border-red-400' : 'border-white/20 focus:border-green-400'
-              }`}
-              placeholder="Describe the package experience, what makes it special..."
+              rows={4}
+              className={`w-full bg-white/5 border rounded-lg px-4 py-3 text-white font-abeze ${
+                errors.description ? 'border-red-500' : 'border-white/20'
+              } focus:border-green-400 focus:outline-none transition-colors resize-none`}
+              placeholder="Enter detailed description of the package"
             />
-            {errors.description && (
-              <p className="text-red-400 text-sm mt-1 font-abeze">{errors.description}</p>
-            )}
+            {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
           </div>
 
-          {/* Features and Highlights */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-white font-abeze font-medium mb-2">
-                Features
-              </label>
-              <textarea
-                name="features"
-                value={formData.features}
-                onChange={handleInputChange}
-                rows="3"
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-                placeholder="List key features of this package..."
-              />
-            </div>
+          {/* Features */}
+          <div>
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Features (comma-separated)
+            </label>
+            <textarea
+              name="features"
+              value={formData.features}
+              onChange={handleInputChange}
+              rows={3}
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:border-green-400 focus:outline-none transition-colors resize-none"
+              placeholder="e.g., Professional guide, Transportation, Meals"
+            />
+          </div>
 
-            <div>
-              <label className="block text-white font-abeze font-medium mb-2">
-                Highlights
-              </label>
-              <textarea
-                name="highlights"
-                value={formData.highlights}
-                onChange={handleInputChange}
-                rows="3"
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-                placeholder="What are the main highlights of this experience?"
-              />
-            </div>
+          {/* Highlights */}
+          <div>
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Highlights (comma-separated)
+            </label>
+            <textarea
+              name="highlights"
+              value={formData.highlights}
+              onChange={handleInputChange}
+              rows={3}
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:border-green-400 focus:outline-none transition-colors resize-none"
+              placeholder="e.g., Wildlife spotting, Photography opportunities, Scenic views"
+            />
           </div>
 
           {/* Included/Not Included */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-white font-abeze font-medium mb-2">
-                What's Included
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                What's Included (comma-separated)
               </label>
               <textarea
                 name="included"
                 value={formData.included}
                 onChange={handleInputChange}
-                rows="3"
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-                placeholder="What services and items are included in the price?"
+                rows={3}
+                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:border-green-400 focus:outline-none transition-colors resize-none"
+                placeholder="e.g., Accommodation, Meals, Guide"
               />
             </div>
 
             <div>
-              <label className="block text-white font-abeze font-medium mb-2">
-                What's Not Included
+              <label className="block text-green-200 font-abeze font-medium mb-2">
+                What's Not Included (comma-separated)
               </label>
               <textarea
                 name="notIncluded"
                 value={formData.notIncluded}
                 onChange={handleInputChange}
-                rows="3"
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-                placeholder="What additional costs might customers expect?"
+                rows={3}
+                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:border-green-400 focus:outline-none transition-colors resize-none"
+                placeholder="e.g., Personal expenses, Tips"
               />
             </div>
           </div>
 
           {/* Requirements */}
           <div>
-            <label className="block text-white font-abeze font-medium mb-2">
-              Requirements
+            <label className="block text-green-200 font-abeze font-medium mb-2">
+              Requirements (comma-separated)
             </label>
             <textarea
               name="requirements"
               value={formData.requirements}
               onChange={handleInputChange}
-              rows="3"
-              className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze placeholder-gray-400 focus:outline-none focus:border-green-400 transition-colors"
-              placeholder="Any physical requirements, age restrictions, or special considerations?"
+              rows={3}
+              className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white font-abeze focus:border-green-400 focus:outline-none transition-colors resize-none"
+              placeholder="e.g., Comfortable walking shoes, Camera, Valid ID"
             />
           </div>
 
