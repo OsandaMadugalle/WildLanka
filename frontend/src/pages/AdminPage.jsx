@@ -24,6 +24,7 @@ import AssignmentModal from "../components/AssignmentModal";
 import BookingCalendar from "../components/BookingCalendar";
 
 import Carousel from "../components/Carousel";
+import AdminGalleryManager from "../components/AdminGalleryManager";
 // ...existing code...
 
 // ...existing code...

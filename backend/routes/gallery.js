@@ -1,9 +1,11 @@
 // ...existing code...
 import express from 'express';
-import { uploadImage, listImages, approveImage, rejectImage, deleteImage, listUserImages } from '../controllers/galleryController.js';
+import { uploadImage, listImages, approveImage, rejectImage, deleteImage, listUserImages, listApprovedImagesPublic } from '../controllers/galleryController.js';
 import { isAdmin, isAuthenticated } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
 const router = express.Router();
+// Public: List only approved images
+router.get('/public/approved', listApprovedImagesPublic);
 // User lists their own gallery images
 router.get('/user/list', isAuthenticated, listUserImages);
 
