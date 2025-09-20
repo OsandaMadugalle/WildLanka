@@ -907,128 +907,147 @@ The Wildlife Safari Team`);
     </div>
   );
 
-  const renderUsers = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-abeze font-bold text-white">
-          Customer Management
-        </h3>
-        <div className="text-gray-300 font-abeze text-sm">
-          Total Customers: {users.length}
-        </div>
-      </div>
-
-      {/* Users List */}
-      {usersLoading ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">Loading customers...</div>
-        </div>
-      ) : users.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">No customers found.</div>
-        </div>
-      ) : (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/20">
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Name
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Email
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Phone
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Country
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Role
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Joined
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Update Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-4 px-6 text-white font-abeze">
-                      <div className="flex items-center space-x-3">
-                        {user.profilePicture ? (
-                          <img
-                            src={user.profilePicture}
-                            alt={user.firstName}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <span className="text-green-400 text-sm font-abeze">
-                              {user.firstName?.charAt(0)?.toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-medium">
-                            {user.firstName} {user.lastName}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.email}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.phone || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.country || "N/A"}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                          user.role === "admin"
-                            ? "bg-red-500/20 text-red-400"
-                            : user.role === "staff"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-green-500/20 text-green-400"
-                        }`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-6">
-                      {user.role !== "admin" && (
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  // --- Enhanced Customers Section ---
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("All");
+  const [userSortBy, setUserSortBy] = useState("createdAt");
+  const [userSortOrder, setUserSortOrder] = useState("desc");
+  const renderUsers = () => {
+    // Filter, search, and sort users
+    let filteredUsers = users.filter(u => userRoleFilter === "All" || u.role === userRoleFilter);
+    if (userSearch.trim()) {
+      const s = userSearch.trim().toLowerCase();
+      filteredUsers = filteredUsers.filter(u =>
+        `${u.firstName} ${u.lastName}`.toLowerCase().includes(s) ||
+        (u.email || "").toLowerCase().includes(s) ||
+        (u.country || "").toLowerCase().includes(s)
+      );
+    }
+    filteredUsers = filteredUsers.sort((a, b) => {
+      let valA, valB;
+      if (userSortBy === "createdAt") {
+        valA = new Date(a.createdAt);
+        valB = new Date(b.createdAt);
+      } else if (userSortBy === "firstName") {
+        valA = a.firstName?.toLowerCase() || "";
+        valB = b.firstName?.toLowerCase() || "";
+      }
+      if (userSortOrder === "asc") return valA > valB ? 1 : -1;
+      else return valA < valB ? 1 : -1;
+    });
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h3 className="text-xl font-abeze font-bold text-white">Customer Management</h3>
+            <div className="text-gray-300 font-abeze text-sm">Total Customers: {users.length}</div>
+          </div>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name, email, country..."
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none w-full sm:w-auto min-w-[150px]"
+              style={{ minWidth: 0, maxWidth: 220 }}
+            />
+            <select
+              value={userRoleFilter}
+              onChange={e => setUserRoleFilter(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="All">All Roles</option>
+              <option value="user">User</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select
+              value={userSortBy}
+              onChange={e => setUserSortBy(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="createdAt">Sort by Joined</option>
+              <option value="firstName">Sort by Name</option>
+            </select>
+            <select
+              value={userSortOrder}
+              onChange={e => setUserSortOrder(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[80px]"
+              style={{ minWidth: 0, maxWidth: 100 }}
+            >
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
           </div>
         </div>
-      )}
-    </div>
-  );
+        {usersLoading ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">Loading customers...</div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">No customers found.</div>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-x-auto">
+            <div className="min-w-[700px]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-green-800">
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Name</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Email</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Phone</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Country</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Role</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Joined</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
+                      <td className="py-4 px-6 text-green-100 font-abeze">
+                        <div className="flex items-center gap-3 min-w-[120px]">
+                          {user.profilePicture && (user.profilePicture.url || typeof user.profilePicture === 'string') ? (
+                            <img
+                              src={user.profilePicture.url ? user.profilePicture.url : user.profilePicture}
+                              alt={user.firstName}
+                              className="w-8 h-8 rounded-full object-cover border border-green-800"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                              <span className="text-green-400 text-sm font-abeze">{user.firstName?.charAt(0)?.toUpperCase()}</span>
+                            </div>
+                          )}
+                          <span className="font-medium">{user.firstName} {user.lastName}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-green-100 font-abeze">{user.email}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze">{user.phone || "N/A"}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze">{user.country || "N/A"}</td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-abeze ${user.role === "admin" ? "bg-red-700/20 text-red-300" : user.role === "staff" ? "bg-blue-700/20 text-blue-200" : "bg-green-700/20 text-green-200"}`}>{user.role}</span>
+                      </td>
+                      <td className="py-4 px-6 text-green-100 font-abeze text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td className="py-4 px-6">
+                        {user.role !== "admin" && (
+                          <div className="flex flex-col sm:flex-row gap-2 w-full min-w-[90px]">
+                            <button onClick={() => handleDeleteUser(user._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 w-full sm:w-auto">Delete</button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderStaff = () => (
     <div className="space-y-6">
