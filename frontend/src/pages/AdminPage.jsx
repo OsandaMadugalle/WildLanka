@@ -24,6 +24,7 @@ import AssignmentModal from "../components/AssignmentModal";
 import BookingCalendar from "../components/BookingCalendar";
 
 import Carousel from "../components/Carousel";
+import AdminGalleryManager from "../components/AdminGalleryManager";
 // ...existing code...
 
 // ...existing code...
@@ -113,6 +114,12 @@ const AdminPage = () => {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [viewReview, setViewReview] = useState(null); // For modal
+  // Enhancement: search/filter/sort for reviews
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [reviewRatingFilter, setReviewRatingFilter] = useState("All");
+  const [reviewSortBy, setReviewSortBy] = useState("createdAt");
+  const [reviewSortOrder, setReviewSortOrder] = useState("desc");
   const [donations, setDonations] = useState([]);
   const [donationsLoading, setDonationsLoading] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -900,302 +907,312 @@ The Wildlife Safari Team`);
     </div>
   );
 
-  const renderUsers = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-abeze font-bold text-white">
-          Customer Management
-        </h3>
-        <div className="text-gray-300 font-abeze text-sm">
-          Total Customers: {users.length}
-        </div>
-      </div>
-
-      {/* Users List */}
-      {usersLoading ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">Loading customers...</div>
-        </div>
-      ) : users.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">No customers found.</div>
-        </div>
-      ) : (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/20">
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Name
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Email
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Phone
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Country
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Role
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Joined
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Update Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-4 px-6 text-white font-abeze">
-                      <div className="flex items-center space-x-3">
-                        {user.profilePicture ? (
-                          <img
-                            src={user.profilePicture}
-                            alt={user.firstName}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <span className="text-green-400 text-sm font-abeze">
-                              {user.firstName?.charAt(0)?.toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-medium">
-                            {user.firstName} {user.lastName}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.email}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.phone || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {user.country || "N/A"}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                          user.role === "admin"
-                            ? "bg-red-500/20 text-red-400"
-                            : user.role === "staff"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-green-500/20 text-green-400"
-                        }`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-6">
-                      {user.role !== "admin" && (
-                        <button
-                          onClick={() => handleDeleteUser(user._id)}
-                          className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  // --- Enhanced Customers Section ---
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("All");
+  const [userSortBy, setUserSortBy] = useState("createdAt");
+  const [userSortOrder, setUserSortOrder] = useState("desc");
+  const renderUsers = () => {
+    // Filter, search, and sort users
+    let filteredUsers = users.filter(u => userRoleFilter === "All" || u.role === userRoleFilter);
+    if (userSearch.trim()) {
+      const s = userSearch.trim().toLowerCase();
+      filteredUsers = filteredUsers.filter(u =>
+        `${u.firstName} ${u.lastName}`.toLowerCase().includes(s) ||
+        (u.email || "").toLowerCase().includes(s) ||
+        (u.country || "").toLowerCase().includes(s)
+      );
+    }
+    filteredUsers = filteredUsers.sort((a, b) => {
+      let valA, valB;
+      if (userSortBy === "createdAt") {
+        valA = new Date(a.createdAt);
+        valB = new Date(b.createdAt);
+      } else if (userSortBy === "firstName") {
+        valA = a.firstName?.toLowerCase() || "";
+        valB = b.firstName?.toLowerCase() || "";
+      }
+      if (userSortOrder === "asc") return valA > valB ? 1 : -1;
+      else return valA < valB ? 1 : -1;
+    });
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h3 className="text-xl font-abeze font-bold text-white">Customer Management</h3>
+            <div className="text-gray-300 font-abeze text-sm">Total Customers: {users.length}</div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderStaff = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-abeze font-bold text-white">
-          Staff Management
-        </h3>
-        <button
-          onClick={() => setShowAddStaff(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2"
-        >
-          <svg
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name, email, country..."
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none w-full sm:w-auto min-w-[150px]"
+              style={{ minWidth: 0, maxWidth: 220 }}
             />
-          </svg>
-          <span>Add Staff</span>
-        </button>
-      </div>
-
-      {/* Staff List */}
-      {staffLoading ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">Loading staff...</div>
-        </div>
-      ) : staff.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-gray-300 font-abeze">
-            No staff members found.
+            <select
+              value={userRoleFilter}
+              onChange={e => setUserRoleFilter(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="All">All Roles</option>
+              <option value="user">User</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select
+              value={userSortBy}
+              onChange={e => setUserSortBy(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="createdAt">Sort by Joined</option>
+              <option value="firstName">Sort by Name</option>
+            </select>
+            <select
+              value={userSortOrder}
+              onChange={e => setUserSortOrder(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[80px]"
+              style={{ minWidth: 0, maxWidth: 100 }}
+            >
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
           </div>
         </div>
-      ) : (
-        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/20">
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Name
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Email
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Phone
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Role
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Basic Salary
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    License/Register
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Specialization
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Experience
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Status
-                  </th>
-                  <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((staffMember) => (
-                  <tr
-                    key={staffMember._id}
-                    className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-4 px-6 text-white font-abeze">
-                      <div className="flex items-center space-x-3">
-                        {staffMember.profilePicture?.url ? (
-                          <img
-                            src={staffMember.profilePicture.url}
-                            alt={staffMember.firstName}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <span className="text-blue-400 text-sm font-abeze">
-                              {staffMember.firstName?.charAt(0)?.toUpperCase()}
-                            </span>
+        {usersLoading ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">Loading customers...</div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">No customers found.</div>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-x-auto">
+            <div className="min-w-[700px]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-green-800">
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Name</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Email</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Phone</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Country</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Role</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Joined</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
+                      <td className="py-4 px-6 text-green-100 font-abeze">
+                        <div className="flex items-center gap-3 min-w-[120px]">
+                          {user.profilePicture && (user.profilePicture.url || typeof user.profilePicture === 'string') ? (
+                            <img
+                              src={user.profilePicture.url ? user.profilePicture.url : user.profilePicture}
+                              alt={user.firstName}
+                              className="w-8 h-8 rounded-full object-cover border border-green-800"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                              <span className="text-green-400 text-sm font-abeze">{user.firstName?.charAt(0)?.toUpperCase()}</span>
+                            </div>
+                          )}
+                          <span className="font-medium">{user.firstName} {user.lastName}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-green-100 font-abeze">{user.email}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze">{user.phone || "N/A"}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze">{user.country || "N/A"}</td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-abeze ${user.role === "admin" ? "bg-red-700/20 text-red-300" : user.role === "staff" ? "bg-blue-700/20 text-blue-200" : "bg-green-700/20 text-green-200"}`}>{user.role}</span>
+                      </td>
+                      <td className="py-4 px-6 text-green-100 font-abeze text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
+                      <td className="py-4 px-6">
+                        {user.role !== "admin" && (
+                          <div className="flex flex-col sm:flex-row gap-2 w-full min-w-[90px]">
+                            <button onClick={() => handleDeleteUser(user._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 w-full sm:w-auto">Delete</button>
                           </div>
                         )}
-                        <div>
-                          <div className="font-medium">
-                            {staffMember.firstName} {staffMember.lastName}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {staffMember.email}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze">
-                      {staffMember.phone}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                          staffMember.role === "admin"
-                            ? "bg-red-500/20 text-red-400"
-                            : staffMember.role === "tour_guide"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-blue-500/20 text-blue-400"
-                        }`}
-                      >
-                        {staffMember.role === "tour_guide"
-                          ? "Tour Guide"
-                          : staffMember.role}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      LKR {staffMember.basicSalary?.toLocaleString() || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      {staffMember.licenseNumber || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      {staffMember.specialization || "N/A"}
-                    </td>
-                    <td className="py-4 px-6 text-white font-abeze text-sm">
-                      {staffMember.experience || 0} years
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-abeze ${
-                          staffMember.isActive
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-red-500/20 text-red-400"
-                        }`}
-                      >
-                        {staffMember.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleEditStaff(staffMember)}
-                          className="px-3 py-1 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded text-xs font-abeze transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStaff(staffMember._id)}
-                          className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // --- Enhanced Staff Management Section ---
+  const [staffSearch, setStaffSearch] = useState("");
+  const [staffRoleFilter, setStaffRoleFilter] = useState("All");
+  const [staffStatusFilter, setStaffStatusFilter] = useState("All");
+  const [staffSortBy, setStaffSortBy] = useState("createdAt");
+  const [staffSortOrder, setStaffSortOrder] = useState("desc");
+  const renderStaff = () => {
+    let filteredStaff = staff.filter(s =>
+      (staffRoleFilter === "All" || s.role === staffRoleFilter) &&
+      (staffStatusFilter === "All" || (staffStatusFilter === "active" ? s.isActive : !s.isActive))
+    );
+    if (staffSearch.trim()) {
+      const s = staffSearch.trim().toLowerCase();
+      filteredStaff = filteredStaff.filter(staffMember =>
+        `${staffMember.firstName} ${staffMember.lastName}`.toLowerCase().includes(s) ||
+        (staffMember.email || "").toLowerCase().includes(s) ||
+        (staffMember.specialization || "").toLowerCase().includes(s)
+      );
+    }
+    filteredStaff = filteredStaff.sort((a, b) => {
+      let valA, valB;
+      if (staffSortBy === "createdAt") {
+        valA = new Date(a.createdAt);
+        valB = new Date(b.createdAt);
+      } else if (staffSortBy === "firstName") {
+        valA = a.firstName?.toLowerCase() || "";
+        valB = b.firstName?.toLowerCase() || "";
+      }
+      if (staffSortOrder === "asc") return valA > valB ? 1 : -1;
+      else return valA < valB ? 1 : -1;
+    });
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h3 className="text-xl font-abeze font-bold text-white">Staff Management</h3>
+            <div className="text-gray-300 font-abeze text-sm">Total Staff: {staff.length}</div>
+          </div>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name, email, specialization..."
+              value={staffSearch}
+              onChange={e => setStaffSearch(e.target.value)}
+              className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none w-full sm:w-auto min-w-[150px]"
+              style={{ minWidth: 0, maxWidth: 220 }}
+            />
+            <select
+              value={staffRoleFilter}
+              onChange={e => setStaffRoleFilter(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="All">All Roles</option>
+              <option value="tour_guide">Tour Guide</option>
+              <option value="driver">Driver</option>
+              <option value="admin">Admin</option>
+            </select>
+            <select
+              value={staffStatusFilter}
+              onChange={e => setStaffStatusFilter(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="All">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <select
+              value={staffSortBy}
+              onChange={e => setStaffSortBy(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+              style={{ minWidth: 0, maxWidth: 140 }}
+            >
+              <option value="createdAt">Sort by Joined</option>
+              <option value="firstName">Sort by Name</option>
+            </select>
+            <select
+              value={staffSortOrder}
+              onChange={e => setStaffSortOrder(e.target.value)}
+              className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[80px]"
+              style={{ minWidth: 0, maxWidth: 100 }}
+            >
+              <option value="desc">Desc</option>
+              <option value="asc">Asc</option>
+            </select>
+            <button
+              onClick={() => setShowAddStaff(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 flex items-center space-x-2 w-full sm:w-auto"
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+              <span>Add Staff</span>
+            </button>
           </div>
         </div>
-      )}
-    </div>
-  );
+        {staffLoading ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">Loading staff...</div>
+          </div>
+        ) : filteredStaff.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-300 font-abeze">No staff members found.</div>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-x-auto">
+            <div className="min-w-[900px]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-green-800">
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Name</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Email</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Phone</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Role</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Basic Salary</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">License/Register</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Specialization</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Experience</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Status</th>
+                    <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStaff.map((staffMember) => (
+                    <tr key={staffMember._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
+                      <td className="py-4 px-6 text-green-100 font-abeze">
+                        <div className="flex items-center gap-3 min-w-[120px]">
+                          {staffMember.profilePicture && (staffMember.profilePicture.url || typeof staffMember.profilePicture === 'string') ? (
+                            <img src={staffMember.profilePicture.url ? staffMember.profilePicture.url : staffMember.profilePicture} alt={staffMember.firstName} className="w-8 h-8 rounded-full object-cover border border-green-800" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                              <span className="text-blue-400 text-sm font-abeze">{staffMember.firstName?.charAt(0)?.toUpperCase()}</span>
+                            </div>
+                          )}
+                          <span className="font-medium">{staffMember.firstName} {staffMember.lastName}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-green-100 font-abeze">{staffMember.email}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze">{staffMember.phone}</td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-abeze ${staffMember.role === "admin" ? "bg-red-700/20 text-red-300" : staffMember.role === "tour_guide" ? "bg-green-700/20 text-green-200" : "bg-blue-700/20 text-blue-200"}`}>{staffMember.role === "tour_guide" ? "Tour Guide" : staffMember.role}</span>
+                      </td>
+                      <td className="py-4 px-6 text-green-50 font-abeze text-sm">LKR {staffMember.basicSalary?.toLocaleString() || "N/A"}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze text-sm">{staffMember.licenseNumber || "N/A"}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze text-sm">{staffMember.specialization || "N/A"}</td>
+                      <td className="py-4 px-6 text-green-50 font-abeze text-sm">{staffMember.experience || 0} years</td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-abeze ${staffMember.isActive ? "bg-green-700/20 text-green-200" : "bg-red-700/20 text-red-300"}`}>{staffMember.isActive ? "Active" : "Inactive"}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex flex-col sm:flex-row gap-2 w-full min-w-[90px]">
+                          <button onClick={() => handleEditStaff(staffMember)} className="px-3 py-1 bg-blue-700/80 text-blue-100 hover:bg-blue-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 w-full sm:w-auto">Edit</button>
+                          <button onClick={() => handleDeleteStaff(staffMember._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 w-full sm:w-auto">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderSafariRequests = () => (
     <div className="space-y-6">
@@ -2324,93 +2341,149 @@ The Wildlife Safari Team`);
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "reviews" && (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-abeze font-bold text-white">
-                      Reviews
-                    </h3>
-                    <div className="text-sm text-gray-300 font-abeze">
-                      Total: {reviews.length}
+                  <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <h3 className="text-xl font-abeze font-bold text-white">Reviews</h3>
+                      <div className="text-sm text-gray-300 font-abeze">Total: {reviews.length}</div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch w-full md:w-auto">
+                      <input
+                        type="text"
+                        placeholder="Search by user, package, comment..."
+                        value={reviewSearch}
+                        onChange={e => setReviewSearch(e.target.value)}
+                        className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none w-full sm:w-auto min-w-[150px]"
+                        style={{ minWidth: 0, maxWidth: 220 }}
+                      />
+                      <select
+                        value={reviewRatingFilter}
+                        onChange={e => setReviewRatingFilter(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+                        style={{ minWidth: 0, maxWidth: 140 }}
+                      >
+                        <option value="All">All Ratings</option>
+                        {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Stars</option>)}
+                      </select>
+                      <select
+                        value={reviewSortBy}
+                        onChange={e => setReviewSortBy(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+                        style={{ minWidth: 0, maxWidth: 140 }}
+                      >
+                        <option value="createdAt">Sort by Date</option>
+                        <option value="rating">Sort by Rating</option>
+                      </select>
+                      <select
+                        value={reviewSortOrder}
+                        onChange={e => setReviewSortOrder(e.target.value)}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[80px]"
+                        style={{ minWidth: 0, maxWidth: 100 }}
+                      >
+                        <option value="desc">Desc</option>
+                        <option value="asc">Asc</option>
+                      </select>
                     </div>
                   </div>
                   {reviewsLoading ? (
                     <div className="text-center py-8">
-                      <div className="text-gray-300 font-abeze">
-                        Loading reviews...
-                      </div>
+                      <div className="text-gray-300 font-abeze">Loading reviews...</div>
                     </div>
                   ) : (
-                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-x-auto">
+                      <div className="min-w-[600px]">
+                        <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-white/20">
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Package
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                User
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Rating
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Comment
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Images
-                              </th>
-                              <th className="text-left py-4 px-6 text-green-200 font-abeze">
-                                Actions
-                              </th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Package</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">User</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Rating</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Comment</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Images</th>
+                              <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {reviews.map((rev) => (
-                              <tr
-                                key={rev._id}
-                                className="border-b border-white/10 hover:bg-white/5 transition-colors"
-                              >
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.packageId?.title}
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.userId?.firstName} {rev.userId?.lastName}
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze">
-                                  {rev.rating} / 5
-                                </td>
-                                <td className="py-4 px-6 text-white font-abeze text-sm max-w-md truncate">
-                                  {rev.comment}
-                                </td>
-                                <td className="py-4 px-6">
-                                  <div className="flex gap-2">
-                                    {(rev.images || [])
-                                      .slice(0, 3)
-                                      .map((img) => (
-                                        <img
-                                          key={img.id || img.url}
-                                          src={img.url}
-                                          className="w-10 h-10 object-cover rounded"
-                                          alt="review"
-                                        />
+                            {reviews
+                              .filter(rev => {
+                                if (reviewRatingFilter !== "All" && String(rev.rating) !== String(reviewRatingFilter)) return false;
+                                if (!reviewSearch.trim()) return true;
+                                const search = reviewSearch.trim().toLowerCase();
+                                const user = `${rev.userId?.firstName || ''} ${rev.userId?.lastName || ''}`.toLowerCase();
+                                const pkg = (rev.packageId?.title || '').toLowerCase();
+                                const comment = (rev.comment || '').toLowerCase();
+                                return user.includes(search) || pkg.includes(search) || comment.includes(search);
+                              })
+                              .sort((a, b) => {
+                                let valA, valB;
+                                if (reviewSortBy === "createdAt") {
+                                  valA = new Date(a.createdAt);
+                                  valB = new Date(b.createdAt);
+                                } else if (reviewSortBy === "rating") {
+                                  valA = a.rating;
+                                  valB = b.rating;
+                                }
+                                if (reviewSortOrder === "asc") return valA > valB ? 1 : -1;
+                                else return valA < valB ? 1 : -1;
+                              })
+                              .map((rev) => (
+                                <tr key={rev._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
+                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.packageId?.title}</td>
+                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.userId?.firstName} {rev.userId?.lastName}</td>
+                                  <td className="py-4 px-6 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-300 font-bold">{rev.rating} / 5</span></td>
+                                  <td className="py-4 px-6 text-green-50 font-abeze text-sm max-w-md truncate">{rev.comment}</td>
+                                  <td className="py-4 px-6">
+                                    <div className="flex flex-wrap gap-2 justify-start items-center min-w-[80px]">
+                                      {(rev.images || []).slice(0, 3).map((img) => (
+                                        <img key={img.id || img.url} src={img.url} className="w-10 h-10 object-cover rounded border border-green-800" alt="review" />
                                       ))}
-                                  </div>
-                                </td>
-                                <td className="py-4 px-6">
-                                  <button
-                                    onClick={() => handleDeleteReview(rev._id)}
-                                    className="px-3 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-xs font-abeze transition-colors"
-                                  >
-                                    Delete
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-6">
+                                    <div className="flex flex-col sm:flex-row gap-2 w-full min-w-[90px]">
+                                      <button onClick={() => setViewReview(rev)} className="px-3 py-1 bg-blue-700/80 text-blue-100 hover:bg-blue-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 w-full sm:w-auto">View</button>
+                                      <button onClick={() => handleDeleteReview(rev._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 w-full sm:w-auto">Delete</button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+              {/* Review Details Modal */}
+              {viewReview && (
+                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-2 sm:p-4">
+                  <div className="bg-green-950/95 backdrop-blur-md rounded-2xl border-2 border-green-700 w-full max-w-lg sm:max-w-xl relative shadow-2xl mx-auto">
+                    <button
+                      onClick={() => setViewReview(null)}
+                      className="absolute top-2 right-2 bg-green-900/80 hover:bg-green-800/90 text-green-200 hover:text-white p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                      aria-label="Close"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <div className="p-6">
+                      <h2 className="text-2xl font-bold text-green-100 mb-2 font-abeze">{viewReview.packageId?.title || 'Unknown Package'}</h2>
+                      <div className="mb-2 text-green-300 font-abeze">By: <span className="font-bold">{viewReview.userId?.firstName} {viewReview.userId?.lastName}</span></div>
+                      <div className="mb-2 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-200 font-bold">Rating: {viewReview.rating} / 5</span></div>
+                      {viewReview.comment && <div className="mb-2 text-green-100 font-abeze italic">"{viewReview.comment}"</div>}
+                      <div className="mb-2 text-green-400 font-abeze text-xs">{new Date(viewReview.createdAt).toLocaleString()}</div>
+                      {viewReview.images && viewReview.images.length > 0 && (
+                        <div className="flex gap-2 mt-4 flex-wrap">
+                          {viewReview.images.map((img, idx) => (
+                            <img
+                              key={img.id || img.url || idx}
+                              src={img.url}
+                              alt={`Review image ${idx + 1}`}
+                              className="w-20 h-20 object-cover rounded border-2 border-green-800 shadow"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               {activeTab === "donations" && (
@@ -2464,6 +2537,55 @@ The Wildlife Safari Team`);
                   </div>
 
                   {/* Donations List */}
+                    {/* Download CSV Button */}
+                    <div className="flex justify-end mb-4">
+                      <button
+                        onClick={() => {
+                          if (!donations.length) return;
+                          // Prepare CSV header
+                          const header = [
+                            'Donation ID',
+                            'First Name',
+                            'Last Name',
+                            'Email',
+                            'Amount',
+                            'Currency',
+                            'Payment Status',
+                            'Anonymous',
+                            'Date',
+                          ];
+                          // Prepare CSV rows
+                          const rows = donations.map(d => [
+                            d._id,
+                            d.firstName || '',
+                            d.lastName || '',
+                            d.email || '',
+                            d.amount || '',
+                            d.currency || '',
+                            d.paymentStatus || '',
+                            d.isAnonymous ? 'Yes' : 'No',
+                            d.createdAt ? new Date(d.createdAt).toLocaleString() : '',
+                          ]);
+                          // Convert to CSV string
+                          const csvContent = [header, ...rows]
+                            .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+                            .join('\r\n');
+                          // Trigger download
+                          const blob = new Blob([csvContent], { type: 'text/csv' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `donations_${new Date().toISOString().slice(0,10)}.csv`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 shadow"
+                      >
+                        Download CSV
+                      </button>
+                    </div>
                   {donationsLoading ? (
                     <div className="text-center py-12">
                       <div className="inline-flex items-center space-x-2 text-gray-300 font-abeze">

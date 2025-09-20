@@ -215,12 +215,11 @@ export const deleteReview = async (req, res, next) => {
 // Get public reviews for external users (for carousel, homepage, etc)
 export const getPublicReviews = async (req, res, next) => {
   try {
-    // You can filter by isPublic, approved, etc. For now, show latest 10 reviews
+    // You can filter by isPublic, approved, etc. For now, show all reviews
     const reviews = await Review.find({})
       .populate("userId", "firstName lastName")
       .populate("packageId", "title location")
-      .sort({ createdAt: -1 })
-      .limit(10);
+      .sort({ createdAt: -1 });
     return res.json({ reviews });
   } catch (err) {
     next(err);

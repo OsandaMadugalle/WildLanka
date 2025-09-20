@@ -38,8 +38,7 @@ const ReviewsPage = () => {
     }
   };
 
-  const reviewsWithImages = (reviews || []).filter(r => r.images && r.images.length > 0);
-  const displayedReviews = [...reviewsWithImages].sort((a, b) => {
+  const displayedReviews = [...(reviews || [])].sort((a, b) => {
     if (filter === 'recent' || filter === 'all') return new Date(b.createdAt) - new Date(a.createdAt);
     if (filter === 'popular') {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -62,7 +61,7 @@ const ReviewsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
       <Header />
   <div className="pt-24 md:pt-32 pb-10 md:pb-16">
         <div className="container mx-auto px-2 sm:px-4 md:px-6">
@@ -78,7 +77,7 @@ const ReviewsPage = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-1 sm:p-2 border border-white/20">
               <button onClick={() => setFilter('all')} className={`px-6 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${filter === 'all' ? 'bg-green-600 text-white' : 'text-green-200 hover:text-white hover:bg-white/10'}`}>{t('gallery.filters.all') || 'All'}</button>
               <button onClick={() => setFilter('recent')} className={`px-6 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${filter === 'recent' ? 'bg-green-600 text-white' : 'text-green-200 hover:text-white hover:bg-white/10'}`}>{t('gallery.filters.recent') || 'Recent'}</button>
-              <button onClick={() => setFilter('popular')} className={`px-6 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${filter === 'popular' ? 'bg-green-600 text-white' : 'text-green-200 hover:text-white hover:bg-white/10'}`}>{t('gallery.filters.popular') || 'Popular'}</button>
+              <button onClick={() => setFilter('popular')} className={`px-6 py-2 rounded-lg font-abeze font-medium transition-colors duration-300 ${filter === 'popular' ? 'bg-green-600 text-white' : 'text-green-200 hover:text-white hover:bg-white/10'}`}>{t('gallery.filters.topRated') !== 'gallery.filters.topRated' ? t('gallery.filters.topRated') : 'Top Rated'}</button>
             </div>
           </div>
           {loading ? (
@@ -97,11 +96,24 @@ const ReviewsPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {displayedReviews.map((review) => (
-                <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 hover:border-green-400/50 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
-                  <div className="aspect-square overflow-hidden">
-                    <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 shadow-md hover:shadow-green-400/30 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
+                  <div className="aspect-square overflow-hidden relative">
+                    {review.images && review.images.length > 0 ? (
+                      <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-400 text-2xl font-abeze">
+                        No Image
+                      </div>
+                    )}
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {/* Location below image */}
+                  <div className="px-3 pt-2 pb-1">
+                    <span className="text-xs font-bold text-green-600 font-abeze truncate block">
+                      {review.packageId?.title || 'Unknown package'}
+                    </span>
+                  </div>
+                  {/* Hover overlay for details */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="text-white font-abeze font-bold text-sm truncate">{review.packageId?.title || t('gallery.safariPackage') || 'Safari Package'}</h4>
@@ -125,7 +137,7 @@ const ReviewsPage = () => {
           {displayedReviews.length > 0 && (
             <div className="text-center mt-8">
               <p className="text-gray-300 font-abeze">
-                {displayedReviews.length === 1 ? (t('gallery.showingReviews', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} review`) : (t('gallery.showingReviewsPlural', { count: displayedReviews.length }) || `Showing ${displayedReviews.length} reviews`)}
+                {`Showing ${displayedReviews.length} reviews with photos`}
               </p>
             </div>
           )}
@@ -140,6 +152,10 @@ const ReviewsPage = () => {
             <div className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden border border-white/20">
               <div className="relative">
                 <img src={selectedReview.images[currentIndex].url} alt={`Image ${currentIndex + 1} of ${selectedReview.images.length}`} className="w-full max-h-[50vh] sm:max-h-[70vh] object-contain bg-black" />
+                {/* Image counter below image */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs sm:text-sm font-abeze px-3 py-1 rounded-full shadow-lg pointer-events-none select-none">
+                  {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}
+                </div>
                 <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full" aria-label={t('gallery.previousImage') || 'Previous'}>
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
@@ -159,7 +175,7 @@ const ReviewsPage = () => {
                 </div>
                 <p className="text-gray-300 font-abeze mb-2 sm:mb-3"><span className="text-green-400">{t('gallery.by') || 'By'}:</span> {getUserName(selectedReview)}</p>
                 {selectedReview.comment && (<p className="text-gray-300 font-abeze mb-2 sm:mb-3 italic">"{selectedReview.comment}"</p>)}
-                <p className="text-gray-400 font-abeze text-xs sm:text-sm">{new Date(selectedReview.createdAt).toLocaleDateString()} • {t('gallery.imageOf', { current: currentIndex + 1, total: selectedReview.images.length }) || `Image ${currentIndex + 1} of ${selectedReview.images.length}`}</p>
+                <p className="text-gray-400 font-abeze text-xs sm:text-sm">{new Date(selectedReview.createdAt).toLocaleDateString()} • {`Image ${currentIndex + 1} of ${selectedReview.images.length}`}</p>
               </div>
             </div>
           </div>
