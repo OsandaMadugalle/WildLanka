@@ -455,7 +455,7 @@ export default {
   'contact.faq.custom.answer': 'நிச்சயமாக! நாங்கள் உங்கள் ஆர்வங்கள், குழு அளவு மற்றும் பயண தேதிகளுக்கு ஏற்ப தனிப்பட்ட சஃபாரி அனுபவங்களை உருவாக்குவதில் நிபுணர்கள்.',
 
   // Signup translations
-  'signup.title': 'முஃபாசா வனவிலங்குடன் சேரவும்',
+  'signup.title': 'வைல்ட்லங்கா வனவிலங்குடன் சேரவும்',
   'signup.subtitle': 'உங்கள் வனவிலங்கு சாகசத்தைத் தொடங்க உங்கள் கணக்கை உருவாக்கவும்',
   'signup.form.firstName': 'முதல் பெயர்',
   'signup.form.firstNamePlaceholder': 'உங்கள் முதல் பெயர்',

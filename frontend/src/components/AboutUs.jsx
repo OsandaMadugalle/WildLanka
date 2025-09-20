@@ -86,7 +86,7 @@ const AboutUs = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-abeze font-bold text-white mb-4">
-            About <span className="text-green-400">Mufasa Wildlife</span>
+            About <span className="text-green-400">WildLanka Wildlife</span>
           </h2>
           <p className="text-gray-300 text-lg font-abeze max-w-3xl mx-auto">
             We are passionate about sharing the wonders of Sri Lankan wildlife while ensuring their protection for future generations.
@@ -101,7 +101,7 @@ const AboutUs = () => {
             </h3>
             <div className="space-y-4 text-gray-300 font-abeze leading-relaxed">
               <p>
-                Founded in 2014, Mufasa Wildlife began with a simple mission: to connect people with Sri Lanka's incredible wildlife 
+                Founded in 2014, WildLanka Wildlife began with a simple mission: to connect people with Sri Lanka's incredible wildlife 
                 while ensuring their protection. What started as a small family operation has grown into one of Sri Lanka's most 
                 trusted wildlife tourism companies.
               </p>

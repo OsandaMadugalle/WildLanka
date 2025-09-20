@@ -638,7 +638,7 @@ export default {
   'contactUs.info.phone.title': 'Call Us',
   'contactUs.info.phone.content': '+94 11 234 5678',
   'contactUs.info.email.title': 'Email Us',
-  'contactUs.info.email.content': 'info@mufasawildlife.com',
+  'contactUs.info.email.content': 'info@wildlanka.com',
   'contactUs.hours.title': 'Business Hours',
   'contactUs.hours.content': 'Monday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 4:00 PM\nSunday: Closed',
   'contactUs.social.title': 'Follow Us',
@@ -663,7 +663,7 @@ export default {
   'contactUs.faq.a8': 'Most of our tour packages include meals. Please check your specific package details for what is included. We can accommodate dietary restrictions with advance notice.',
 
   // Signup translations
-  'signup.title': 'Join Mufasa Wildlife',
+  'signup.title': 'Join WildLanka Wildlife',
   'signup.subtitle': 'Create your account to start your wildlife adventure',
   'signup.form.firstName': 'First Name',
   'signup.form.firstNamePlaceholder': 'Your first name',
