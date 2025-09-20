@@ -73,6 +73,12 @@ export const createReview = async (req, res, next) => {
       return res.status(400).json({ message: "You have already submitted a review for this booking" });
     }
 
+    // Fetch package title to store it permanently
+    const packageData = await Package.findById(booking.packageId).select('title');
+    if (!packageData) {
+      return res.status(404).json({ message: "Package not found" });
+    }
+
     // Handle images (optional)
     let images = [];
     if (req.files && Array.isArray(req.files)) {
@@ -86,6 +92,7 @@ export const createReview = async (req, res, next) => {
     const review = await Review.create({
       userId,
       packageId: booking.packageId,
+      packageTitle: packageData.title,
       bookingId: booking._id,
       rating: Number(rating),
       comment: comment || "",

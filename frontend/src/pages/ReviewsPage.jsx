@@ -108,11 +108,11 @@ const ReviewsPage = () => {
                       <span className="text-green-300">No image</span>
                     </div>
                   )}
-                  <div className="font-bold text-white text-center">{review.packageId?.title || 'Safari Package'}</div>
+                  <div className="font-bold text-white text-center">{review.packageTitle || review.packageId?.title || 'Safari Package'}</div>
                   <div className="flex items-center space-x-1 mt-1">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      <svg key={i} className={`w-4 h-4 ${i < review.rating ? 'text-amber-400 fill-current drop-shadow-sm' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                       </svg>
                     ))}
                     <span className="text-amber-300 text-sm ml-1 font-bold">{review.rating}/5</span>
@@ -140,11 +140,11 @@ const ReviewsPage = () => {
             {selectedReview.images && selectedReview.images.length > 0 && (
               <img src={selectedReview.images[currentIndex].url} alt={`Review by ${getUserName(selectedReview)}`} className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain" />
             )}
-            <div className="text-white mt-4 font-abeze font-bold text-center text-lg">{selectedReview.packageId?.title || 'Safari Package'}</div>
+            <div className="text-white mt-4 font-abeze font-bold text-center text-lg">{selectedReview.packageTitle || selectedReview.packageId?.title || 'Safari Package'}</div>
             <div className="flex items-center justify-center space-x-1 mt-3 bg-white/10 px-4 py-2 rounded-full">
               {[...Array(5)].map((_, i) => (
-                <svg key={i} className={`w-6 h-6 ${i < selectedReview.rating ? 'text-amber-400 fill-current drop-shadow-md' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-.1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                <svg key={i} className={`w-6 h-6 ${i < selectedReview.rating ? 'text-amber-400 fill-current drop-shadow-md' : 'text-gray-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               ))}
               <span className="text-amber-300 font-abeze ml-3 text-xl font-bold">{selectedReview.rating}/5</span>

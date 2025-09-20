@@ -1155,7 +1155,8 @@ const UserAccountPage = () => {
                                 <div className="flex items-center justify-between mb-2">
                                   <div>
                                     <p className="text-white font-abeze font-semibold text-lg">
-                                      {review.packageId?.title ||
+                                      {review.packageTitle ||
+                                        review.packageId?.title ||
                                         review.bookingId.packageDetails?.title ||
                                         "N/A"}
                                     </p>
@@ -1171,14 +1172,14 @@ const UserAccountPage = () => {
                                     {[...Array(5)].map((_, i) => (
                                       <svg
                                         key={i}
-                                        className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-400'}`}
+                                        className={`w-5 h-5 ${i < review.rating ? 'text-amber-400' : 'text-gray-500'}`}
                                         fill="currentColor"
-                                        viewBox="0 0 20 20"
+                                        viewBox="0 0 24 24"
                                       >
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.719c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                       </svg>
                                     ))}
-                                    <span className="ml-2 text-xs text-slate-300">{review.rating}/5</span>
+                                    <span className="ml-2 text-xs text-amber-300 font-bold">{review.rating}/5</span>
                                   </div>
                                 </div>
                                 <p className="text-slate-300 font-abeze mb-2 line-clamp-3">
@@ -1265,7 +1266,7 @@ const UserAccountPage = () => {
                               </button>
                               <div className="mb-4">
                                 <h4 className="text-2xl font-bold text-white mb-1 font-abeze">
-                                  {modalReview.packageId?.title || modalReview.bookingId.packageDetails?.title || "N/A"}
+                                  {modalReview.packageTitle || modalReview.packageId?.title || modalReview.bookingId.packageDetails?.title || "N/A"}
                                 </h4>
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold mb-2 inline-block ${modalReview.rating === 5 ? "bg-green-500 text-white" : modalReview.rating >= 3 ? "bg-yellow-400 text-white" : "bg-red-500 text-white"}`}>
                                   {modalReview.rating} stars

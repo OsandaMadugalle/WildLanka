@@ -2372,7 +2372,7 @@ The Wildlife Safari Team`);
                                 if (!reviewSearch.trim()) return true;
                                 const search = reviewSearch.trim().toLowerCase();
                                 const user = `${rev.userId?.firstName || ''} ${rev.userId?.lastName || ''}`.toLowerCase();
-                                const pkg = (rev.packageId?.title || '').toLowerCase();
+                                const pkg = (rev.packageTitle || rev.packageId?.title || '').toLowerCase();
                                 const comment = (rev.comment || '').toLowerCase();
                                 return user.includes(search) || pkg.includes(search) || comment.includes(search);
                               })
@@ -2390,7 +2390,7 @@ The Wildlife Safari Team`);
                               })
                               .map((rev) => (
                                 <tr key={rev._id} className="border-b border-green-800 hover:bg-green-950/60 transition-colors">
-                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.packageId?.title}</td>
+                                  <td className="py-4 px-6 text-green-100 font-abeze">{rev.packageTitle || rev.packageId?.title}</td>
                                   <td className="py-4 px-6 text-green-100 font-abeze">{rev.userId?.firstName} {rev.userId?.lastName}</td>
                                   <td className="py-4 px-6 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-300 font-bold">{rev.rating} / 5</span></td>
                                   <td className="py-4 px-6 text-green-50 font-abeze text-sm max-w-md truncate">{rev.comment}</td>
@@ -2428,7 +2428,7 @@ The Wildlife Safari Team`);
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                     <div className="p-6">
-                      <h2 className="text-2xl font-bold text-green-100 mb-2 font-abeze">{viewReview.packageId?.title || 'Unknown Package'}</h2>
+                      <h2 className="text-2xl font-bold text-green-100 mb-2 font-abeze">{viewReview.packageTitle || viewReview.packageId?.title || 'Unknown Package'}</h2>
                       <div className="mb-2 text-green-300 font-abeze">By: <span className="font-bold">{viewReview.userId?.firstName} {viewReview.userId?.lastName}</span></div>
                       <div className="mb-2 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-200 font-bold">Rating: {viewReview.rating} / 5</span></div>
                       {viewReview.comment && <div className="mb-2 text-green-100 font-abeze italic">"{viewReview.comment}"</div>}
