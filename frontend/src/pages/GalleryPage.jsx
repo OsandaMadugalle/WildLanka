@@ -58,7 +58,14 @@ const GalleryPage = () => {
                     <span className="text-green-300">No image</span>
                   </div>
                 )}
-                {img.price && <div className="text-red-500 font-bold text-lg bg-white/10 px-3 py-1 rounded-full">Price: ${img.price}</div>}
+                {img.price && (
+                  <div className="mt-2 flex justify-center">
+                    <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-base px-4 py-2 rounded-lg shadow-lg border border-emerald-500/30">
+                      <span className="text-emerald-100 text-sm font-medium">From </span>
+                      <span className="text-xl">${img.price}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -74,8 +81,11 @@ const GalleryPage = () => {
             <img src={modalImage.imageUrl} alt={modalImage.title || 'Gallery Image'} className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain" />
             <div className="text-white mt-4 font-abeze font-bold text-center text-lg max-w-2xl leading-relaxed">{modalImage.title || 'Gallery Image'}</div>
             {modalImage.price && (
-              <div className="text-red-500 font-bold text-xl bg-white/20 px-4 py-2 rounded-full mt-4 shadow-md">
-                Price: ${modalImage.price}
+              <div className="mt-6 flex justify-center">
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-lg px-6 py-3 rounded-xl shadow-xl border border-emerald-500/30">
+                  <span className="text-emerald-100 text-sm font-medium block text-center mb-1">Starting From</span>
+                  <span className="text-3xl font-bold text-center block">${modalImage.price}</span>
+                </div>
               </div>
             )}
             <button 
