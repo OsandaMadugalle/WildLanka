@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import image1 from '../assets/1.png';
-import image2 from '../assets/2.png';
-import image3 from '../assets/3.png';
+import image1 from '../assets/b1.png';
+import image2 from '../assets/b2.png';
+import image3 from '../assets/b3.png';
+import image4 from '../assets/b4.png';
 
 const BackgroundSlideshow = ({ children }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -9,7 +10,8 @@ const BackgroundSlideshow = ({ children }) => {
   const images = [
     image1,
     image2,
-    image3
+    image3,
+    image4
   ];
 
   useEffect(() => {
