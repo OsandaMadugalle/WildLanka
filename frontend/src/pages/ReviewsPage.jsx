@@ -38,8 +38,7 @@ const ReviewsPage = () => {
     }
   };
 
-  const reviewsWithImages = (reviews || []).filter(r => r.images && r.images.length > 0);
-  const displayedReviews = [...reviewsWithImages].sort((a, b) => {
+  const displayedReviews = [...(reviews || [])].sort((a, b) => {
     if (filter === 'recent' || filter === 'all') return new Date(b.createdAt) - new Date(a.createdAt);
     if (filter === 'popular') {
       if (b.rating !== a.rating) return b.rating - a.rating;
@@ -99,7 +98,13 @@ const ReviewsPage = () => {
               {displayedReviews.map((review) => (
                 <div key={review._id} className="group relative bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 shadow-md hover:shadow-green-400/30 transition-all duration-300 cursor-pointer" onClick={() => openModal(review, 0)}>
                   <div className="aspect-square overflow-hidden relative">
-                    <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    {review.images && review.images.length > 0 ? (
+                      <img src={review.images[0].url} alt={`Review by ${getUserName(review)}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-400 text-2xl font-abeze">
+                        No Image
+                      </div>
+                    )}
                   </div>
                   {/* Location below image */}
                   <div className="px-3 pt-2 pb-1">
