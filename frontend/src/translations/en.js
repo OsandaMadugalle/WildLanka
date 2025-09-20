@@ -453,7 +453,7 @@ export default {
   'packages.noPackagesFound': 'No packages found for the selected category.',
   'packages.popular': 'Popular',
   'packages.reviews': 'reviews',
-  'packages.maxPeople': 'Max {count} people',
+  'packages.maxPeople': 'Max {{count}} people',
   'packages.highlights': 'Highlights:',
   'packages.features': 'Features:',
   'packages.perPerson': '/person',

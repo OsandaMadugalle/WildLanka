@@ -444,7 +444,7 @@
   'packages.noPackagesFound': 'තෝරාගත් කාණ්ඩය සඳහා පැකේජ කිසිවක් හොයාගත නොහැක.',
   'packages.popular': 'ජනප්‍රිය',
   'packages.reviews': 'සමාලෝචන',
-  'packages.maxPeople': 'උපරිම {count} දෙනෙක්',
+  'packages.maxPeople': 'උපරිම {{count}} දෙනෙක්',
   'packages.highlights': 'උසස් කරුණු:',
   'packages.features': 'විශේෂාංග:',
   'packages.perPerson': '/පුද්ගලයා',
