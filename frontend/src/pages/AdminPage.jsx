@@ -2331,25 +2331,25 @@ The Wildlife Safari Team`);
               {activeTab === "attendance" && <Attendance />}
               {activeTab === "reviews" && (
                 <div className="space-y-6">
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                    <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <h3 className="text-xl font-abeze font-bold text-white">Reviews</h3>
                       <div className="text-sm text-gray-300 font-abeze">Total: {reviews.length}</div>
                     </div>
-                    <div className="flex flex-wrap gap-2 items-center">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-stretch w-full md:w-auto">
                       <input
                         type="text"
                         placeholder="Search by user, package, comment..."
                         value={reviewSearch}
                         onChange={e => setReviewSearch(e.target.value)}
-                        className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none"
-                        style={{ minWidth: 180 }}
+                        className="px-3 py-1 rounded bg-white/10 text-white border border-white/20 font-abeze text-sm focus:outline-none w-full sm:w-auto min-w-[150px]"
+                        style={{ minWidth: 0, maxWidth: 220 }}
                       />
                       <select
                         value={reviewRatingFilter}
                         onChange={e => setReviewRatingFilter(e.target.value)}
-                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
-                        style={{ minWidth: 120 }}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+                        style={{ minWidth: 0, maxWidth: 140 }}
                       >
                         <option value="All">All Ratings</option>
                         {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Stars</option>)}
@@ -2357,8 +2357,8 @@ The Wildlife Safari Team`);
                       <select
                         value={reviewSortBy}
                         onChange={e => setReviewSortBy(e.target.value)}
-                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
-                        style={{ minWidth: 120 }}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[100px]"
+                        style={{ minWidth: 0, maxWidth: 140 }}
                       >
                         <option value="createdAt">Sort by Date</option>
                         <option value="rating">Sort by Rating</option>
@@ -2366,8 +2366,8 @@ The Wildlife Safari Team`);
                       <select
                         value={reviewSortOrder}
                         onChange={e => setReviewSortOrder(e.target.value)}
-                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors"
-                        style={{ minWidth: 100 }}
+                        className="px-3 py-1 rounded bg-green-950/90 text-green-100 border border-green-700 font-abeze text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-colors w-full sm:w-auto min-w-[80px]"
+                        style={{ minWidth: 0, maxWidth: 100 }}
                       >
                         <option value="desc">Desc</option>
                         <option value="asc">Asc</option>
@@ -2379,9 +2379,9 @@ The Wildlife Safari Team`);
                       <div className="text-gray-300 font-abeze">Loading reviews...</div>
                     </div>
                   ) : (
-                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
+                    <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-x-auto">
+                      <div className="min-w-[600px]">
+                        <table className="w-full text-sm">
                           <thead>
                             <tr className="border-b border-white/20">
                               <th className="text-left py-4 px-6 bg-green-900/80 text-green-300 font-abeze uppercase tracking-wider border-b border-green-700">Package</th>
@@ -2422,15 +2422,17 @@ The Wildlife Safari Team`);
                                   <td className="py-4 px-6 font-abeze"><span className="inline-block px-2 py-1 rounded bg-yellow-600/20 text-yellow-300 font-bold">{rev.rating} / 5</span></td>
                                   <td className="py-4 px-6 text-green-50 font-abeze text-sm max-w-md truncate">{rev.comment}</td>
                                   <td className="py-4 px-6">
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2 justify-start items-center min-w-[80px]">
                                       {(rev.images || []).slice(0, 3).map((img) => (
                                         <img key={img.id || img.url} src={img.url} className="w-10 h-10 object-cover rounded border border-green-800" alt="review" />
                                       ))}
                                     </div>
                                   </td>
-                                  <td className="py-4 px-6 flex gap-2">
-                                    <button onClick={() => setViewReview(rev)} className="px-3 py-1 bg-blue-700/80 text-blue-100 hover:bg-blue-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400">View</button>
-                                    <button onClick={() => handleDeleteReview(rev._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">Delete</button>
+                                  <td className="py-4 px-6">
+                                    <div className="flex flex-col sm:flex-row gap-2 w-full min-w-[90px]">
+                                      <button onClick={() => setViewReview(rev)} className="px-3 py-1 bg-blue-700/80 text-blue-100 hover:bg-blue-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 w-full sm:w-auto">View</button>
+                                      <button onClick={() => handleDeleteReview(rev._id)} className="px-3 py-1 bg-red-700/80 text-red-100 hover:bg-red-600/90 hover:text-white rounded text-xs font-abeze font-bold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 w-full sm:w-auto">Delete</button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -2443,8 +2445,8 @@ The Wildlife Safari Team`);
               )}
               {/* Review Details Modal */}
               {viewReview && (
-                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-                  <div className="bg-green-950/95 backdrop-blur-md rounded-2xl border-2 border-green-700 max-w-lg w-full relative shadow-2xl">
+                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-2 sm:p-4">
+                  <div className="bg-green-950/95 backdrop-blur-md rounded-2xl border-2 border-green-700 w-full max-w-lg sm:max-w-xl relative shadow-2xl mx-auto">
                     <button
                       onClick={() => setViewReview(null)}
                       className="absolute top-2 right-2 bg-green-900/80 hover:bg-green-800/90 text-green-200 hover:text-white p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-green-400"
