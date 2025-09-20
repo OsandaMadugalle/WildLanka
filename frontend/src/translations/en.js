@@ -1,4 +1,12 @@
 export default {
+  'userAccount.totalReviews': 'Total Reviews',
+  'userAccount.sortBy': 'Sort by',
+  'userAccount.sortRecent': 'Most Recent',
+  'userAccount.sortHighest': 'Highest Rated',
+  'userAccount.sortLowest': 'Lowest Rated',
+  'userAccount.prev': 'Prev',
+  'userAccount.next': 'Next',
+  'userAccount.page': 'Page',
   'faq.title': 'Frequently Asked Questions',
   'faq.description': 'Find answers to the most common questions about our safaris, bookings, and services.',
   // FAQ page translations
