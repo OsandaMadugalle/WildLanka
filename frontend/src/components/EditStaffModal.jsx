@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { staffApi } from '../services/api';
 
-const EditStaffModal = ({ staff, onClose, onStaffUpdated }) => {
+const EditStaffModal = ({ staff, onClose, onStaffUpdated, hideRoleAndSalary }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -270,27 +270,29 @@ const EditStaffModal = ({ staff, onClose, onStaffUpdated }) => {
 
           {/* Role and Specialization */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-300 font-abeze text-sm mb-2">Role *</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 bg-gray-800 border rounded-lg font-abeze text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.role ? 'border-red-500' : 'border-gray-600'
-                }`}
-              >
-                <option value="">Select role</option>
-                {roles.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-              {errors.role && (
-                <p className="text-red-400 text-sm mt-1">{errors.role}</p>
-              )}
-            </div>
+            {!hideRoleAndSalary && (
+              <div>
+                <label className="block text-gray-300 font-abeze text-sm mb-2">Role *</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 bg-gray-800 border rounded-lg font-abeze text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.role ? 'border-red-500' : 'border-gray-600'
+                  }`}
+                >
+                  <option value="">Select role</option>
+                  {roles.map(role => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.role && (
+                  <p className="text-red-400 text-sm mt-1">{errors.role}</p>
+                )}
+              </div>
+            )}
             <div>
               <label className="block text-gray-300 font-abeze text-sm mb-2">Specialization</label>
               <input
@@ -305,21 +307,23 @@ const EditStaffModal = ({ staff, onClose, onStaffUpdated }) => {
           </div>
 
           {/* Basic Salary */}
-          <div>
-            <label className="block text-gray-300 font-abeze text-sm mb-2">Basic Salary (LKR)</label>
-            <input
-              type="number"
-              name="basicSalary"
-              value={formData.basicSalary}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg font-abeze text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="50000"
-              readOnly
-            />
-            <p className="text-gray-400 text-sm mt-1 font-abeze">
-              {formData.role === 'driver' ? 'Driver: LKR 75,000' : formData.role === 'tour_guide' ? 'Tour Guide: LKR 50,000' : 'Select a role to see salary'}
-            </p>
-          </div>
+          {!hideRoleAndSalary && (
+            <div>
+              <label className="block text-gray-300 font-abeze text-sm mb-2">Basic Salary (LKR)</label>
+              <input
+                type="number"
+                name="basicSalary"
+                value={formData.basicSalary}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg font-abeze text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="50000"
+                readOnly
+              />
+              <p className="text-gray-400 text-sm mt-1 font-abeze">
+                {formData.role === 'driver' ? 'Driver: LKR 75,000' : formData.role === 'tour_guide' ? 'Tour Guide: LKR 50,000' : 'Select a role to see salary'}
+              </p>
+            </div>
+          )}
 
           {/* Experience and License */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
