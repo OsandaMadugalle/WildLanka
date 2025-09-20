@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../services/api';
+import { authApi, staffApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
@@ -53,6 +53,9 @@ const EditProfileModal = ({ onClose, user }) => {
     email: user?.email || '',
     phone: extractPhoneNumber(user?.phone, user?.country),
     country: user?.country || '',
+    specialization: user?.specialization || '',
+    experience: user?.experience || '',
+    licenseNumber: user?.licenseNumber || '',
     currentPassword: '',
     newPassword: '',
     confirmNewPassword: '',
@@ -273,49 +276,60 @@ const EditProfileModal = ({ onClose, user }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) {
       return;
     }
-
     setIsSubmitting(true);
     try {
       // Combine country code with phone number
-      const fullPhoneNumber = formData.country && formData.country !== 'Other' 
+      const fullPhoneNumber = formData.country && formData.country !== 'Other'
         ? countryPhoneCodes[formData.country].code + formData.phone.trim()
         : formData.phone.trim();
-        
-      const payload = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
-        phone: fullPhoneNumber,
-        country: formData.country,
-      };
 
-      // Add password fields if new password is provided
-      if (formData.newPassword) {
-        payload.currentPassword = formData.currentPassword;
-        payload.newPassword = formData.newPassword;
+      // If staff/tour_guide, use staff self-profile update
+      if (user?.role === 'staff' || user?.role === 'tour_guide') {
+        const payload = {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: fullPhoneNumber,
+          specialization: formData.specialization,
+          experience: formData.experience,
+          licenseNumber: formData.licenseNumber,
+        };
+        const updatedStaff = await staffApi.updateStaff('profile', payload); // calls /api/staff/profile
+        login(updatedStaff, localStorage.getItem('auth_token'));
+        setSuccessMessage(t('editProfile.success.profileUpdated'));
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          onClose();
+          navigate('/account');
+        }, 3000);
+      } else {
+        // Regular user
+        const payload = {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: fullPhoneNumber,
+          country: formData.country,
+        };
+        if (formData.newPassword) {
+          payload.currentPassword = formData.currentPassword;
+          payload.newPassword = formData.newPassword;
+        }
+        const { user: updatedUser } = await authApi.updateProfile(payload);
+        login(updatedUser, localStorage.getItem('auth_token'));
+        const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
+        setSuccessMessage(message);
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          onClose();
+          navigate('/account');
+        }, 3000);
       }
-        
-      const { user: updatedUser } = await authApi.updateProfile(payload);
-      
-      // Update the auth context with new user data
-      login(updatedUser, localStorage.getItem('auth_token'));
-      
-      // Show success message
-      const message = formData.newPassword ? t('editProfile.success.profileAndPasswordUpdated') : t('editProfile.success.profileUpdated');
-      setSuccessMessage(message);
-      setShowSuccessMessage(true);
-      
-      // Auto-hide success message after 3 seconds and redirect to My Account
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-        onClose();
-        navigate('/account');
-      }, 3000);
-      
     } catch (err) {
       const msg = err?.response?.data?.message || t('editProfile.fileValidation.uploadFailed');
       alert(msg);
